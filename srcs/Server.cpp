@@ -10,6 +10,5 @@ Server::Server(int port): address(port, INADDR_ANY)  {
 		throw std::runtime_error("Server constructor error: Binding failed.");
 	listen(this->socket.getFd(), 5);
 	int clientFd = NetworkUtils::accept(this->socket, this->address);
-	std::cout << clientFd << std::endl;
 }
 

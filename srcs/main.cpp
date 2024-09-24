@@ -3,5 +3,9 @@
 #include <iostream>
 
 int	main() {
-	Server server(16384);
+	try {
+		Server server(16384);
+	} catch (std::exception &e) {
+		std::cout << e.what() << std::endl;
+	}
 }

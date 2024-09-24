@@ -5,7 +5,7 @@
 Address::Address(int port, int address) {
 	explicit_bzero(&this->addr, sizeof(this->addr));
 	addr.sin_family = AF_INET;
-	addr.sin_port = port;
+	addr.sin_port = htons(port);
 	addr.sin_addr.s_addr = address;
 }
 
