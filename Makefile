@@ -1,9 +1,9 @@
 CPP = c++
 FLAGS = -Wall -Wextra -Werror -std=c++98 -g3
 
-NAME = bureaucrat
+NAME = webserv
 
-SRCS = main.cpp Bureaucrat.cpp
+SRCS = main.cpp Server.cpp Address.cpp NetworkUtils.cpp Socket.cpp
 OBJS = $(addprefix objs/,$(SRCS:.cpp=.o))
 DEPS = $(OBJS:.o=.d)
 
