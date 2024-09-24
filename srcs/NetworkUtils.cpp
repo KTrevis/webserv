@@ -7,6 +7,6 @@ bool	NetworkUtils::bind(const Socket &socket, Address &address) {
 
 int	NetworkUtils::accept(const Socket &socket, Address &address) {
 	struct sockaddr *addr = &address.toSockAddr();
-	unsigned int len;
+	unsigned int len = sizeof(*addr);
 	return ::accept(socket.getFd(), addr, &len);
 }

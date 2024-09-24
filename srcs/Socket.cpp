@@ -1,5 +1,6 @@
 #include "Socket.hpp"
 #include <unistd.h>
+#include <iostream>
 
 Socket::Socket() {
 	this->fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -14,5 +15,8 @@ int	Socket::getFd() const {
 }
 
 Socket::~Socket() {
-	close(this->fd);
+	if (close(this->fd) < 0)
+		std::cerr << "ERROR:" << fd << " close failed" << std::endl;
+	else
+		std::cerr << this->fd << " socket closed" << std::endl;
 }
