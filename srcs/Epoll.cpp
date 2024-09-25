@@ -15,6 +15,7 @@ Epoll::Epoll(Server &server): _server(server) {
 	bzero(_events, sizeof(_events));
 	_epollfd = epoll_create1(0);
 	event.events = EPOLLIN | EPOLLOUT;
+	event.data.fd = server.getFd();
 	addFdToPoll(server.getFd(), event);
 }
 
