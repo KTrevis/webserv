@@ -1,12 +1,13 @@
 #pragma once
 #include <vector>
 #include "sys/poll.h"
+#include "Socket.hpp"
 
 class Poller {
 	public:
 		void	poll();
 		void	addSocket(int fd);
+		~Poller();
 	private:
-		void	copyVectorToArray(struct pollfd *arr);
-		std::vector<struct pollfd> sockets;
+		std::vector<Socket> sockets;
 };

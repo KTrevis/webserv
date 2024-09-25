@@ -11,7 +11,8 @@ Server::Server(int port): address(port, INADDR_ANY)  {
 		throw std::runtime_error("Server constructor error: Binding failed.");
 	listen(this->socket.getFd(), 5);
 	while (1) {
-		
+		this->poller.poll();
+		std::cout << "r" << std::endl;
 	}
 }
 
