@@ -1,6 +1,5 @@
 #include "NetworkUtils.hpp"
 #include "Server.hpp"
-#include "Poller.hpp"
 #include <cstdlib>
 #include <signal.h>
 #include <iostream>

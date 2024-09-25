@@ -1,4 +1,5 @@
 #include "Socket.hpp"
+#include <sys/poll.h>
 #include <unistd.h>
 #include <iostream>
 
@@ -16,7 +17,7 @@ int	Socket::getFd() const {
 
 Socket::~Socket() {
 	if (close(this->fd) < 0)
-		std::cerr << "ERROR:" << fd << " close failed" << std::endl;
+		std::cerr << "ERROR: " << this->fd << " close failed" << std::endl;
 	else
 		std::cerr << this->fd << " socket closed" << std::endl;
 }

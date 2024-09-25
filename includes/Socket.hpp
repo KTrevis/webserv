@@ -1,6 +1,7 @@
 #pragma once
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <poll.h>
 
 class Socket {
 	public:
@@ -9,5 +10,5 @@ class Socket {
 		~Socket();
 		int	getFd() const;
 	private:
-		int		fd;
+		int	fd;
 };
