@@ -4,17 +4,18 @@
 
 class Server;
 
-#define MAX_EVENTS
+#define MAX_EVENTS 100
 
 class Epoll {
 	public:
-		Epoll(int fdToMonitor);
+		Epoll(Server &server);
 		~Epoll();
 		void	wait();
 	private:
-		void				createNewConnection();
-		int					_serverSocket;
-		int					_epollfd;
-		Server				&_server;
-		struct epoll_event	_events[MAX_EVENTS];
+		bool		isNewClient(const epoll_event &event);
+		void		handleNewConnection();
+		void		addFdToPoll(int fd, epoll_event event);
+		int			_epollfd;
+		Server		&_server;
+		epoll_event	_events[MAX_EVENTS];
 };

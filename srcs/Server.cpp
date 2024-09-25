@@ -10,9 +10,13 @@
 void	Server::start() {
 }
 
-Server::Server(int port): _address(port, INADDR_ANY), _epoll(_socket.getFd())  {
+Server::Server(int port): _address(port, INADDR_ANY), _epoll(*this)  {
 	if (NetworkUtils::bind(_socket, _address) == false)
 		throw std::runtime_error("Server constructor error: Binding failed.");
 	listen(_socket.getFd(), 5);
 	_epoll.wait();
+}
+
+int	Server::getFd() {
+	return this->_socket.getFd();
 }
