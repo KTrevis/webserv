@@ -2,10 +2,6 @@
 #include <sys/poll.h>
 #include <unistd.h>
 
-Poller::~Poller() {
-	
-}
-
 void	Poller::poll() {
 	size_t size = this->sockets.size();
 	struct pollfd arr[size];

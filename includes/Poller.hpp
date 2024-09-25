@@ -7,7 +7,6 @@ class Poller {
 	public:
 		void	poll();
 		void	addSocket(int fd);
-		~Poller();
 	private:
 		std::vector<Socket> sockets;
 };
