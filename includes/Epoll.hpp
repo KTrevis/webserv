@@ -5,6 +5,7 @@
 class Epoll {
 	public:
 		Epoll(int fdToMonitor);
+		~Epoll();
 		void	wait();
 	private:
 		int epollfd;

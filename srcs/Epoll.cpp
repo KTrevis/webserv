@@ -1,6 +1,7 @@
 #include "Epoll.hpp"
 #include <iostream>
 #include <sys/epoll.h>
+#include <unistd.h>
 
 Epoll::Epoll(int fdToMonitor) {
 	this->epollfd = epoll_create1(0);
@@ -10,6 +11,10 @@ Epoll::Epoll(int fdToMonitor) {
 }
 
 void	Epoll::wait() {
-	::epoll_wait(this->epollfd, &this->events, 100, -1);
+	epoll_wait(this->epollfd, &this->events, 100, -1);
 	std::cout << "je suis chokbar" << std::endl;
+}
+
+Epoll::~Epoll() {
+	close(this->epollfd);
 }
