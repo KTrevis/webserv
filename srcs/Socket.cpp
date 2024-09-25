@@ -4,20 +4,20 @@
 #include <iostream>
 
 Socket::Socket() {
-	this->fd = socket(AF_INET, SOCK_STREAM, 0);
+	_fd = socket(AF_INET, SOCK_STREAM, 0);
 }
 
 Socket::Socket(int fd) {
-	this->fd = fd;
+	_fd = fd;
 }
 
 int	Socket::getFd() const {
-	return this->fd;
+	return _fd;
 }
 
 Socket::~Socket() {
-	if (close(this->fd) < 0)
-		std::cerr << "ERROR: " << this->fd << " close failed" << std::endl;
+	if (close(_fd) < 0)
+		std::cerr << "ERROR: " << _fd << " close failed" << std::endl;
 	else
-		std::cerr << this->fd << " socket closed" << std::endl;
+		std::cerr << _fd << " socket closed" << std::endl;
 }

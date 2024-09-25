@@ -8,5 +8,5 @@ class Address {
 		Address(int port, int address);
 		struct sockaddr	&toSockAddr();
 	private:
-		struct sockaddr_in addr;
+		struct sockaddr_in _addr;
 };

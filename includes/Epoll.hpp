@@ -2,12 +2,19 @@
 
 #include <sys/epoll.h>
 
+class Server;
+
+#define MAX_EVENTS
+
 class Epoll {
 	public:
 		Epoll(int fdToMonitor);
 		~Epoll();
 		void	wait();
 	private:
-		int epollfd;
-		struct epoll_event events;
+		void				createNewConnection();
+		int					_serverSocket;
+		int					_epollfd;
+		Server				&_server;
+		struct epoll_event	_events[MAX_EVENTS];
 };

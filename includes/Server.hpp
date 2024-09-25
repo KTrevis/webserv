@@ -9,9 +9,8 @@ class Server {
 	public:
 		Server(int port);
 		void	start();
-		void	poll();
 	private:
-		Socket	socket;
-		Address	address;
-		Epoll	epoll;
+		Socket	_socket;
+		Address	_address;
+		Epoll	_epoll;
 };

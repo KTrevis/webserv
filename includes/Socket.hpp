@@ -10,5 +10,5 @@ class Socket {
 		~Socket();
 		int	getFd() const;
 	private:
-		int	fd;
+		int	_fd;
 };
