@@ -1,4 +1,4 @@
-#include "NetworkUtils.hpp"
+#include "Log.hpp"
 #include "Server.hpp"
 #include <cstdlib>
 #include <signal.h>
@@ -17,7 +17,8 @@ int	main(int ac, char **av) {
 	/* signal(SIGINT, onSigint); */
 	try {
 		Server server(atoi(av[1]));
+		server.start();
 	} catch (std::exception &e) {
-		std::cout << e.what() << std::endl;
+		Log::Error(e.what());
 	}
 }

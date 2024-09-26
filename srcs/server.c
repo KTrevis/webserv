@@ -6,8 +6,8 @@
 
 int	main(int ac, char **av) {
 	if (ac != 2) return dprintf(2, "usage: %s [port]\n", av[0]);
-	struct sockaddr_in servAddr;
-	struct sockaddr_in clientAddr;
+	sockaddr_in servAddr;
+	sockaddr_in clientAddr;
 	int	serverSocket;
 	int	clientSocket;
 	unsigned int	clientLen = sizeof(struct sockaddr_in);

@@ -1,4 +1,6 @@
 #include "Socket.hpp"
+#include "Log.hpp"
+#include <cstdio>
 #include <sys/poll.h>
 #include <unistd.h>
 #include <iostream>
@@ -16,8 +18,13 @@ int	Socket::getFd() const {
 }
 
 Socket::~Socket() {
-	if (close(_fd) < 0)
-		std::cerr << "ERROR: " << _fd << " close failed" << std::endl;
-	else
-		std::cerr << _fd << " socket closed" << std::endl;
+	char log[1024];
+
+	if (close(_fd) < 0) {
+		sprintf(log, "%d socket with fd close failed", _fd); 
+		Log::Error(log);
+		return;
+	}
+	sprintf(log, "%d socket with fd closed successfully", _fd); 
+	Log::Debug(log);
 }

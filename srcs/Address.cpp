@@ -9,6 +9,6 @@ Address::Address(int port, int address) {
 	_addr.sin_addr.s_addr = address;
 }
 
-struct sockaddr &Address::toSockAddr() {
-	return reinterpret_cast<struct sockaddr &>(_addr);
+sockaddr &Address::toSockAddr() {
+	return reinterpret_cast<sockaddr &>(_addr);
 }

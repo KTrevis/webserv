@@ -8,7 +8,8 @@ class Server {
 	public:
 		Server(int port);
 		void	start();
-		int		getFd();
+		const Socket	&getSocket();
+		Address		&getAdress();
 	private:
 		Socket	_socket;
 		Address	_address;

@@ -6,7 +6,7 @@
 class Address {
 	public:
 		Address(int port, int address);
-		struct sockaddr	&toSockAddr();
+		sockaddr	&toSockAddr();
 	private:
-		struct sockaddr_in _addr;
+		sockaddr_in _addr;
 };

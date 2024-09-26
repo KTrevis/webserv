@@ -8,15 +8,21 @@
 #include <iostream>
 
 void	Server::start() {
+	while (1) {
+		_epoll.wait();
+	}
 }
 
 Server::Server(int port): _address(port, INADDR_ANY), _epoll(*this)  {
 	if (NetworkUtils::bind(_socket, _address) == false)
 		throw std::runtime_error("Server constructor error: Binding failed.");
 	listen(_socket.getFd(), 5);
-	_epoll.wait();
 }
 
-int	Server::getFd() {
-	return this->_socket.getFd();
+const Socket &Server::getSocket() {
+	return _socket;
+}
+
+Address &Server::getAdress() {
+	return _address;
 }
