@@ -59,77 +59,30 @@ void	Epoll::handleNewConnection() {
 	addFdToPoll(fd, event);
 }
 
-static std::string eventToStr(int event) {
-	switch (event) {
-		case (EPOLLIN): return "EPOLLIN";
-		case (EPOLLPRI): return "EPOLLPRI";
-		case (EPOLLOUT): return "EPOLLOUT";
-		case (EPOLLRDNORM): return "EPOLLRDNORM";
-		case (EPOLLRDBAND): return "EPOLLRDBAND";
-		case (EPOLLWRNORM): return "EPOLLWRNORM";
-		case (EPOLLWRBAND): return "EPOLLWRBAND";
-		case (EPOLLMSG): return "EPOLLMSG";
-		case (EPOLLERR): return "EPOLLERR";
-		case (EPOLLHUP): return "EPOLLHUP";
-		case (EPOLLRDHUP): return "EPOLLRDHUP";
-		case (EPOLLEXCLUSIVE): return "EPOLLEXCLUSIVE";
-		case (EPOLLWAKEUP): return "EPOLLWAKEUP";
-		case (EPOLLONESHOT): return "EPOLLONESHOT";
-	}
-	return "";
-}
-
-static void displayEvent(int maskEvent) {
-	const int size = 14;
-	const EPOLL_EVENTS events[size] = {
-		EPOLLIN,
-		EPOLLPRI,
-		EPOLLOUT,
-		EPOLLRDNORM,
-		EPOLLRDBAND,
-		EPOLLWRNORM,
-		EPOLLWRBAND,
-		EPOLLMSG,
-		EPOLLERR,
-		EPOLLHUP,
-		EPOLLRDHUP,
-		EPOLLEXCLUSIVE,
-		EPOLLWAKEUP,
-		EPOLLONESHOT,
-	};
-
-	for (int i = 0; i < size; i++) {
-		if (maskEvent & events[i]) {
-			std::string str = "Event happened: " + eventToStr(events[i]);
-			Log::Debug(str);
-		}
-	}
-}
-
-static bool canReadSocket(int fd) {
+bool Epoll::canReadSocket(epoll_event event) {
 	char str[1024];
-	return read(fd, str, 1023) != 0;
+	int n = read(event.data.fd, str, 1023);
+	closeConnection(event);
+	return n != 0;
 }
 
-static void handleReceivedData(epoll_event event) {
+void Epoll::handleReceivedData(epoll_event event) {
+	(void)event;
 }
 
 void	Epoll::wait() {
 	int nbEvents = epoll_wait(_epollfd, _events, MAX_EVENTS, -1);
 
 	for (int i = 0; i < nbEvents; i++) {
-		displayEvent(_events[i].events);
+		Log::Event(_events[i].events);
 		if (_events[i].events & (EPOLLHUP | EPOLLRDHUP | EPOLLERR))
 			closeConnection(_events[i]);
 		if (_events[i].events & EPOLLIN && isNewClient(_events[i]))
 			handleNewConnection();
 		if (_events[i].events & EPOLLIN) {
-			if (!read(_events[i].data.fd, str, 1023))
-			{
-				closeConnection(_events[i]);
+			if (!canReadSocket(_events[i]))
 				break;
-			}
-
+			handleReceivedData(_events[i]);
 		}
 		if (_events[i].events & EPOLLOUT)
 			dprintf(_events[i].data.fd, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 66\n\n<html><head><title>Basic Page</title></head><body><h1>Hello, World!</body></html>");

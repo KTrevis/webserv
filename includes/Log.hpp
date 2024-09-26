@@ -13,7 +13,8 @@ enum e_loglevel {
 #endif
 
 namespace Log {
-	void Error(const std::string &str);
-	void Info(const std::string &str);
-	void Debug(const std::string &str);
+	void		Error(const std::string &str);
+	void		Info(const std::string &str);
+	void		Debug(const std::string &str);
+	void		Event(int maskEvent);
 };
