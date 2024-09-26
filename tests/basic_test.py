@@ -3,7 +3,7 @@ import sys
 
 def main():
     server_ip = "localhost"
-    port = 16384
+    port = 8888
     try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((server_ip, port))

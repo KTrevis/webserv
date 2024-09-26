@@ -21,7 +21,7 @@ Epoll::Epoll(Server &server): _server(server) {
 
 	explicit_bzero(_events, sizeof(_events));
 	_epollfd = epoll_create1(0);
-	event.events = EPOLLIN | EPOLLOUT;
+	event.events = EPOLLIN;
 	event.data.fd = server.getSocket().getFd();
 	addFdToPoll(server.getSocket().getFd(), event);
 }
@@ -38,6 +38,7 @@ static void displayNewClient(int fd) {
 
 static void displayClosedClient(int fd) {
 	char str[1024];
+
 	sprintf(str, "Closed client with socket %d", fd);
 	Log::Info(str);
 }
@@ -45,6 +46,7 @@ static void displayClosedClient(int fd) {
 void	Epoll::closeConnection(epoll_event &event) {
 	displayClosedClient(event.data.fd);
 	removeFdFromPoll(event.data.fd, event);
+	close(event.data.fd);
 }
 
 void	Epoll::handleNewConnection() {
@@ -104,15 +106,33 @@ static void displayEvent(int maskEvent) {
 	}
 }
 
+static bool canReadSocket(int fd) {
+	char str[1024];
+	return read(fd, str, 1023) != 0;
+}
+
+static void handleReceivedData(epoll_event event) {
+}
+
 void	Epoll::wait() {
 	int nbEvents = epoll_wait(_epollfd, _events, MAX_EVENTS, -1);
 
 	for (int i = 0; i < nbEvents; i++) {
 		displayEvent(_events[i].events);
-		if (_events[i].events & (EPOLLHUP | EPOLLRDHUP))
+		if (_events[i].events & (EPOLLHUP | EPOLLRDHUP | EPOLLERR))
 			closeConnection(_events[i]);
-		if (isNewClient(_events[i]))
+		if (_events[i].events & EPOLLIN && isNewClient(_events[i]))
 			handleNewConnection();
+		if (_events[i].events & EPOLLIN) {
+			if (!read(_events[i].data.fd, str, 1023))
+			{
+				closeConnection(_events[i]);
+				break;
+			}
+
+		}
+		if (_events[i].events & EPOLLOUT)
+			dprintf(_events[i].data.fd, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 66\n\n<html><head><title>Basic Page</title></head><body><h1>Hello, World!</body></html>");
 	}
 }
 

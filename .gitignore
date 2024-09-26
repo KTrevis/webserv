@@ -2,3 +2,4 @@ objs/
 compile_commands.json
 webserv
 .cache
+log

@@ -8,9 +8,8 @@
 #include <iostream>
 
 void	Server::start() {
-	while (1) {
+	while (1)
 		_epoll.wait();
-	}
 }
 
 Server::Server(int port): _address(port, INADDR_ANY), _epoll(*this)  {
