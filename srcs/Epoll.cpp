@@ -50,8 +50,8 @@ void	Epoll::closeConnection(epoll_event &event) {
 }
 
 void	Epoll::handleNewConnection() {
-	epoll_event event;
 	int fd = NetworkUtils::accept(_server.getSocket(), _server.getAdress());
+	epoll_event event;
 
 	event.events = EPOLLIN | EPOLLOUT;
 	event.data.fd = fd;
@@ -59,15 +59,18 @@ void	Epoll::handleNewConnection() {
 	addFdToPoll(fd, event);
 }
 
-bool Epoll::canReadSocket(epoll_event event) {
-	char str[1024];
-	int n = read(event.data.fd, str, 1023);
-	closeConnection(event);
-	return n != 0;
+void Epoll::handleReceivedData(epoll_event &event) {
+	(void)event;
 }
 
-void Epoll::handleReceivedData(epoll_event event) {
-	(void)event;
+bool Epoll::isLoggedOut(epoll_event &event) {
+	if (event.events & (EPOLLHUP | EPOLLRDHUP | EPOLLERR))
+		return true;
+	if (!(event.events & EPOLLIN))
+		return false;
+	char str[1024];
+	int n = read(event.data.fd, str, 1023);
+	return n == 0;
 }
 
 void	Epoll::wait() {
@@ -75,15 +78,14 @@ void	Epoll::wait() {
 
 	for (int i = 0; i < nbEvents; i++) {
 		Log::Event(_events[i].events);
-		if (_events[i].events & (EPOLLHUP | EPOLLRDHUP | EPOLLERR))
+		if (isLoggedOut(_events[i])) {
 			closeConnection(_events[i]);
+			continue;
+		}
 		if (_events[i].events & EPOLLIN && isNewClient(_events[i]))
 			handleNewConnection();
-		if (_events[i].events & EPOLLIN) {
-			if (!canReadSocket(_events[i]))
-				break;
+		if (_events[i].events & EPOLLIN)
 			handleReceivedData(_events[i]);
-		}
 		if (_events[i].events & EPOLLOUT)
 			dprintf(_events[i].data.fd, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 66\n\n<html><head><title>Basic Page</title></head><body><h1>Hello, World!</body></html>");
 	}
