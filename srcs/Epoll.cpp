@@ -2,7 +2,9 @@
 #include "Epoll.hpp"
 #include "Server.hpp"
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <string>
 #include <strings.h>
 #include <sys/epoll.h>
 #include <unistd.h>
@@ -30,23 +32,12 @@ bool Epoll::isNewClient(const epoll_event &event) {
 	return event.data.fd == _server.getSocket().getFd();
 }
 
-static void displayNewClient(int fd) {
-	char str[1024];
-	sprintf(str, "New client created with socket %d", fd);
-	Log::Info(str);
-}
-
-static void displayClosedClient(int fd) {
-	char str[1024];
-
-	sprintf(str, "Closed client with socket %d", fd);
-	Log::Info(str);
-}
-
 void	Epoll::closeConnection(epoll_event &event) {
-	displayClosedClient(event.data.fd);
 	removeFdFromPoll(event.data.fd, event);
 	close(event.data.fd);
+	char str[1024];
+	sprintf(str, "Closed client with socket %d", event.data.fd);
+	Log::Info(str);
 }
 
 void	Epoll::handleNewConnection() {
@@ -55,22 +46,17 @@ void	Epoll::handleNewConnection() {
 
 	event.events = EPOLLIN | EPOLLOUT;
 	event.data.fd = fd;
-	displayNewClient(fd);
 	addFdToPoll(fd, event);
+	char str[1024];
+	sprintf(str, "New client created with socket %d", fd);
+	Log::Info(str);
 }
 
-void Epoll::handleReceivedData(epoll_event &event) {
-	(void)event;
-}
-
-bool Epoll::isLoggedOut(epoll_event &event) {
-	if (event.events & (EPOLLHUP | EPOLLRDHUP | EPOLLERR))
-		return true;
-	if (!(event.events & EPOLLIN))
-		return false;
+bool Epoll::handleReceivedData(epoll_event &event) {
 	char str[1024];
 	int n = read(event.data.fd, str, 1023);
-	return n == 0;
+	if (n == 0 || n == -1) return false;
+	return true;
 }
 
 void	Epoll::wait() {
@@ -78,14 +64,16 @@ void	Epoll::wait() {
 
 	for (int i = 0; i < nbEvents; i++) {
 		Log::Event(_events[i].events);
-		if (isLoggedOut(_events[i])) {
+		if (_events[i].events & (EPOLLHUP | EPOLLRDHUP | EPOLLERR)) {
 			closeConnection(_events[i]);
 			continue;
 		}
 		if (_events[i].events & EPOLLIN && isNewClient(_events[i]))
 			handleNewConnection();
-		if (_events[i].events & EPOLLIN)
-			handleReceivedData(_events[i]);
+		if (_events[i].events & EPOLLIN) {
+			if (!handleReceivedData(_events[i]))
+				closeConnection(_events[i]);
+		}
 		if (_events[i].events & EPOLLOUT)
 			dprintf(_events[i].data.fd, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 66\n\n<html><head><title>Basic Page</title></head><body><h1>Hello, World!</body></html>");
 	}
