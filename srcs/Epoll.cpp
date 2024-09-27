@@ -68,8 +68,10 @@ void	Epoll::wait() {
 			closeConnection(_events[i]);
 			continue;
 		}
-		if (_events[i].events & EPOLLIN && isNewClient(_events[i]))
+		if (_events[i].events & EPOLLIN && isNewClient(_events[i])) {
 			handleNewConnection();
+			continue;
+		}
 		if (_events[i].events & EPOLLIN) {
 			if (!handleReceivedData(_events[i]))
 				closeConnection(_events[i]);
