@@ -18,7 +18,8 @@ class Epoll {
 		void		removeFdFromPoll(int fd, epoll_event &event);
 		bool		canReadSocket(epoll_event event);
 		void		handleNewConnection();
-		void		handleReceivedData(epoll_event event);
+		void		handleReceivedData(epoll_event &event);
+		bool		isLoggedOut(epoll_event &event);
 
 		int			_epollfd;
 		Server		&_server;
