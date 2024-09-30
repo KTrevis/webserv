@@ -48,9 +48,7 @@ void Log::Event(int maskEvent) {
 	std::map<EPOLL_EVENTS, std::string>::iterator it = eventsMap.begin();
 
 	for (; it != eventsMap.end(); it++) {
-		if (maskEvent & it->first) {
-			std::string str = "Event happened: " + it->second;
-			Log::Trace(str);
-		}
+		if (maskEvent & it->first)
+			Log::Trace("Event happened: " + it->second);
 	}
 }
