@@ -22,7 +22,7 @@ void	Log::Trace(const std::string &str) {
 		std::cout << "[TRACE]: " << str << std::endl;
 }
 
-std::map<EPOLL_EVENTS, std::string> getEventsMap() {
+static std::map<EPOLL_EVENTS, std::string> getEventsMap() {
 	std::map<EPOLL_EVENTS, std::string> eventsMap;
 
 	eventsMap[EPOLLIN] = "EPOLLIN";
