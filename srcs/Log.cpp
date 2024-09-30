@@ -27,7 +27,6 @@ static std::map<EPOLL_EVENTS, std::string> getEventsMap() {
 
 	eventsMap[EPOLLIN] = "EPOLLIN";
 	eventsMap[EPOLLPRI] = "EPOLLPRI";
-	eventsMap[EPOLLPRI] = "EPOLLPRI";
 	eventsMap[EPOLLOUT] = "EPOLLOUT";
 	eventsMap[EPOLLRDNORM] = "EPOLLRDNORM";
 	eventsMap[EPOLLRDBAND] = "EPOLLRDBAND";
