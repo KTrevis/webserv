@@ -50,7 +50,7 @@ void Log::Event(int maskEvent) {
 	for (; it != eventsMap.end(); it++) {
 		if (maskEvent & it->first) {
 			std::string str = "Event happened: " + it->second;
-			Log::Debug(str);
+			Log::Trace(str);
 		}
 	}
 }
