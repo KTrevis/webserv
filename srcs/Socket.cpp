@@ -1,12 +1,14 @@
 #include "Socket.hpp"
 #include "Log.hpp"
 #include <cstdio>
+#include <fcntl.h>
 #include <sys/poll.h>
 #include <unistd.h>
 #include <iostream>
 
 Socket::Socket() {
 	_fd = socket(AF_INET, SOCK_STREAM, 0);
+	fcntl(_fd, F_SETFL, O_NONBLOCK);
 }
 
 Socket::Socket(int fd) {

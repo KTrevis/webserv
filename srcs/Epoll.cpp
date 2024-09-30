@@ -4,6 +4,7 @@
 #include "EventHandler.hpp"
 #include "NetworkUtils.hpp"
 #include <cstdio>
+#include <fcntl.h>
 #include <signal.h>
 #include <cstring>
 #include <sys/epoll.h>
@@ -15,7 +16,7 @@ Epoll::Epoll(Server &server): _server(server) {
 	signal(SIGPIPE, SIG_IGN);
 	explicit_bzero(_events, sizeof(_events));
 	_epollfd = epoll_create1(0);
-	event.events = EPOLLIN;
+	event.events = EPOLLIN | EPOLLET;
 	event.data.fd = server.getSocket().getFd();
 	addFdToPoll(server.getSocket().getFd(), event);
 }
@@ -45,6 +46,7 @@ void	Epoll::createNewClient() {
 	int fd = NetworkUtils::accept(_server.getSocket(), _server.getAdress());
 	epoll_event event;
 
+	fcntl(fd, F_SETFL, O_NONBLOCK);
 	event.events = EPOLLIN | EPOLLOUT;
 	event.data.fd = fd;
 	addFdToPoll(fd, event);

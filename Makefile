@@ -6,7 +6,7 @@ NAME = webserv
 SRCS = main.cpp Server.cpp Address.cpp NetworkUtils.cpp Socket.cpp Epoll.cpp Log.cpp EventHandler.cpp
 OBJS = $(addprefix objs/,$(SRCS:.cpp=.o))
 DEPS = $(OBJS:.o=.d)
-LOG_LEVEL = TRACE
+LOG_LEVEL = DEBUG
 
 all: $(NAME)
 

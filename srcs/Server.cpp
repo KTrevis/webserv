@@ -5,7 +5,6 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <unistd.h>
-#include <iostream>
 
 void	Server::start() {
 	while (1)
