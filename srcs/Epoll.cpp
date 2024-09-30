@@ -4,6 +4,7 @@
 #include "EventHandler.hpp"
 #include "NetworkUtils.hpp"
 #include <cstdio>
+#include <signal.h>
 #include <cstring>
 #include <sys/epoll.h>
 #include <unistd.h>
@@ -11,6 +12,7 @@
 Epoll::Epoll(Server &server): _server(server) {
 	epoll_event event;
 
+	signal(SIGPIPE, SIG_IGN);
 	explicit_bzero(_events, sizeof(_events));
 	_epollfd = epoll_create1(0);
 	event.events = EPOLLIN;

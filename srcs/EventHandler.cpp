@@ -8,6 +8,7 @@ static bool handleReceivedData(epoll_event &event) {
 	char str[1024];
 	int n = read(event.data.fd, str, 1023);
 	if (n == 0 || n == -1) return false;
+	std::cout << str << std::endl;
 	return true;
 }
 
@@ -27,5 +28,4 @@ void	EventHandler::handleEvent(Epoll &epoll, epoll_event &event) {
 	}
 	if (event.events & EPOLLOUT)
 		dprintf(event.data.fd, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 66\n\n<html><head><title>Basic Page</title></head><body><h1>Hello, World!</body></html>");
-
 }
