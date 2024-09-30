@@ -4,7 +4,7 @@
 #include <cstdio>
 #include <unistd.h>
 
-bool EventHandler::handleReceivedData(epoll_event &event) {
+static bool handleReceivedData(epoll_event &event) {
 	char str[1024];
 	int n = read(event.data.fd, str, 1023);
 	if (n == 0 || n == -1) return false;
