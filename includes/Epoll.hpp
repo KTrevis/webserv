@@ -10,14 +10,13 @@ class Epoll {
 	public:
 		Epoll(Server &server);
 		~Epoll();
+		void	closeConnection(epoll_event &event);
+		void	createNewClient();
+		bool	isNewClient(const epoll_event &event);
 		void	wait();
 	private:
-		bool		isNewClient(const epoll_event &event);
-		void		closeConnection(epoll_event &event);
 		void		addFdToPoll(int fd, epoll_event &event);
 		void		removeFdFromPoll(int fd, epoll_event &event);
-		void		handleNewConnection();
-		bool		handleReceivedData(epoll_event &event);
 
 		int			_epollfd;
 		Server		&_server;
