@@ -6,6 +6,7 @@ NAME = webserv
 SRCS = main.cpp Server.cpp Address.cpp NetworkUtils.cpp Socket.cpp Epoll.cpp Log.cpp EventHandler.cpp
 OBJS = $(addprefix objs/,$(SRCS:.cpp=.o))
 DEPS = $(OBJS:.o=.d)
+LOG_LEVEL = 3
 
 all: $(NAME)
 
@@ -14,7 +15,7 @@ $(NAME): $(OBJS)
 
 objs/%.o: srcs/%.cpp
 	@mkdir -p objs/
-	$(CPP) $(FLAGS) -MMD -c $< -o $@ -I includes/
+	$(CPP) $(FLAGS) -MMD -c $< -o $@ -I includes/ -D LOG_LEVEL=$(LOG_LEVEL)
 
 clean:
 	rm -rf objs/
