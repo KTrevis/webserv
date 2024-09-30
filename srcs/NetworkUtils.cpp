@@ -1,5 +1,6 @@
 #include "NetworkUtils.hpp"
 #include <fcntl.h>
+#include <sys/socket.h>
 
 void	NetworkUtils::makeFdNotBlocking(int fd) {
     int old_option = fcntl(fd, F_GETFL);
@@ -16,5 +17,5 @@ bool	NetworkUtils::bind(const Socket &socket, Address &address) {
 int	NetworkUtils::accept(const Socket &socket, Address &address) {
 	sockaddr *addr = &address.toSockAddr();
 	unsigned int len = sizeof(*addr);
-	return ::accept(socket.getFd(), addr, &len);
+	return ::accept4(socket.getFd(), addr, &len, SOCK_NONBLOCK);
 }

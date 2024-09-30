@@ -46,7 +46,6 @@ void	Epoll::createNewClient() {
 	int fd = NetworkUtils::accept(_server.getSocket(), _server.getAdress());
 	epoll_event event;
 
-	fcntl(fd, F_SETFL, O_NONBLOCK);
 	event.events = EPOLLIN | EPOLLOUT;
 	event.data.fd = fd;
 	addFdToPoll(fd, event);

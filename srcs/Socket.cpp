@@ -3,12 +3,12 @@
 #include <cstdio>
 #include <fcntl.h>
 #include <sys/poll.h>
+#include <sys/socket.h>
 #include <unistd.h>
 #include <iostream>
 
 Socket::Socket() {
-	_fd = socket(AF_INET, SOCK_STREAM, 0);
-	fcntl(_fd, F_SETFL, O_NONBLOCK);
+	_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 }
 
 Socket::Socket(int fd) {
