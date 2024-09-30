@@ -44,6 +44,7 @@ std::map<EPOLL_EVENTS, std::string> getEventsMap() {
 }
 
 void Log::Event(int maskEvent) {
+	if (LOG_LEVEL < TRACE) return;
 	std::map<EPOLL_EVENTS, std::string> eventsMap = getEventsMap();
 	std::map<EPOLL_EVENTS, std::string>::iterator it = eventsMap.begin();
 
