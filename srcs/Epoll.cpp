@@ -22,11 +22,14 @@ Epoll::Epoll(Server &server): _server(server) {
 }
 
 void	Epoll::addFdToPoll(int fd, epoll_event &event) {
-	epoll_ctl(_epollfd, EPOLL_CTL_ADD, fd, &event);
+	(void)fd;
+	if (epoll_ctl(_epollfd, EPOLL_CTL_ADD, fd, &event))
+		Log::Error("Adding socket to poll failed");
 }
 
 void	Epoll::removeFdFromPoll(int fd, epoll_event &event) {
-	epoll_ctl(_epollfd, EPOLL_CTL_DEL, fd, &event);
+	if (epoll_ctl(_epollfd, EPOLL_CTL_DEL, fd, &event))
+		Log::Error("Deleting fd from poll failed");
 }
 
 
@@ -46,6 +49,10 @@ void	Epoll::createNewClient() {
 	int fd = NetworkUtils::accept(_server.getSocket(), _server.getAdress());
 	epoll_event event;
 
+	if (fd == -1) {
+		Log::Error("Epoll: Accept failed");
+		return;
+	}
 	event.events = EPOLLIN | EPOLLOUT;
 	event.data.fd = fd;
 	addFdToPoll(fd, event);
@@ -57,6 +64,10 @@ void	Epoll::createNewClient() {
 void	Epoll::wait() {
 	int nbEvents = epoll_wait(_epollfd, _events, MAX_EVENTS, -1);
 
+	if (nbEvents == -1) {
+		Log::Error("Epoll wait failed");
+		return;
+	}
 	for (int i = 0; i < nbEvents; i++)
 		EventHandler::handleEvent(*this, _events[i]);
 }
