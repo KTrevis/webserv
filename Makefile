@@ -3,7 +3,8 @@ FLAGS = -Wall -Wextra -Werror -std=c++98 -g3
 
 NAME = webserv
 
-SRCS = main.cpp Server.cpp Address.cpp NetworkUtils.cpp Socket.cpp Epoll.cpp Log.cpp EventHandler.cpp
+SRCS =	main.cpp Server.cpp Address.cpp NetworkUtils.cpp Socket.cpp Epoll.cpp Log.cpp EventHandler.cpp
+		Config.cpp
 OBJS = $(addprefix objs/,$(SRCS:.cpp=.o))
 DEPS = $(OBJS:.o=.d)
 LOG_LEVEL = DEBUG
