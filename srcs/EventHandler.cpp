@@ -8,7 +8,8 @@ static bool handleReceivedData(epoll_event &event) {
 	char str[1024];
 	int n = read(event.data.fd, str, 1023);
 	if (n == 0 || n == -1) return false;
-	std::cout << str << std::endl;
+	str[n] = 0;
+	Log::Trace(str);
 	return true;
 }
 
