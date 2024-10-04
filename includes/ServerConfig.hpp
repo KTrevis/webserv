@@ -6,6 +6,6 @@
 
 class ServerConfig {
 	public:
-	private:
 		std::map<std::string, LocationConfig>	locations;
+		int	listenPort;
 };
