@@ -1,10 +1,8 @@
 #pragma once
 
 #include <iostream>
-#include <vector>
-#include "ServerConfig.hpp"
 
-enum e_context {
+enum e_scope {
 	NONE,
 	SERVER,
 	LOCATION,
@@ -14,10 +12,9 @@ class ConfigParser {
 	public:
 		ConfigParser(const std::string &filename);
 	private:
-		void	contextBehaviour();
-		int		parseFile();
-		bool	parseLine(const std::string &line);
-		std::vector<std::string>	_file;
-		std::vector<ServerConfig>	_config;
-		e_context					_context;
+		void	parseFile();
+		void	skipWhiteSpace(int &i);
+		void	storeWord(int &i, std::string &str);
+		int		_scope;
+		std::string	_file;
 };
