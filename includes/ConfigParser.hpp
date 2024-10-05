@@ -1,20 +1,30 @@
 #pragma once
 
-#include <iostream>
+#include "ServerConfig.hpp"
+#include <vector>
 
 enum e_scope {
-	NONE,
-	SERVER,
-	LOCATION,
+	NONE = 0,
+	SERVER = 1,
+	LOCATION = 2,
 };
 
 class ConfigParser {
 	public:
 		ConfigParser(const std::string &filename);
 	private:
-		void	parseFile();
-		void	skipWhiteSpace(int &i);
-		void	storeWord(int &i, std::string &str);
+		void	skipWhiteSpace();
+		void	storeKey();
+		void	storeValue();
+		bool	parseKeyValue();
+		bool	parseServer();
+		bool	parseFile();
+		bool	scopeIsDuplicated(); // documented in cpp file
 		int		_scope;
+		e_scope	_currScope;	
 		std::string	_file;
+		std::vector<ServerConfig>	_configs;
+		std::string _value;
+		std::string _key;
+		int	i;
 };
