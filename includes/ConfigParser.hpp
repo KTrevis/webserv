@@ -10,17 +10,22 @@ enum e_scope {
 	LOCATION = 2,
 };
 
+typedef std::list<std::string> StringList;
+
+// the tokenizing part of this class is in ConfigTokenizer.cpp
+// the parsing part is in ConfigParser.cpp
 class ConfigParser {
 	public:
 		ConfigParser(const std::string &filename);
 		void	displayFile();
 	private:
 		std::string	tokenizeFile(std::list<std::string> &file);
-		bool	scopeIsDuplicated(); // documented in cpp file
+		bool	scopeIsDuplicated();
+		bool	serverParsing(std::list<std::string> &line);
+		bool	locationParsing(std::list<std::string> &line);
+		bool	parseLine(std::list<std::string> &line);
 		int		_scope;
 		e_scope	_currScope;	
-		std::string	_file;
-		std::list<std::list<std::string> >	_lines;
-		std::list<std::list<std::string> >::iterator	_currLine;
+		std::list<StringList>	_lines;
 		std::vector<ServerConfig>			_configs;
 };

@@ -1,30 +1,10 @@
 #include "ConfigParser.hpp"
-#include "Log.hpp"
 #include "StringUtils.hpp"
 #include <cwctype>
 #include <fstream>
+#include <functional>
 #include <map>
-#include <stdexcept>
 #include <string>
-
-e_scope	strToScope(const std::string &str) {
-	std::map<std::string, e_scope>	map;
-	map["server"] = SERVER;
-	map["location"] = LOCATION;
-
-	std::map<std::string, e_scope>::iterator it = map.find(str);
-	if (it == map.end()) return NONE;
-	return it->second;
-}
-
-static bool	isToken(const char &c) {
-	return c == '{' || c == '}' || c == ';';
-}
-
-void	skipWhiteSpace(int &i, const std::string &str) {
-	while (str[i] && std::iswspace(str[i]))
-		i++;
-}
 
 // this returns true if a scope just found was inside another one of the same type
 // for example, a server declared in a server scope itself:
@@ -36,41 +16,14 @@ bool	ConfigParser::scopeIsDuplicated() {
 	return _scope & _currScope;
 }
 
-std::string	getWord(int &i, const std::string &str) {
-	std::string	word;
+e_scope	strToScope(const std::string &str) {
+	std::map<std::string, e_scope>	map;
+	map["server"] = SERVER;
+	map["location"] = LOCATION;
 
-	if (isToken(str[i])) {
-		word += str[i];
-		i++;
-		return word;
-	}
-	while (str[i] && !std::iswspace(str[i]) && !isToken(str[i])) {
-		word += str[i];
-		i++;
-	}
-	return word;
-}
-
-std::list<std::string>	tokenizeLine(const std::string &str) {
-	std::list<std::string>	list;
-
-	for (int i = 0; str[i];) {
-		skipWhiteSpace(i, str);
-		list.push_back(getWord(i, str));
-	}
-	return list;
-}
-
-std::string	ConfigParser::tokenizeFile(std::list<std::string> &file) {
-	std::list<std::string>::iterator it = file.begin();
-
-	while (it != file.end()) {
-		std::list<std::string> list = tokenizeLine(*it);
-		if (list.size() != 0)
-			_lines.push_back(list);
-		it++;
-	}
-	return "";
+	std::map<std::string, e_scope>::iterator it = map.find(str);
+	if (it == map.end()) return NONE;
+	return it->second;
 }
 
 static void displayLine(std::list<std::string> &line) {
@@ -89,25 +42,32 @@ void	ConfigParser::displayFile() {
 		displayLine(*it);
 }
 
-static bool	serverParsing(std::list<std::string> &line) {
-	if (line.size() != 2)
-		return false;
+bool	ConfigParser::serverParsing(std::list<std::string> &line) {
+	if (line.size() != 2) return false;
+
+	std::list<std::string>::iterator it = line.begin();
+	it++; // access to the 2nd element of the list
+	if (*it != "{") return false;
+	if (_scope & SERVER) return false;
+
+	_configs.push_back(ServerConfig());
+	_scope += SERVER;
 	return true;
 }
 
-static std::string	parseLine(std::list<std::string> &line) {
-	std::list<std::string>::iterator it = line.begin();
-	int	lineCount = 1;
+bool	ConfigParser::locationParsing(std::list<std::string> &line) {
+	(void)line;
+	return true;
+}
 
-	for (;it != line.end(); it++) {
-		const std::string &word = *it;
-		if (it == line.begin() && word == "server") {
-			if (!serverParsing(line))
-				return "Server parsing failed at line " + StringUtils::itoa(lineCount);
-		}
-		lineCount++;
+bool	ConfigParser::parseLine(std::list<std::string> &line) {
+	_currScope = strToScope(*line.begin());
+	switch (_currScope) {
+		case (SERVER): return serverParsing(line);
+		case (LOCATION): return locationParsing(line);
+		case(NONE): return true;
 	}
-	return "";
+	return true;
 }
 
 ConfigParser::ConfigParser(const std::string &filename) {
@@ -120,9 +80,9 @@ ConfigParser::ConfigParser(const std::string &filename) {
 	while (std::getline(stream, buffer))
 		file.push_back(buffer);
 	tokenizeFile(file);
-	std::list<std::list<std::string> >::iterator it = _lines.begin();
+	std::list<StringList>::iterator it = _lines.begin();
 	for (;it != _lines.end(); it++) {
-		const std::string &err = parseLine(*it);
-		if (err != "") std::cout << err << std::endl;
+		const int err = parseLine(*it);
+		if (err) std::cout << "Parsing failed at line " << err << std::endl;
 	}
 }
