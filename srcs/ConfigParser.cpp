@@ -1,10 +1,9 @@
 #include "ConfigParser.hpp"
-#include "StringUtils.hpp"
+#include "LocationConfig.hpp"
 #include <cwctype>
-#include <fstream>
-#include <functional>
 #include <map>
 #include <string>
+#include <utility>
 
 // this returns true if a scope just found was inside another one of the same type
 // for example, a server declared in a server scope itself:
@@ -26,63 +25,63 @@ e_scope	strToScope(const std::string &str) {
 	return it->second;
 }
 
-static void displayLine(std::list<std::string> &line) {
-	std::list<std::string>::iterator it = line.begin();
-
-	std::cout << "[LINE]: ";
-	for (;it != line.end(); it++)
-		std::cout << *it << " ";
-	std::cout << std::endl;
-}
-
 void	ConfigParser::displayFile() {
-	std::list<std::list<std::string> >::iterator it = _lines.begin();
-
-	for (;it != _lines.end(); it++)
-		displayLine(*it);
+	for (size_t i = 0; i < _lines.size(); i++) {
+		const std::vector<std::string> &line = _lines[i];
+		for (size_t i = 0; i < line.size(); i++)
+			std::cout << line[i] << " ";
+		std::cout << std::endl;
+	}
 }
 
-bool	ConfigParser::serverParsing(std::list<std::string> &line) {
-	if (line.size() != 2) return false;
-
-	std::list<std::string>::iterator it = line.begin();
-	it++; // access to the 2nd element of the list
-	if (*it != "{") return false;
-	if (_scope & SERVER) return false;
+bool	ConfigParser::serverParsing(std::vector<std::string> &line) {
+	if (line.size() != 2 || line[1] != "{" || _scope & SERVER) return false;
 
 	_configs.push_back(ServerConfig());
 	_scope += SERVER;
 	return true;
 }
 
-bool	ConfigParser::locationParsing(std::list<std::string> &line) {
-	(void)line;
+bool	ConfigParser::locationParsing(std::vector<std::string> &line) {
+	if (line.size() != 3) return false;
+
+	const std::string &locationName = line[1];
+	if (isToken(locationName[0])) return false;
+
+	const std::string &curlyBrace = line[2];
+	if (curlyBrace != "{") return false;
 	return true;
 }
 
-bool	ConfigParser::parseLine(std::list<std::string> &line) {
+bool	ConfigParser::parseLine(std::vector<std::string> &line) {
 	_currScope = strToScope(*line.begin());
 	switch (_currScope) {
 		case (SERVER): return serverParsing(line);
 		case (LOCATION): return locationParsing(line);
 		case(NONE): return true;
 	}
-	return true;
+}
+
+void	ConfigParser::addLocationConfig(size_t &i, const std::string &locationName) {
+	ServerConfig	&serverConfig = _configs[_configs.size() - 1];
+	try {
+		LocationConfig locationConfig(i, _lines);
+		serverConfig.locations.insert(std::make_pair(locationName, locationConfig));
+	} catch (std::exception &e) {
+		std::cout << e.what() << std::endl;
+	}
 }
 
 ConfigParser::ConfigParser(const std::string &filename) {
-	std::ifstream	stream(filename.c_str());
-	std::string		buffer;
-	std::list<std::string>	file;
+	tokenizeFile(filename); // this function is in ConfigTokenizer.cpp
 	_scope = 0;
 	_currScope = NONE;
 
-	while (std::getline(stream, buffer))
-		file.push_back(buffer);
-	tokenizeFile(file);
-	std::list<StringList>::iterator it = _lines.begin();
-	for (;it != _lines.end(); it++) {
-		const int err = parseLine(*it);
-		if (err) std::cout << "Parsing failed at line " << err << std::endl;
-	}
+	displayFile();
+	/* for (size_t i = 0; i < _lines.size(); i++) { */
+	/* 	if (!parseLine(_lines[i])) */
+	/* 		std::cout << "Parsing failed at line " << i + 1 << std::endl; */
+	/* 	if (_currScope == LOCATION) */
+	/* 		addLocationConfig(i, _lines[i][1]); */
+	/* } */
 }
