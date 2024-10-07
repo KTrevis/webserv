@@ -1,7 +1,9 @@
 #include "ConfigParser.hpp"
 #include "LocationConfig.hpp"
+#include "Log.hpp"
 #include <cwctype>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -62,14 +64,16 @@ bool	ConfigParser::parseLine(std::vector<std::string> &line) {
 	}
 }
 
-void	ConfigParser::addLocationConfig(size_t &i, const std::string &locationName) {
+bool	ConfigParser::addLocationConfig(size_t &i, const std::string &locationName) {
 	ServerConfig	&serverConfig = _configs[_configs.size() - 1];
 	try {
 		LocationConfig locationConfig(i, _lines);
 		serverConfig.locations.insert(std::make_pair(locationName, locationConfig));
 	} catch (std::exception &e) {
-		std::cout << e.what() << std::endl;
+		Log::Error(e.what());
+		return false;
 	}
+	return true;
 }
 
 ConfigParser::ConfigParser(const std::string &filename) {
@@ -77,11 +81,11 @@ ConfigParser::ConfigParser(const std::string &filename) {
 	_scope = 0;
 	_currScope = NONE;
 
-	displayFile();
-	/* for (size_t i = 0; i < _lines.size(); i++) { */
-	/* 	if (!parseLine(_lines[i])) */
-	/* 		std::cout << "Parsing failed at line " << i + 1 << std::endl; */
-	/* 	if (_currScope == LOCATION) */
-	/* 		addLocationConfig(i, _lines[i][1]); */
-	/* } */
+	/* displayFile(); */
+	for (size_t i = 0; i < _lines.size(); i++) {
+		if (!parseLine(_lines[i]))
+			std::cout << "Parsing failed at line " << i + 1 << std::endl;
+		if (_currScope == LOCATION && !addLocationConfig(i, _lines[i][0]))
+			throw std::runtime_error("ConfigParser constructor: location parsing failed");
+	}
 }

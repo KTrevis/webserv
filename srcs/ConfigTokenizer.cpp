@@ -13,8 +13,9 @@ static void	skipWhiteSpace(int &i, const std::string &str) {
 static std::string	getWord(int &i, const std::string &str) {
 	std::string	word;
 
-	if (ConfigParser::isToken(str[i])) {
-		word += str[i];
+	if ( ConfigParser::isToken(str[i])) {
+		if (str[i] != ';')
+			word += str[i];
 		i++;
 		return word;
 	}
@@ -30,7 +31,8 @@ static std::vector<std::string>	tokenizeLine(const std::string &str) {
 
 	for (int i = 0; str[i];) {
 		skipWhiteSpace(i, str);
-		list.push_back(getWord(i, str));
+		const std::string &word = getWord(i, str);
+		if (word != "") list.push_back(word);
 	}
 	return list;
 }

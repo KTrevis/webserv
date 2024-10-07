@@ -25,7 +25,7 @@ class ConfigParser {
 		bool	serverParsing(std::vector<std::string> &line);
 		bool	locationParsing(std::vector<std::string> &line);
 		bool	parseLine(std::vector<std::string> &line);
-		void	addLocationConfig(size_t &i, const std::string &locationName);
+		bool	addLocationConfig(size_t &i, const std::string &locationName);
 		int		_scope;
 		e_scope	_currScope;	
 		std::vector<StringVector>	_lines;

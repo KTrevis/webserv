@@ -9,7 +9,7 @@ bool	LocationConfig::setMethods(const StringVector &arr) {
 	map["POST"] = POST;
 	map["DELETE"] = DELETE;
 
-	for (size_t i = 0; arr.size(); i++) {
+	for (size_t i = 1; i < arr.size(); i++) {
 		std::map<std::string, e_methods>::iterator it = map.find(arr[i]);
 		if (it == map.end()) return false;
 		if (!(methodMask & it->second)) // si le flag de la methode n'est deja applique
@@ -55,10 +55,13 @@ static std::string errorString(const std::string &str) {
 }
 
 LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines) {
+	i++;
 	for (;i < lines.size(); i++) {
 		const StringVector &line = lines[i];
 		const std::string &key = line[0];
-
+	
+		if (line[0] == "}")
+			return;
 		if (key == "allow_methods" && !setMethods(line))
 			throw std::runtime_error(errorString(key));
 		else if (key == "root" && !setRoot(line))
@@ -71,9 +74,6 @@ LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines
 			throw std::runtime_error(errorString(key));
 		else if (key == "return" && !setRedirection(line))
 			throw std::runtime_error(errorString(key));
-		else if (key != "}")
-			throw std::runtime_error(key);
-		else if (key == "}") return;
 	}
 
 }
