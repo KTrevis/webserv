@@ -13,6 +13,7 @@ enum e_scope {
 class ConfigParser {
 	public:
 		ConfigParser(const std::string &filename);
+		void	displayFile();
 	private:
 		std::string	tokenizeFile(std::list<std::string> &file);
 		bool	scopeIsDuplicated(); // documented in cpp file

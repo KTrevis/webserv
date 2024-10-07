@@ -1,5 +1,6 @@
 #include "ConfigParser.hpp"
 #include "Log.hpp"
+#include "StringUtils.hpp"
 #include <cwctype>
 #include <fstream>
 #include <map>
@@ -72,20 +73,41 @@ std::string	ConfigParser::tokenizeFile(std::list<std::string> &file) {
 	return "";
 }
 
-static void displayLine(std::list<std::string> line) {
+static void displayLine(std::list<std::string> &line) {
 	std::list<std::string>::iterator it = line.begin();
 
 	std::cout << "[LINE]: ";
-	for (; it != line.end(); it++)
+	for (;it != line.end(); it++)
 		std::cout << *it << " ";
 	std::cout << std::endl;
 }
 
-static void	displayFile(std::list<std::list<std::string> > file) {
-	std::list<std::list<std::string> >::iterator it = file.begin();
+void	ConfigParser::displayFile() {
+	std::list<std::list<std::string> >::iterator it = _lines.begin();
 
-	for (;it != file.end(); it++)
+	for (;it != _lines.end(); it++)
 		displayLine(*it);
+}
+
+static bool	serverParsing(std::list<std::string> &line) {
+	if (line.size() != 2)
+		return false;
+	return true;
+}
+
+static std::string	parseLine(std::list<std::string> &line) {
+	std::list<std::string>::iterator it = line.begin();
+	int	lineCount = 1;
+
+	for (;it != line.end(); it++) {
+		const std::string &word = *it;
+		if (it == line.begin() && word == "server") {
+			if (!serverParsing(line))
+				return "Server parsing failed at line " + StringUtils::itoa(lineCount);
+		}
+		lineCount++;
+	}
+	return "";
 }
 
 ConfigParser::ConfigParser(const std::string &filename) {
@@ -93,9 +115,14 @@ ConfigParser::ConfigParser(const std::string &filename) {
 	std::string		buffer;
 	std::list<std::string>	file;
 	_scope = 0;
+	_currScope = NONE;
 
 	while (std::getline(stream, buffer))
 		file.push_back(buffer);
 	tokenizeFile(file);
-	displayFile(_lines);
+	std::list<std::list<std::string> >::iterator it = _lines.begin();
+	for (;it != _lines.end(); it++) {
+		const std::string &err = parseLine(*it);
+		if (err != "") std::cout << err << std::endl;
+	}
 }

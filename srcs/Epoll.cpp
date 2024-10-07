@@ -3,6 +3,7 @@
 #include "Server.hpp"
 #include "EventHandler.hpp"
 #include "NetworkUtils.hpp"
+#include "StringUtils.hpp"
 #include <cstdio>
 #include <fcntl.h>
 #include <signal.h>
@@ -40,9 +41,7 @@ bool Epoll::isNewClient(const epoll_event &event) {
 void	Epoll::closeConnection(epoll_event &event) {
 	removeFdFromPoll(event.data.fd, event);
 	close(event.data.fd);
-	char str[1024];
-	sprintf(str, "Closed client with socket %d", event.data.fd);
-	Log::Info(str);
+	Log::Info("Closed client with socket " + StringUtils::itoa(event.data.fd));
 }
 
 void	Epoll::createNewClient() {
@@ -56,9 +55,7 @@ void	Epoll::createNewClient() {
 	event.events = EPOLLIN | EPOLLOUT;
 	event.data.fd = fd;
 	addFdToPoll(fd, event);
-	char str[1024];
-	sprintf(str, "New client created with socket %d", fd);
-	Log::Info(str);
+	Log::Info("New client created with socket " + StringUtils::itoa(fd));
 }
 
 void	Epoll::wait() {
