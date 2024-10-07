@@ -53,7 +53,7 @@ std::string	getWord(int &i, const std::string &str) {
 std::list<std::string>	tokenizeLine(const std::string &str) {
 	std::list<std::string>	list;
 
-	for (int i = 0; str[i]; i++) {
+	for (int i = 0; str[i];) {
 		skipWhiteSpace(i, str);
 		list.push_back(getWord(i, str));
 	}
@@ -64,7 +64,9 @@ std::string	ConfigParser::tokenizeFile(std::list<std::string> &file) {
 	std::list<std::string>::iterator it = file.begin();
 
 	while (it != file.end()) {
-		_lines.push_back(tokenizeLine(*it));
+		std::list<std::string> list = tokenizeLine(*it);
+		if (list.size() != 0)
+			_lines.push_back(list);
 		it++;
 	}
 	return "";
@@ -73,15 +75,16 @@ std::string	ConfigParser::tokenizeFile(std::list<std::string> &file) {
 static void displayLine(std::list<std::string> line) {
 	std::list<std::string>::iterator it = line.begin();
 
-	std::cout << "[LINE]" << std::endl;
+	std::cout << "[LINE]: ";
 	for (; it != line.end(); it++)
-		std::cout << *it << std::endl;
+		std::cout << *it << " ";
+	std::cout << std::endl;
 }
 
 static void	displayFile(std::list<std::list<std::string> > file) {
 	std::list<std::list<std::string> >::iterator it = file.begin();
 
-	for (; it != file.end(); it++)
+	for (;it != file.end(); it++)
 		displayLine(*it);
 }
 
