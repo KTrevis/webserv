@@ -1,16 +1,5 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   ConfigParser.cpp                                   :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ketrevis <ketrevis@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/05 22:58:34 by ketrevis          #+#    #+#             */
-/*   Updated: 2024/10/05 23:58:52 by ketrevis         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "ConfigParser.hpp"
+#include "Log.hpp"
 #include <cwctype>
 #include <fstream>
 #include <map>
@@ -31,23 +20,9 @@ static bool	isToken(const char &c) {
 	return c == '{' || c == '}' || c == ';';
 }
 
-void	ConfigParser::skipWhiteSpace() {
-	while (_file[i] && std::iswspace(_file[i]))
+void	skipWhiteSpace(int &i, const std::string &str) {
+	while (str[i] && std::iswspace(str[i]))
 		i++;
-}
-
-void	ConfigParser::storeKey() {
-	while (_file[i] && !std::iswspace(_file[i]) && !isToken(_file[i])) {
-		_key += _file[i];
-		i++;
-	}
-}
-
-void	ConfigParser::storeValue() {
-	while (_file[i] && _file[i] != '\n' && !std::iswspace(_file[i]) && !isToken(_file[i])) {
-		_value += _file[i];
-		i++;
-	}
 }
 
 // this returns true if a scope just found was inside another one of the same type
@@ -60,34 +35,64 @@ bool	ConfigParser::scopeIsDuplicated() {
 	return _scope & _currScope;
 }
 
-bool	ConfigParser::parseKeyValue() {
-	std::cout << "[KEY]" << _key << std::endl;
-	std::cout << "[VALUE]" << _value << std::endl;
-	return true;
+std::string	getWord(int &i, const std::string &str) {
+	std::string	word;
+
+	if (isToken(str[i])) {
+		word += str[i];
+		i++;
+		return word;
+	}
+	while (str[i] && !std::iswspace(str[i]) && !isToken(str[i])) {
+		word += str[i];
+		i++;
+	}
+	return word;
 }
 
-bool	ConfigParser::parseFile() {
-	for (; _file[i]; i++) {
-		_value = "";
-		_key = "";
-		skipWhiteSpace();
-		storeKey();
-		skipWhiteSpace();
-		storeValue();
-		if (_value == "" && _key == "") continue;
-		if (!parseKeyValue()) return false;
+std::list<std::string>	tokenizeLine(const std::string &str) {
+	std::list<std::string>	list;
+
+	for (int i = 0; str[i]; i++) {
+		skipWhiteSpace(i, str);
+		list.push_back(getWord(i, str));
 	}
-	return true;
+	return list;
+}
+
+std::string	ConfigParser::tokenizeFile(std::list<std::string> &file) {
+	std::list<std::string>::iterator it = file.begin();
+
+	while (it != file.end()) {
+		_lines.push_back(tokenizeLine(*it));
+		it++;
+	}
+	return "";
+}
+
+static void displayLine(std::list<std::string> line) {
+	std::list<std::string>::iterator it = line.begin();
+
+	std::cout << "[LINE]" << std::endl;
+	for (; it != line.end(); it++)
+		std::cout << *it << std::endl;
+}
+
+static void	displayFile(std::list<std::list<std::string> > file) {
+	std::list<std::list<std::string> >::iterator it = file.begin();
+
+	for (; it != file.end(); it++)
+		displayLine(*it);
 }
 
 ConfigParser::ConfigParser(const std::string &filename) {
 	std::ifstream	stream(filename.c_str());
 	std::string		buffer;
-	i = 0;
+	std::list<std::string>	file;
 	_scope = 0;
 
 	while (std::getline(stream, buffer))
-		_file += buffer + '\n';
-	if (!parseFile()) throw std::runtime_error("Configuration file error.");
-	
+		file.push_back(buffer);
+	tokenizeFile(file);
+	displayFile(_lines);
 }
