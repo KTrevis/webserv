@@ -5,7 +5,7 @@ NAME = webserv
 
 SRCS =	main.cpp Server.cpp Address.cpp NetworkUtils.cpp Socket.cpp \
 		Epoll.cpp Log.cpp EventHandler.cpp ConfigParser.cpp StringUtils.cpp \
-		ConfigTokenizer.cpp LocationConfig.cpp
+		ConfigTokenizer.cpp LocationConfig.cpp ServerConfig.cpp
 OBJS = $(addprefix objs/,$(SRCS:.cpp=.o))
 DEPS = $(OBJS:.o=.d)
 LOG_LEVEL = DEBUG

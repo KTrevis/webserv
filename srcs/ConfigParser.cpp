@@ -1,6 +1,7 @@
 #include "ConfigParser.hpp"
 #include "LocationConfig.hpp"
 #include "Log.hpp"
+#include <cstdlib>
 #include <cwctype>
 #include <map>
 #include <stdexcept>
@@ -17,7 +18,7 @@ bool	ConfigParser::scopeIsDuplicated() {
 	return _scope & _currScope;
 }
 
-e_scope	strToScope(const std::string &str) {
+static e_scope	strToScope(const std::string &str) {
 	std::map<std::string, e_scope>	map;
 	map["server"] = SERVER;
 	map["location"] = LOCATION;
@@ -52,10 +53,15 @@ bool	ConfigParser::locationParsing(std::vector<std::string> &line) {
 
 	const std::string &curlyBrace = line[2];
 	if (curlyBrace != "{") return false;
+	_scope += LOCATION;
 	return true;
 }
 
 bool	ConfigParser::parseLine(std::vector<std::string> &line) {
+	if (line.size() == 3 && line[0] == "listen") {
+		if (!(_scope & SERVER)) return false;
+		(_configs.end() - 1)->listenPort = std::atoi(line[1].c_str());
+	}
 	_currScope = strToScope(*line.begin());
 	switch (_currScope) {
 		case (SERVER): return serverParsing(line);
@@ -69,6 +75,7 @@ bool	ConfigParser::addLocationConfig(size_t &i, const std::string &locationName)
 	try {
 		LocationConfig locationConfig(i, _lines);
 		serverConfig.locations.insert(std::make_pair(locationName, locationConfig));
+		locationConfig.displayData();
 	} catch (std::exception &e) {
 		Log::Error(e.what());
 		return false;
@@ -81,10 +88,18 @@ ConfigParser::ConfigParser(const std::string &filename) {
 	_scope = 0;
 	_currScope = NONE;
 
-	/* displayFile(); */
 	for (size_t i = 0; i < _lines.size(); i++) {
+		if (_lines[i][0] == "}") {
+			if (_lines[i].size() != 1)
+				throw std::runtime_error("ConfigParser constructor: unexpected token");
+			_scope -= _currScope;
+			if (_scope < 0)
+				throw std::runtime_error("ConfigParser constructor: duplicate location/server");
+			_currScope = NONE;
+			i++;
+		}
 		if (!parseLine(_lines[i]))
-			std::cout << "Parsing failed at line " << i + 1 << std::endl;
+		    std::cout << "Parsing failed at line " << i + 1 << std::endl;
 		if (_currScope == LOCATION && !addLocationConfig(i, _lines[i][0]))
 			throw std::runtime_error("ConfigParser constructor: location parsing failed");
 	}
