@@ -16,7 +16,7 @@ Server::Server(int port): _address(port, INADDR_ANY), _epoll(*this)  {
 		throw std::runtime_error("Server constructor error: Binding failed.");
 	if (_socket.getFd() == -1)
 		throw std::runtime_error("Server constructor error: Socket creation failed.");
-	listen(_socket.getFd(), 5);
+	listen(_socket.getFd(), SOMAXCONN);
 }
 
 const Socket &Server::getSocket() {
