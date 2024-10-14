@@ -4,16 +4,15 @@
 #include <cstdio>
 #include <unistd.h>
 
-static bool handleReceivedData(Epoll &epoll, epoll_event &event) {
+static void handleReceivedData(Epoll &epoll, epoll_event &event) {
 	char buffer[1024];
 	int n = read(event.data.fd, buffer, 1023);
-	if (n == 0 || n == -1) return false;
+	if (n == 0 || n == -1) return;
 	buffer[n] = 0;
 	Log::Trace(buffer);
 	epoll_event modEvent = event;
 	modEvent.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
 	epoll.modifyPoll(event.data.fd, modEvent);
-	return true;
 }
 
 void	EventHandler::handleEvent(Epoll &epoll, epoll_event &event) {
@@ -26,9 +25,8 @@ void	EventHandler::handleEvent(Epoll &epoll, epoll_event &event) {
 		epoll.createNewClient();
 		return;
 	}
-	if (event.events & EPOLLIN) {
-		if (!handleReceivedData(epoll, event))
-			epoll.closeConnection(event);
+	if (event.events & EPOLLIN) {	
+		handleReceivedData(epoll, event)
 	}
 	if (event.events & EPOLLOUT) {
 			dprintf(event.data.fd, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 66\n\n<html><head><title>Basic Page</title></head><body><h1>Hello, World!</body></html>");
