@@ -52,13 +52,13 @@ bool	LocationConfig::setRedirection(const StringVector &arr) {
 }
 
 bool	LocationConfig::setAlias(const StringVector &arr) {
-	if (arr.size() != 3) return false;
+	if (arr.size() != 2) return false;
 	alias = arr[1];
 	return true;
 }
 
 bool	LocationConfig::setAutoIndex(const StringVector &arr) {
-	if (arr.size() != 3) return false;
+	if (arr.size() != 2) return false;
 	autoIndex = arr[1] == "on";
 	return true;
 }
