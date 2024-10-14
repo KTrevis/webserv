@@ -12,11 +12,6 @@ enum e_methods {
 	DELETE = 4,
 };
 
-struct Redirection {
-	int			codeHTTP;
-	std::string	toRedirect;
-};
-
 class LocationConfig {
 	public:
 		LocationConfig(size_t &i, const std::vector<StringVector> &lines);
@@ -28,7 +23,7 @@ class LocationConfig {
 		std::string							alias;
 		// key is the extension (.py/.php...) and value is the cgi path
 		std::map<std::string , std::string>	cgi; 
-		Redirection							redirection;
+		std::string							redirection;
 		void								displayData();
 	private:
 		bool	setMethods(const StringVector &str);

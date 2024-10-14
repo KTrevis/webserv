@@ -19,6 +19,7 @@ class ConfigParser {
 		ConfigParser(const std::string &filename);
 		void	displayFile();
 		static bool	isToken(const char &c);
+		std::vector<ServerConfig>	&getConfigs();
 	private:
 		std::string	tokenizeFile(const std::string &filename);
 		bool	scopeIsDuplicated();

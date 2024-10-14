@@ -44,10 +44,8 @@ bool	LocationConfig::setUploadPath(const StringVector &arr) {
 }
 
 bool	LocationConfig::setRedirection(const StringVector &arr) {
-	if (arr.size() != 3) return false;
-	redirection.codeHTTP = std::atoi(arr[1].c_str());
-	if (redirection.codeHTTP < 100) return false;
-	redirection.toRedirect = arr[2];
+	if (arr.size() != 2) return false;
+	redirection = arr[1];
 	return true;
 }
 
@@ -78,12 +76,11 @@ LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines
 	map["index"] = &LocationConfig::setIndex;
 	map["cgi_extension"] = &LocationConfig::setCGI;
 	map["upload_path"] = &LocationConfig::setUploadPath;
-	map["return"] = &LocationConfig::setRedirection;
+	map["redirection"] = &LocationConfig::setRedirection;
 	map["alias"] = &LocationConfig::setAlias;
 	map["autoindex"] = &LocationConfig::setAutoIndex;
 
 	methodMask = 0;
-	redirection.codeHTTP = 0;
 	i++;
 	for (;i < lines.size(); i++) {
 		const StringVector &line = lines[i];
@@ -132,7 +129,6 @@ void	LocationConfig::displayData() {
 	std::cout << "Upload path: " << uploadPath << std::endl;
 	std::cout << "CGI: " << std::endl;
 	displayCGI(cgi);
-	std::cout << "Redirection: [HTTP CODE]: " << redirection.codeHTTP;
-	std::cout << " [URL]: " << redirection.toRedirect << std::endl;
+	std::cout << "Redirection: " << redirection;
 	std::cout << std::endl;
 }

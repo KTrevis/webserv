@@ -4,6 +4,7 @@
 #include "EventHandler.hpp"
 #include "NetworkUtils.hpp"
 #include "StringUtils.hpp"
+#include <algorithm>
 #include <cstdio>
 #include <fcntl.h>
 #include <signal.h>
@@ -11,15 +12,23 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 
-Epoll::Epoll(Server &server): _server(server) {
-	epoll_event event;
-
+Epoll::Epoll(Server &server, std::vector<ServerConfig> &configs): _server(server) {
 	signal(SIGPIPE, SIG_IGN);
 	explicit_bzero(_events, sizeof(_events));
 	_epollfd = epoll_create1(0);
-	event.events = EPOLLIN | EPOLLET;
-	event.data.fd = server.getSocket().getFd();
-	addFdToPoll(server.getSocket().getFd(), event);
+
+	for (size_t i = 0; i < configs.size(); i++) {
+		if (!server.parseConfig(configs[i]))
+			throw std::runtime_error("Server constructor failed");
+	}
+
+	for (size_t i = 0; i < server._serverSockets.size(); i++) {
+		const Socket *socket = _server._serverSockets[i];
+		epoll_event event;
+		event.events = EPOLLIN | EPOLLET;
+		event.data.fd = socket->getFd();
+		addFdToPoll(socket->getFd(), event);
+	}
 }
 
 void	Epoll::addFdToPoll(int fd, epoll_event &event) {
@@ -40,7 +49,14 @@ void	Epoll::removeFdFromPoll(int fd, epoll_event &event) {
 }
 
 bool Epoll::isNewClient(const epoll_event &event) {
-	return event.data.fd == _server.getSocket().getFd();
+	const std::vector<Socket *> &sockets = _server._serverSockets;
+	for (size_t i = 0; i < sockets.size(); i++) {
+		if (sockets[i]->getFd() == event.data.fd) {
+			createNewClient(event.data.fd);
+			return true;
+		}
+	}
+	return false;
 }
 
 void	Epoll::closeConnection(epoll_event &event) {
@@ -49,8 +65,9 @@ void	Epoll::closeConnection(epoll_event &event) {
 	Log::Info("Closed client with socket " + StringUtils::itoa(event.data.fd));
 }
 
-void	Epoll::createNewClient() {
-	int fd = NetworkUtils::accept(_server.getSocket(), _server.getAdress());
+void	Epoll::createNewClient(int serverFd) {
+	ServerConfig &config = _server.getServerConfigs()[serverFd];
+	int fd = NetworkUtils::accept(serverFd, config.address);
 	epoll_event event;
 
 	if (fd == -1) {

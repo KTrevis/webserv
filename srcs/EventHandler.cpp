@@ -22,10 +22,8 @@ void	EventHandler::handleEvent(Epoll &epoll, epoll_event &event) {
 		epoll.closeConnection(event);
 		return;
 	}
-	if (event.events & EPOLLIN && epoll.isNewClient(event)) {
-		epoll.createNewClient();
+	if (event.events & EPOLLIN && epoll.isNewClient(event))
 		return;
-	}
 	if (event.events & EPOLLIN) {
 		if (!handleReceivedData(epoll, event))
 			epoll.closeConnection(event);

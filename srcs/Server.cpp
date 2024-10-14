@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "ConfigParser.hpp"
 #include "NetworkUtils.hpp"
 #include <netinet/in.h>
 #include <stdexcept>
@@ -11,18 +12,21 @@ void	Server::start() {
 		_epoll.wait();
 }
 
-Server::Server(int port): _address(port, INADDR_ANY), _epoll(*this)  {
-	if (NetworkUtils::bind(_socket, _address) == false)
-		throw std::runtime_error("Server constructor error: Binding failed.");
-	if (_socket.getFd() == -1)
-		throw std::runtime_error("Server constructor error: Socket creation failed.");
-	listen(_socket.getFd(), SOMAXCONN);
+bool Server::parseConfig(ServerConfig &config) {
+	int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	if (fd == -1) return false;
+	_serverConfigs[fd] = config;
+	Socket *newSocket = new Socket(fd);
+	_serverSockets.push_back(newSocket);
+	if (NetworkUtils::bind(*newSocket, config.address) == false)
+		return false;
+	if (listen(fd, 5) == -1)
+		return false;
+	return true;
 }
 
-const Socket &Server::getSocket() {
-	return _socket;
-}
+Server::Server(std::vector<ServerConfig> &arr): _epoll(*this, arr) {}
 
-Address &Server::getAdress() {
-	return _address;
+std::map<int, ServerConfig>	&Server::getServerConfigs() {
+	return _serverConfigs;
 }
