@@ -3,6 +3,7 @@
 #include "Server.hpp"
 #include "EventHandler.hpp"
 #include "NetworkUtils.hpp"
+#include "StringUtils.hpp"
 #include <cstdio>
 #include <fcntl.h>
 #include <signal.h>
@@ -22,13 +23,21 @@ Epoll::Epoll(Server &server): _server(server) {
 }
 
 void	Epoll::addFdToPoll(int fd, epoll_event &event) {
-	epoll_ctl(_epollfd, EPOLL_CTL_ADD, fd, &event);
+	(void)fd;
+	if (epoll_ctl(_epollfd, EPOLL_CTL_ADD, fd, &event))
+		Log::Error("Adding socket to poll failed");
+}
+
+void	Epoll::modifyPoll(int fd, epoll_event &event) {
+	(void)fd;
+	if (epoll_ctl(_epollfd, EPOLL_CTL_MOD, fd, &event))
+		Log::Error("Adding socket to poll failed");
 }
 
 void	Epoll::removeFdFromPoll(int fd, epoll_event &event) {
-	epoll_ctl(_epollfd, EPOLL_CTL_DEL, fd, &event);
+	if (epoll_ctl(_epollfd, EPOLL_CTL_DEL, fd, &event))
+		Log::Error("Deleting fd from poll failed");
 }
-
 
 bool Epoll::isNewClient(const epoll_event &event) {
 	return event.data.fd == _server.getSocket().getFd();
@@ -37,26 +46,30 @@ bool Epoll::isNewClient(const epoll_event &event) {
 void	Epoll::closeConnection(epoll_event &event) {
 	removeFdFromPoll(event.data.fd, event);
 	close(event.data.fd);
-	char str[1024];
-	sprintf(str, "Closed client with socket %d", event.data.fd);
-	Log::Info(str);
+	Log::Info("Closed client with socket " + StringUtils::itoa(event.data.fd));
 }
 
 void	Epoll::createNewClient() {
 	int fd = NetworkUtils::accept(_server.getSocket(), _server.getAdress());
 	epoll_event event;
 
-	event.events = EPOLLIN | EPOLLOUT;
+	if (fd == -1) {
+		Log::Error("Epoll: Accept failed");
+		return;
+	}
+	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	event.data.fd = fd;
 	addFdToPoll(fd, event);
-	char str[1024];
-	sprintf(str, "New client created with socket %d", fd);
-	Log::Info(str);
+	Log::Info("New client created with socket " + StringUtils::itoa(fd));
 }
 
 void	Epoll::wait() {
 	int nbEvents = epoll_wait(_epollfd, _events, MAX_EVENTS, -1);
 
+	if (nbEvents == -1) {
+		Log::Error("Epoll wait failed");
+		return;
+	}
 	for (int i = 0; i < nbEvents; i++)
 		EventHandler::handleEvent(*this, _events[i]);
 }

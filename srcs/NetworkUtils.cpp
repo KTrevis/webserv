@@ -2,13 +2,6 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 
-void	NetworkUtils::makeFdNotBlocking(int fd) {
-    int old_option = fcntl(fd, F_GETFL);
-    int new_option = old_option | O_NONBLOCK;
-      
-    fcntl(fd, F_SETFL, new_option);
-}
-
 bool	NetworkUtils::bind(const Socket &socket, Address &address) {
 	const sockaddr *addr = &address.toSockAddr();
 	return ::bind(socket.getFd(), addr, sizeof(*addr)) >= 0;

@@ -1,3 +1,4 @@
+#include "StringUtils.hpp"
 #include "Socket.hpp"
 #include "Log.hpp"
 #include <cstdio>
@@ -20,13 +21,9 @@ int	Socket::getFd() const {
 }
 
 Socket::~Socket() {
-	char log[1024];
-
 	if (close(_fd) < 0) {
-		sprintf(log, "%d socket with fd close failed", _fd); 
-		Log::Error(log);
+		Log::Error(StringUtils::itoa(_fd) + " socket with fd close failed");
 		return;
 	}
-	sprintf(log, "%d socket with fd closed successfully", _fd); 
-	Log::Debug(log);
+	Log::Debug(StringUtils::itoa(_fd) + " socket with fd closed successfully");
 }
