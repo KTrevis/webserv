@@ -28,11 +28,16 @@ void	Epoll::addFdToPoll(int fd, epoll_event &event) {
 		Log::Error("Adding socket to poll failed");
 }
 
+void	Epoll::modifyPoll(int fd, epoll_event &event) {
+	(void)fd;
+	if (epoll_ctl(_epollfd, EPOLL_CTL_MOD, fd, &event))
+		Log::Error("Adding socket to poll failed");
+}
+
 void	Epoll::removeFdFromPoll(int fd, epoll_event &event) {
 	if (epoll_ctl(_epollfd, EPOLL_CTL_DEL, fd, &event))
 		Log::Error("Deleting fd from poll failed");
 }
-
 
 bool Epoll::isNewClient(const epoll_event &event) {
 	return event.data.fd == _server.getSocket().getFd();
@@ -52,7 +57,7 @@ void	Epoll::createNewClient() {
 		Log::Error("Epoll: Accept failed");
 		return;
 	}
-	event.events = EPOLLIN | EPOLLOUT;
+	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	event.data.fd = fd;
 	addFdToPoll(fd, event);
 	Log::Info("New client created with socket " + StringUtils::itoa(fd));

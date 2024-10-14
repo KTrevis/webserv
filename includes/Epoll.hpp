@@ -14,10 +14,10 @@ class Epoll {
 		void	createNewClient();
 		bool	isNewClient(const epoll_event &event);
 		void	wait();
-	private:
 		void		addFdToPoll(int fd, epoll_event &event);
 		void		removeFdFromPoll(int fd, epoll_event &event);
-
+		void		modifyPoll(int fd, epoll_event &event);
+	private:
 		int			_epollfd;
 		Server		&_server;
 		epoll_event	_events[MAX_EVENTS];
