@@ -26,9 +26,10 @@ void	EventHandler::handleEvent(Epoll &epoll, epoll_event &event) {
 		return;
 	}
 	if (event.events & EPOLLIN) {	
-		handleReceivedData(epoll, event)
+		handleReceivedData(epoll, event);
 	}
 	if (event.events & EPOLLOUT) {
+		
 			dprintf(event.data.fd, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 66\n\n<html><head><title>Basic Page</title></head><body><h1>Hello, World!</body></html>");
 		epoll_event modEvent = event;
 		modEvent.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
