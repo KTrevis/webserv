@@ -12,8 +12,8 @@ static void handleReceivedData(Epoll &epoll, epoll_event &event, std::string &re
     char buffer[1024];
     std::string request;
 	Socket &client = epoll._server._sockets[event.data.fd];
-
 	int n = recv(event.data.fd, buffer, sizeof(buffer), MSG_NOSIGNAL);
+
 	buffer[n] = '\0';
 	request.append(buffer, n);
 	Log::Trace(req);
@@ -30,14 +30,10 @@ void	EventHandler::handleEvent(Epoll &epoll, epoll_event &event) {
 		return;
 	}
 	if (event.events & EPOLLIN && epoll.isNewClient(event))
-	{
 		return;
-	}
-	if (event.events & EPOLLIN) {	
+	if (event.events & EPOLLIN)
 		handleReceivedData(epoll, event, req);
-	}
 	if (event.events & EPOLLOUT) {
-		
 		dprintf(event.data.fd, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 66\n\n<html><head><title>Basic Page</title></head><body><h1>Hello, World!</body></html>");
 		epoll_event modEvent = event;
 		modEvent.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;

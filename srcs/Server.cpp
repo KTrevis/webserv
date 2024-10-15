@@ -29,7 +29,3 @@ Server::Server(std::vector<ServerConfig> &arr): _epoll(*this, arr) {}
 std::map<int, ServerConfig>	&Server::getServerConfigs() {
 	return _serverConfigs;
 }
-
-const std::map<int, Socket>	&Server::getSockets() {
-	return _sockets;
-}
