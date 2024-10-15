@@ -1,6 +1,7 @@
 #include "EventHandler.hpp"
 #include "Epoll.hpp"
 #include "Log.hpp"
+#include "Server.hpp"
 #include "Request.hpp"
 #include <cstdio>
 #include <unistd.h>
@@ -10,13 +11,11 @@ Request request;
 static void handleReceivedData(Epoll &epoll, epoll_event &event, std::string &req) {
     char buffer[1024];
     std::string request;
+	Socket &client = epoll._server._sockets[event.data.fd];
 
-    while (1) 
-	{
-        int n = recv(event.data.fd, buffer, sizeof(buffer), MSG_NOSIGNAL);
-        buffer[n] = '\0';
-        request.append(buffer, n);
-    }
+	int n = recv(event.data.fd, buffer, sizeof(buffer), MSG_NOSIGNAL);
+	buffer[n] = '\0';
+	request.append(buffer, n);
 	Log::Trace(req);
 	epoll_event modEvent = event;
 	modEvent.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
@@ -31,6 +30,7 @@ void	EventHandler::handleEvent(Epoll &epoll, epoll_event &event) {
 		return;
 	}
 	if (event.events & EPOLLIN && epoll.isNewClient(event))
+	{
 		return;
 	}
 	if (event.events & EPOLLIN) {	

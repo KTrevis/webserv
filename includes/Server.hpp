@@ -12,11 +12,10 @@ class Server {
 		Server(std::vector<ServerConfig> &arr);
 		void	start();
 		std::map<int, ServerConfig>	&getServerConfigs();
-		const std::map<int, Socket>	&getSockets();
+		std::map<int, Socket>	_sockets;
 		Server	&operator=(const Server &server);
 		bool					parseConfig(ServerConfig &config);
 	private:
 		std::map<int, ServerConfig>	_serverConfigs;
-		std::map<int, Socket>	_sockets;
 		Epoll					_epoll;
 };
