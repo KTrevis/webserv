@@ -22,12 +22,13 @@ Epoll::Epoll(Server &server, std::vector<ServerConfig> &configs): _server(server
 			throw std::runtime_error("Server constructor failed");
 	}
 
-	for (size_t i = 0; i < server._serverSockets.size(); i++) {
-		const Socket *socket = _server._serverSockets[i];
+	std::map<int, Socket>::const_iterator it = server.getSockets().begin();
+	for (;it != server.getSockets().end(); it++) {
+		const Socket &socket = it->second;
 		epoll_event event;
 		event.events = EPOLLIN | EPOLLET;
-		event.data.fd = socket->getFd();
-		addFdToPoll(socket->getFd(), event);
+		event.data.fd = socket.getFd();
+		addFdToPoll(socket.getFd(), event);
 	}
 }
 
@@ -49,9 +50,9 @@ void	Epoll::removeFdFromPoll(int fd, epoll_event &event) {
 }
 
 bool Epoll::isNewClient(const epoll_event &event) {
-	const std::vector<Socket *> &sockets = _server._serverSockets;
-	for (size_t i = 0; i < sockets.size(); i++) {
-		if (sockets[i]->getFd() == event.data.fd) {
+	std::map<int, Socket>::const_iterator it = _server.getSockets().begin();
+	for (;it != _server.getSockets().end(); it++) {
+		if (it->second.getFd() == event.data.fd) {
 			createNewClient(event.data.fd);
 			return true;
 		}
@@ -66,7 +67,9 @@ void	Epoll::closeConnection(epoll_event &event) {
 }
 
 void	Epoll::createNewClient(int serverFd) {
-	ServerConfig &config = _server.getServerConfigs()[serverFd];
+	std::map<int, ServerConfig>::iterator it;
+	it = _server.getServerConfigs().find(serverFd);
+	ServerConfig &config = it->second;
 	int fd = NetworkUtils::accept(serverFd, config.address);
 	epoll_event event;
 

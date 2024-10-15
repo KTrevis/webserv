@@ -30,3 +30,7 @@ Socket::~Socket() {
 	}
 	Log::Debug(StringUtils::itoa(_fd) + " socket closed successfully");
 }
+
+void	Socket::setup(int fd) {
+	_fd = fd;
+}

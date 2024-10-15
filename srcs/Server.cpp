@@ -16,9 +16,8 @@ bool Server::parseConfig(ServerConfig &config) {
 	int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 	if (fd == -1) return false;
 	_serverConfigs[fd] = config;
-	Socket *newSocket = new Socket(fd);
-	_serverSockets.push_back(newSocket);
-	if (NetworkUtils::bind(*newSocket, config.address) == false)
+	_sockets[fd].setup(fd);
+	if (NetworkUtils::bind(_sockets[fd], config.address) == false)
 		return false;
 	if (listen(fd, 5) == -1)
 		return false;
@@ -29,4 +28,8 @@ Server::Server(std::vector<ServerConfig> &arr): _epoll(*this, arr) {}
 
 std::map<int, ServerConfig>	&Server::getServerConfigs() {
 	return _serverConfigs;
+}
+
+const std::map<int, Socket>	&Server::getSockets() {
+	return _sockets;
 }
