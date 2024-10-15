@@ -3,15 +3,20 @@
 #include "Socket.hpp"
 #include "Address.hpp"
 #include "Epoll.hpp"
+#include "ConfigParser.hpp"
+#include <map>
+#include <vector>
 
 class Server {
 	public:
-		Server(int port);
+		Server(std::vector<ServerConfig> &arr);
 		void	start();
-		const Socket	&getSocket();
-		Address		&getAdress();
+		std::map<int, ServerConfig>	&getServerConfigs();
+		const std::map<int, Socket>	&getSockets();
+		Server	&operator=(const Server &server);
+		bool					parseConfig(ServerConfig &config);
 	private:
-		Socket	_socket;
-		Address	_address;
-		Epoll	_epoll;
+		std::map<int, ServerConfig>	_serverConfigs;
+		std::map<int, Socket>	_sockets;
+		Epoll					_epoll;
 };

@@ -1,8 +1,11 @@
 #include "Address.hpp"
+#include <iostream>
 #include <cstring>
 #include <netinet/in.h>
 
-Address::Address(int port, int address) {
+Address::Address() {}
+
+Address::Address(int address, int port) {
 	explicit_bzero(&_addr, sizeof(_addr));
 	_addr.sin_family = AF_INET;
 	_addr.sin_port = htons(port);

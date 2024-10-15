@@ -1,6 +1,8 @@
 #pragma once
 
 #include <sys/epoll.h>
+#include "Socket.hpp"
+#include "ServerConfig.hpp"
 
 class Server;
 
@@ -8,15 +10,15 @@ class Server;
 
 class Epoll {
 	public:
-		Epoll(Server &server);
+		Epoll(Server &server, std::vector<ServerConfig> &configs);
 		~Epoll();
 		void	closeConnection(epoll_event &event);
-		void	createNewClient();
+		void	createNewClient(int serverFd);
 		bool	isNewClient(const epoll_event &event);
 		void	wait();
-		void		addFdToPoll(int fd, epoll_event &event);
-		void		removeFdFromPoll(int fd, epoll_event &event);
-		void		modifyPoll(int fd, epoll_event &event);
+		void	addFdToPoll(int fd, epoll_event &event);
+		void	removeFdFromPoll(int fd, epoll_event &event);
+		void	modifyPoll(int fd, epoll_event &event);
 	private:
 		int			_epollfd;
 		Server		&_server;

@@ -10,10 +10,12 @@
 
 Socket::Socket() {
 	_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	Log::Error(StringUtils::itoa(_fd) + " socket created");
 }
 
 Socket::Socket(int fd) {
 	_fd = fd;
+	Log::Error(StringUtils::itoa(_fd) + " socket created");
 }
 
 int	Socket::getFd() const {
@@ -21,9 +23,14 @@ int	Socket::getFd() const {
 }
 
 Socket::~Socket() {
+	if (_fd < 0) return;
 	if (close(_fd) < 0) {
-		Log::Error(StringUtils::itoa(_fd) + " socket with fd close failed");
+		Log::Error(StringUtils::itoa(_fd) + " socket close failed");
 		return;
 	}
-	Log::Debug(StringUtils::itoa(_fd) + " socket with fd closed successfully");
+	Log::Debug(StringUtils::itoa(_fd) + " socket closed successfully");
+}
+
+void	Socket::setup(int fd) {
+	_fd = fd;
 }

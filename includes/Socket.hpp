@@ -8,7 +8,8 @@ class Socket {
 		Socket();
 		Socket(int fd);
 		~Socket();
-		int	getFd() const;
+		int		getFd() const;
+		void	setup(int fd);
 	private:
 		int	_fd;
 };

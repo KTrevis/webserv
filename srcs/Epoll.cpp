@@ -4,6 +4,7 @@
 #include "EventHandler.hpp"
 #include "NetworkUtils.hpp"
 #include "StringUtils.hpp"
+#include <algorithm>
 #include <cstdio>
 #include <fcntl.h>
 #include <signal.h>
@@ -11,15 +12,24 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 
-Epoll::Epoll(Server &server): _server(server) {
-	epoll_event event;
-
+Epoll::Epoll(Server &server, std::vector<ServerConfig> &configs): _server(server) {
 	signal(SIGPIPE, SIG_IGN);
 	explicit_bzero(_events, sizeof(_events));
 	_epollfd = epoll_create1(0);
-	event.events = EPOLLIN | EPOLLET;
-	event.data.fd = server.getSocket().getFd();
-	addFdToPoll(server.getSocket().getFd(), event);
+
+	for (size_t i = 0; i < configs.size(); i++) {
+		if (!server.parseConfig(configs[i]))
+			throw std::runtime_error("Server constructor failed");
+	}
+
+	std::map<int, Socket>::const_iterator it = server.getSockets().begin();
+	for (;it != server.getSockets().end(); it++) {
+		const Socket &socket = it->second;
+		epoll_event event;
+		event.events = EPOLLIN | EPOLLET;
+		event.data.fd = socket.getFd();
+		addFdToPoll(socket.getFd(), event);
+	}
 }
 
 void	Epoll::addFdToPoll(int fd, epoll_event &event) {
@@ -40,7 +50,14 @@ void	Epoll::removeFdFromPoll(int fd, epoll_event &event) {
 }
 
 bool Epoll::isNewClient(const epoll_event &event) {
-	return event.data.fd == _server.getSocket().getFd();
+	std::map<int, Socket>::const_iterator it = _server.getSockets().begin();
+	for (;it != _server.getSockets().end(); it++) {
+		if (it->second.getFd() == event.data.fd) {
+			createNewClient(event.data.fd);
+			return true;
+		}
+	}
+	return false;
 }
 
 void	Epoll::closeConnection(epoll_event &event) {
@@ -49,8 +66,11 @@ void	Epoll::closeConnection(epoll_event &event) {
 	Log::Info("Closed client with socket " + StringUtils::itoa(event.data.fd));
 }
 
-void	Epoll::createNewClient() {
-	int fd = NetworkUtils::accept(_server.getSocket(), _server.getAdress());
+void	Epoll::createNewClient(int serverFd) {
+	std::map<int, ServerConfig>::iterator it;
+	it = _server.getServerConfigs().find(serverFd);
+	ServerConfig &config = it->second;
+	int fd = NetworkUtils::accept(serverFd, config.address);
 	epoll_event event;
 
 	if (fd == -1) {

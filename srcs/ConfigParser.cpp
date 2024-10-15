@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cwctype>
 #include <map>
+#include <netinet/in.h>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -58,15 +59,15 @@ bool	ConfigParser::locationParsing(std::vector<std::string> &line) {
 }
 
 bool	ConfigParser::parseLine(std::vector<std::string> &line) {
-	if (line.size() == 3 && line[0] == "listen") {
+	if (line.size() == 2 && line[0] == "listen") {
 		if (!(_scope & SERVER)) return false;
-		(_configs.end() - 1)->listenPort = std::atoi(line[1].c_str());
+		(_configs.end() - 1)->address = Address(INADDR_ANY, std::atoi(line[1].c_str()));
 	}
 	_currScope = strToScope(*line.begin());
 	switch (_currScope) {
 		case (SERVER): return serverParsing(line);
 		case (LOCATION): return locationParsing(line);
-		case(NONE): return true;
+		case (NONE): return true;
 	}
 }
 
@@ -75,7 +76,7 @@ bool	ConfigParser::addLocationConfig(size_t &i, const std::string &locationName)
 	try {
 		LocationConfig locationConfig(i, _lines);
 		serverConfig.locations.insert(std::make_pair(locationName, locationConfig));
-		locationConfig.displayData();
+		/* locationConfig.displayData(); */
 	} catch (std::exception &e) {
 		Log::Error(e.what());
 		return false;
@@ -103,4 +104,8 @@ ConfigParser::ConfigParser(const std::string &filename) {
 		if (_currScope == LOCATION && !addLocationConfig(i, _lines[i][0]))
 			throw std::runtime_error("ConfigParser constructor: location parsing failed");
 	}
+}
+
+std::vector<ServerConfig>	&ConfigParser::getConfigs() {
+	return _configs;
 }
