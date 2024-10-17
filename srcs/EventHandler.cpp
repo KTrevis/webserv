@@ -18,7 +18,7 @@ static void handleReceivedData(Server &server, epoll_event event) {
 	Log::Trace(buffer);
 	if (request.find("\r\n"))
 		request.clear();
-	event.events = EPOLLIN | EPOLLERR | EPOLLOUT;
+	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
 	server.modifyPoll(event.data.fd, event);
 }
 
