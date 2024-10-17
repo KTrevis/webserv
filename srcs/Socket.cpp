@@ -9,13 +9,12 @@
 #include <iostream>
 
 Socket::Socket() {
-	_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
-	Log::Error(StringUtils::itoa(_fd) + " socket created");
+	_fd = -1;
 }
 
 Socket::Socket(int fd) {
 	_fd = fd;
-	Log::Error(StringUtils::itoa(_fd) + " socket created");
+	Log::Trace(StringUtils::itoa(_fd) + " socket created");
 }
 
 int	Socket::getFd() const {
@@ -24,11 +23,8 @@ int	Socket::getFd() const {
 
 Socket::~Socket() {
 	if (_fd < 0) return;
-	if (close(_fd) < 0) {
-		Log::Error(StringUtils::itoa(_fd) + " socket close failed");
-		return;
-	}
-	Log::Debug(StringUtils::itoa(_fd) + " socket closed successfully");
+	close(_fd);
+	Log::Debug(StringUtils::itoa(_fd) + " socket closed");
 }
 
 void	Socket::setup(int fd) {

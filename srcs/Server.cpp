@@ -1,6 +1,8 @@
 #include "Server.hpp"
 #include "ConfigParser.hpp"
+#include "Log.hpp"
 #include "NetworkUtils.hpp"
+#include "StringUtils.hpp"
 #include <netinet/in.h>
 #include <stdexcept>
 #include <sys/socket.h>
@@ -14,6 +16,7 @@ void	Server::start() {
 
 bool Server::parseConfig(ServerConfig &config) {
 	int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	Log::Trace(StringUtils::itoa(fd) + " socket created");
 	if (fd == -1) return false;
 	_serverConfigs[fd] = config;
 	_sockets[fd].setup(fd);
@@ -25,7 +28,3 @@ bool Server::parseConfig(ServerConfig &config) {
 }
 
 Server::Server(std::vector<ServerConfig> &arr): _epoll(*this, arr) {}
-
-std::map<int, ServerConfig>	&Server::getServerConfigs() {
-	return _serverConfigs;
-}

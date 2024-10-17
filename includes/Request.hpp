@@ -1,16 +1,16 @@
 #pragma once
 
 #include <iostream>
+#include "Enums.hpp"
 
 class Request
 {
-	private:
-		std::string _method;
-		std::string _path;
-		std::string _httpVer;
-		std::string _plainTxt;
-
 	public:
 		Request();
 		~Request();
+	private:
+		/* e_methods	_method; */
+		/* std::string _path; */
+		/* std::string _httpVer; */
+		/* std::string _plainTxt; */
 };

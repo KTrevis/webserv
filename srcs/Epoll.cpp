@@ -66,7 +66,7 @@ void	Epoll::closeConnection(epoll_event &event) {
 
 void	Epoll::createNewClient(int serverFd) {
 	std::map<int, ServerConfig>::iterator it;
-	it = _server.getServerConfigs().find(serverFd);
+	it = _server._serverConfigs.find(serverFd);
 	ServerConfig &config = it->second;
 	int fd = NetworkUtils::accept(serverFd, config.address);
 	epoll_event event;

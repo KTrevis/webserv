@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <map>
 #include <stdexcept>
+#include "Enums.hpp"
 
 bool	LocationConfig::setMethods(const StringVector &arr) {
 	std::map<std::string, e_methods> map;
@@ -13,7 +14,7 @@ bool	LocationConfig::setMethods(const StringVector &arr) {
 	for (size_t i = 1; i < arr.size(); i++) {
 		std::map<std::string, e_methods>::iterator it = map.find(arr[i]);
 		if (it == map.end()) return false;
-		if (!(methodMask & it->second)) // si le flag de la methode n'est deja applique
+		if (!(methodMask & it->second)) // si le flag de la methode n'est pas deja applique
 			methodMask += it->second;
 	}
 	return true;

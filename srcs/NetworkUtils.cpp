@@ -1,11 +1,15 @@
 #include "NetworkUtils.hpp"
+#include "Log.hpp"
 #include <iostream>
 #include <fcntl.h>
 #include <sys/socket.h>
 
 bool	NetworkUtils::bind(const Socket &socket, Address &address) {
 	const sockaddr *addr = &address.toSockAddr();
-	return ::bind(socket.getFd(), addr, sizeof(*addr)) == 0;
+	int err = ::bind(socket.getFd(), addr, sizeof(*addr));
+	if (err != 0)
+		Log::Error("Binding failed");
+	return err == 0;
 }
 
 int	NetworkUtils::accept(const Socket &socket, Address &address) {

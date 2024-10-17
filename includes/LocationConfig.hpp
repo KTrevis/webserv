@@ -6,11 +6,6 @@
 
 typedef std::vector<std::string> StringVector;
 
-enum e_methods {
-	GET = 1,
-	POST = 2,
-	DELETE = 4,
-};
 
 class LocationConfig {
 	public:
