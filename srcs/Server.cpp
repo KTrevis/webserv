@@ -84,6 +84,8 @@ void	Server::closeConnection(epoll_event &event) {
 void	Server::createNewClient(Socket &socket) {
 	std::map<int, ServerConfig>::iterator it;
 	it = _serverConfigs.find(socket.getFd());
+	if (it == _serverConfigs.end())
+		return;
 	ServerConfig &config = it->second;
 	int fd = NetworkUtils::accept(socket, config.address);
 	epoll_event event;
