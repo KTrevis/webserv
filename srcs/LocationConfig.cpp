@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <map>
 #include <stdexcept>
-#include "Enums.hpp"
+#include "Request.hpp"
 
 bool	LocationConfig::setMethods(const StringVector &arr) {
 	std::map<std::string, e_methods> map;

@@ -1,7 +1,12 @@
 #pragma once
 
 #include <iostream>
-#include "Enums.hpp"
+
+enum e_methods {
+	GET = 1,
+	POST = 2,
+	DELETE = 4,
+};
 
 class Request
 {

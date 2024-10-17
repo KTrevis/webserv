@@ -1,9 +1,24 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ketrevis <ketrevis@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/10/17 13:26:48 by ketrevis          #+#    #+#             */
+/*   Updated: 2024/10/17 14:15:19 by ketrevis         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Server.hpp"
+#include "EventHandler.hpp"
 #include "ConfigParser.hpp"
 #include "Log.hpp"
 #include "NetworkUtils.hpp"
 #include "StringUtils.hpp"
+#include <cstring>
 #include <netinet/in.h>
+#include <signal.h>
 #include <stdexcept>
 #include <sys/socket.h>
 #include <sys/epoll.h>
@@ -11,7 +26,7 @@
 
 void	Server::start() {
 	while (1)
-		_epoll.wait();
+		wait();
 }
 
 bool Server::parseConfig(ServerConfig &config) {
@@ -19,7 +34,7 @@ bool Server::parseConfig(ServerConfig &config) {
 	Log::Trace(StringUtils::itoa(fd) + " socket created");
 	if (fd == -1) return false;
 	_serverConfigs[fd] = config;
-	_sockets[fd].setup(fd);
+	_sockets[fd].setup(fd, true);
 	if (NetworkUtils::bind(_sockets[fd], config.address) == false)
 		return false;
 	if (listen(fd, 5) == -1)
@@ -27,4 +42,86 @@ bool Server::parseConfig(ServerConfig &config) {
 	return true;
 }
 
-Server::Server(std::vector<ServerConfig> &arr): _epoll(*this, arr) {}
+Server::Server(std::vector<ServerConfig> &arr) {
+	explicit_bzero(_events, sizeof(_events));
+	_epollfd = epoll_create1(0);
+
+	for (size_t i = 0; i < arr.size(); i++) {
+		if (!parseConfig(arr[i]))
+			throw std::runtime_error("Server constructor failed");
+	}
+
+	std::map<int, Socket>::iterator it = _sockets.begin();
+	for (;it != _sockets.end(); it++) {
+		const Socket &socket = it->second;
+		epoll_event event;
+		event.events = EPOLLIN | EPOLLET;
+		event.data.fd = socket.getFd();
+		addFdToPoll(socket.getFd(), event);
+	}
+
+}
+
+void	Server::addFdToPoll(int fd, epoll_event &event) {
+	if (epoll_ctl(_epollfd, EPOLL_CTL_ADD, fd, &event))
+		Log::Error("Adding socket to poll failed");
+}
+
+void	Server::modifyPoll(int fd, epoll_event &event) {
+	if (epoll_ctl(_epollfd, EPOLL_CTL_MOD, fd, &event))
+		Log::Error("Adding socket to poll failed");
+}
+
+void	Server::removeFdFromPoll(int fd, epoll_event &event) {
+	if (epoll_ctl(_epollfd, EPOLL_CTL_DEL, fd, &event))
+		Log::Error("Deleting fd from poll failed");
+}
+
+bool Server::isNewClient(const epoll_event &event) {
+	std::map<int, Socket>::iterator it = _sockets.find(event.data.fd);
+	if (it->second.isServer()) {
+		createNewClient(it->first);
+		return true;
+	}
+	return false;
+}
+
+void	Server::closeConnection(epoll_event &event) {
+	Log::Info("Closed client with socket " + StringUtils::itoa(event.data.fd));
+	removeFdFromPoll(event.data.fd, event);
+	close(event.data.fd);
+	_sockets.erase(event.data.fd);
+}
+
+void	Server::createNewClient(int serverFd) {
+	std::map<int, ServerConfig>::iterator it;
+	it = _serverConfigs.find(serverFd);
+	ServerConfig &config = it->second;
+	int fd = NetworkUtils::accept(serverFd, config.address);
+	epoll_event event;
+
+	if (fd == -1) {
+		Log::Error("Server: Accept failed");
+		return;
+	}
+	_sockets[event.data.fd].setup(event.data.fd);
+	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
+	event.data.fd = fd;
+	addFdToPoll(fd, event);
+	Log::Info("New client created with socket " + StringUtils::itoa(fd));
+}
+
+void	Server::wait() {
+	int nbEvents = epoll_wait(_epollfd, _events, MAX_EVENTS, -1);
+
+	if (nbEvents == -1) {
+		Log::Error("Server wait failed");
+		return;
+	}
+	for (int i = 0; i < nbEvents; i++)
+		EventHandler::handleEvent(*this, _events[i]);
+}
+
+Server::~Server() {
+	close(_epollfd);
+}

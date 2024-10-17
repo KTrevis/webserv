@@ -1,8 +1,8 @@
 #pragma once
 
 #include <sys/epoll.h>
-#include "Epoll.hpp"
+#include "Server.hpp"
 
 namespace EventHandler {
-	void	handleEvent(Epoll &epoll, epoll_event &event);
+	void	handleEvent(Server &server, epoll_event &event);
 };

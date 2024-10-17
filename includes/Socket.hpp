@@ -11,8 +11,10 @@ class Socket {
 		Socket(int fd);
 		~Socket();
 		int		getFd() const;
-		void	setup(int fd);
+		void	setup(int fd, bool isServer = false);
 		std::string	request;
+		bool	isServer();
 	private:
-		int	_fd;
+		bool	_isServer;
+		int		_fd;
 };

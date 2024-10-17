@@ -24,9 +24,14 @@ int	Socket::getFd() const {
 Socket::~Socket() {
 	if (_fd < 0) return;
 	close(_fd);
-	Log::Debug(StringUtils::itoa(_fd) + " socket closed");
+	Log::Trace(StringUtils::itoa(_fd) + " socket closed");
 }
 
-void	Socket::setup(int fd) {
+void	Socket::setup(int fd, bool isServer) {
+	_isServer = isServer;
 	_fd = fd;
+}
+
+bool	Socket::isServer() {
+	return _isServer;
 }
