@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ketrevis <ketrevis@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/17 13:26:48 by ketrevis          #+#    #+#             */
-/*   Updated: 2024/10/17 14:15:19 by ketrevis         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Server.hpp"
 #include "EventHandler.hpp"
 #include "ConfigParser.hpp"
@@ -31,7 +19,7 @@ void	Server::start() {
 
 bool Server::parseConfig(ServerConfig &config) {
 	int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
-	Log::Trace(StringUtils::itoa(fd) + " socket created");
+	Log::Trace(StringUtils::itoa(fd) + " server socket created");
 	if (fd == -1) return false;
 	_serverConfigs[fd] = config;
 	_sockets[fd].setup(fd, true);
@@ -80,7 +68,7 @@ void	Server::removeFdFromPoll(int fd, epoll_event &event) {
 bool Server::isNewClient(const epoll_event &event) {
 	std::map<int, Socket>::iterator it = _sockets.find(event.data.fd);
 	if (it->second.isServer()) {
-		createNewClient(it->first);
+		createNewClient(it->second);
 		return true;
 	}
 	return false;
@@ -93,11 +81,11 @@ void	Server::closeConnection(epoll_event &event) {
 	_sockets.erase(event.data.fd);
 }
 
-void	Server::createNewClient(int serverFd) {
+void	Server::createNewClient(Socket &socket) {
 	std::map<int, ServerConfig>::iterator it;
-	it = _serverConfigs.find(serverFd);
+	it = _serverConfigs.find(socket.getFd());
 	ServerConfig &config = it->second;
-	int fd = NetworkUtils::accept(serverFd, config.address);
+	int fd = NetworkUtils::accept(socket, config.address);
 	epoll_event event;
 
 	if (fd == -1) {
@@ -113,7 +101,6 @@ void	Server::createNewClient(int serverFd) {
 
 void	Server::wait() {
 	int nbEvents = epoll_wait(_epollfd, _events, MAX_EVENTS, -1);
-
 	if (nbEvents == -1) {
 		Log::Error("Server wait failed");
 		return;

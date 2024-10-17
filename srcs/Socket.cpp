@@ -24,7 +24,10 @@ int	Socket::getFd() const {
 Socket::~Socket() {
 	if (_fd < 0) return;
 	close(_fd);
-	Log::Trace(StringUtils::itoa(_fd) + " socket closed");
+	std::string err = StringUtils::itoa(_fd);
+	err += _isServer ? " server": " client";
+	err += " socket closed";
+	Log::Trace(err);
 }
 
 void	Socket::setup(int fd, bool isServer) {

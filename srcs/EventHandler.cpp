@@ -18,20 +18,20 @@ static void handleReceivedData(Server &server, epoll_event event) {
 	Log::Trace(buffer);
 	if (request.find("\r\n"))
 		request.clear();
-	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
+	event.events = EPOLLIN | EPOLLERR | EPOLLOUT;
 	server.modifyPoll(event.data.fd, event);
 }
 
 void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 	Log::Event(event.events);
-	if (event.events & (EPOLLHUP | EPOLLRDHUP | EPOLLERR)) {
-		server.closeConnection(event);
-		return;
-	}
 	if (event.events & EPOLLIN && server.isNewClient(event))
 		return;
 	if (event.events & EPOLLIN)
 		handleReceivedData(server, event);
+	if (event.events & (EPOLLHUP | EPOLLRDHUP | EPOLLERR)) {
+		server.closeConnection(event);
+		return;
+	}
 	if (event.events & EPOLLOUT) {
 		dprintf(event.data.fd, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 66\n\n<html><head><title>Basic Page</title></head><body><h1>Hello, World!</body></html>");
 		epoll_event modEvent = event;

@@ -17,7 +17,7 @@ class Server {
 		std::map<int, ServerConfig>	_serverConfigs;
 		std::map<int, Socket>		_sockets;
 		void	closeConnection(epoll_event &event);
-		void	createNewClient(int serverFd);
+		void	createNewClient(Socket &socket);
 		bool	isNewClient(const epoll_event &event);
 		void	wait();
 		void	addFdToPoll(int fd, epoll_event &event);
