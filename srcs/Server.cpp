@@ -43,7 +43,7 @@ Server::Server(std::vector<ServerConfig> &arr) {
 	for (;it != _sockets.end(); it++) {
 		const Socket &socket = it->second;
 		epoll_event event;
-		event.events = EPOLLIN | EPOLLET;
+		event.events = EPOLLIN;
 		event.data.fd = socket.getFd();
 		addFdToPoll(socket.getFd(), event);
 	}
