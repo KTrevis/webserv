@@ -14,9 +14,16 @@ static void handleReceivedData(Server &server, epoll_event event) {
 		return Log::Error("recv failed");
 	buffer[n] = '\0';
 	request += buffer;
-				event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
-			server.modifyPoll(event.data.fd, event);
+	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
+	server.modifyPoll(event.data.fd, event);
 	// client.request.parseRequest();
+}
+
+static void	sendResponse(Server &server, epoll_event event) {
+	/* const Socket &client = server.sockets[event.data.fd]; */
+	dprintf(event.data.fd, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 66\n\n<html><head><title>Basic Page</title></head><body><h1>Hello, World!</body></html>");
+	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
+	server.modifyPoll(event.data.fd, event);
 }
 
 void	EventHandler::handleEvent(Server &server, epoll_event &event) {
@@ -24,22 +31,13 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 	if (event.events & EPOLLIN && server.isNewClient(event))
 		return;
 	if (event.events & EPOLLIN)
-	{
 		handleReceivedData(server, event);
-		// if (server.sockets[event.data.fd].request.request.find("\r\n\r\n"))
-		// {
-
-		// 	return;
-		// }
-	}
 	if (event.events & (EPOLLHUP | EPOLLRDHUP | EPOLLERR)) {
 		server.closeConnection(event);
 		return;
 	}
 	if (event.events & EPOLLOUT) {
-		dprintf(event.data.fd, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 66\n\n<html><head><title>Basic Page</title></head><body><h1>Hello, World!</body></html>");
-		epoll_event modEvent = event;
-		modEvent.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
-		server.modifyPoll(event.data.fd, modEvent);
+		sendResponse(server, event);
+		/* if (server.sockets[event.data.fd].request.request.find("\r\n\r\n")) */
 	}
 }

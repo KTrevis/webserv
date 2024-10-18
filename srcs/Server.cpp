@@ -22,7 +22,7 @@ bool Server::parseConfig(ServerConfig &config) {
 	Log::Trace(StringUtils::itoa(fd) + " server socket created");
 	if (fd == -1) return false;
 	serverConfigs[fd] = config;
-	sockets[fd].setup(fd, true);
+	sockets[fd].setup(fd, fd);
 	if (NetworkUtils::bind(sockets[fd], config.address) == false)
 		return false;
 	if (listen(fd, 5) == -1)
@@ -94,7 +94,7 @@ void	Server::createNewClient(Socket &socket) {
 		Log::Error("Server: Accept failed");
 		return;
 	}
-	sockets[fd].setup(fd);
+	sockets[fd].setup(fd, socket.getFd());
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	event.data.fd = fd;
 	addFdToPoll(fd, event);
