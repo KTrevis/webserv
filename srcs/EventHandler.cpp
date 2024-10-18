@@ -10,14 +10,11 @@ static void handleReceivedData(Server &server, epoll_event event) {
 	Socket &client = server.sockets[event.data.fd];
 	std::string &request = client.request.request;
 	int n = recv(event.data.fd, buffer, sizeof(buffer), MSG_NOSIGNAL);
-
 	if (n == -1)
 		return Log::Error("recv failed");
 	buffer[n] = '\0';
 	request += buffer;
-	client.request.parseRequest();
-	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
-	server.modifyPoll(event.data.fd, event);
+	// client.request.parseRequest();
 }
 
 void	EventHandler::handleEvent(Server &server, epoll_event &event) {
@@ -25,7 +22,15 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 	if (event.events & EPOLLIN && server.isNewClient(event))
 		return;
 	if (event.events & EPOLLIN)
+	{
 		handleReceivedData(server, event);
+		if (server.sockets[event.data.fd].request.request.find("\r\n\r\n"))
+		{
+			event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
+			server.modifyPoll(event.data.fd, event);
+			return;
+		}
+	}
 	if (event.events & (EPOLLHUP | EPOLLRDHUP | EPOLLERR)) {
 		server.closeConnection(event);
 		return;

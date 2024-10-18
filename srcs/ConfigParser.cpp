@@ -69,6 +69,7 @@ bool	ConfigParser::parseLine(std::vector<std::string> &line) {
 		case (LOCATION): return locationParsing(line);
 		case (NONE): return true;
 	}
+	return (false);
 }
 
 bool	ConfigParser::addLocationConfig(size_t &i, const std::string &locationName) {

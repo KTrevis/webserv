@@ -18,6 +18,9 @@ class Request
 		std::string path;
 		std::string httpVer;
 		std::string request;
+		std::map<std::string, std::string>	headers;
+		std::string	body;
+
 	private:
 		int	_i;
 };
