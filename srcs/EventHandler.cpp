@@ -14,6 +14,8 @@ static void handleReceivedData(Server &server, epoll_event event) {
 		return Log::Error("recv failed");
 	buffer[n] = '\0';
 	request += buffer;
+				event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
+			server.modifyPoll(event.data.fd, event);
 	// client.request.parseRequest();
 }
 
@@ -24,12 +26,11 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 	if (event.events & EPOLLIN)
 	{
 		handleReceivedData(server, event);
-		if (server.sockets[event.data.fd].request.request.find("\r\n\r\n"))
-		{
-			event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
-			server.modifyPoll(event.data.fd, event);
-			return;
-		}
+		// if (server.sockets[event.data.fd].request.request.find("\r\n\r\n"))
+		// {
+
+		// 	return;
+		// }
 	}
 	if (event.events & (EPOLLHUP | EPOLLRDHUP | EPOLLERR)) {
 		server.closeConnection(event);

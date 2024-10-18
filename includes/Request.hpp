@@ -1,6 +1,8 @@
 #pragma once
 
 #include <iostream>
+#include <map>
+
 
 enum e_methods {
 	GET = 1,
@@ -18,7 +20,7 @@ class Request
 		std::string path;
 		std::string httpVer;
 		std::string request;
-		std::map<std::string, std::string>	headers;
+		std::map<std::string, std::string>	headerArguments;
 		std::string	body;
 
 	private:
