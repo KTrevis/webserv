@@ -21,9 +21,9 @@ bool Server::parseConfig(ServerConfig &config) {
 	int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 	Log::Trace(StringUtils::itoa(fd) + " server socket created");
 	if (fd == -1) return false;
-	_serverConfigs[fd] = config;
-	_sockets[fd].setup(fd, true);
-	if (NetworkUtils::bind(_sockets[fd], config.address) == false)
+	serverConfigs[fd] = config;
+	sockets[fd].setup(fd, true);
+	if (NetworkUtils::bind(sockets[fd], config.address) == false)
 		return false;
 	if (listen(fd, 5) == -1)
 		return false;
@@ -39,8 +39,8 @@ Server::Server(std::vector<ServerConfig> &arr) {
 			throw std::runtime_error("Server constructor failed");
 	}
 
-	std::map<int, Socket>::iterator it = _sockets.begin();
-	for (;it != _sockets.end(); it++) {
+	std::map<int, Socket>::iterator it = sockets.begin();
+	for (;it != sockets.end(); it++) {
 		const Socket &socket = it->second;
 		epoll_event event;
 		event.events = EPOLLIN;
@@ -66,7 +66,7 @@ void	Server::removeFdFromPoll(int fd, epoll_event &event) {
 }
 
 bool Server::isNewClient(const epoll_event &event) {
-	std::map<int, Socket>::iterator it = _sockets.find(event.data.fd);
+	std::map<int, Socket>::iterator it = sockets.find(event.data.fd);
 	if (it->second.isServer()) {
 		createNewClient(it->second);
 		return true;
@@ -78,13 +78,13 @@ void	Server::closeConnection(epoll_event &event) {
 	Log::Info("Closed client with socket " + StringUtils::itoa(event.data.fd));
 	removeFdFromPoll(event.data.fd, event);
 	close(event.data.fd);
-	_sockets.erase(event.data.fd);
+	sockets.erase(event.data.fd);
 }
 
 void	Server::createNewClient(Socket &socket) {
 	std::map<int, ServerConfig>::iterator it;
-	it = _serverConfigs.find(socket.getFd());
-	if (it == _serverConfigs.end())
+	it = serverConfigs.find(socket.getFd());
+	if (it == serverConfigs.end())
 		return;
 	ServerConfig &config = it->second;
 	int fd = NetworkUtils::accept(socket, config.address);
@@ -94,9 +94,9 @@ void	Server::createNewClient(Socket &socket) {
 		Log::Error("Server: Accept failed");
 		return;
 	}
-	_sockets[event.data.fd].setup(event.data.fd);
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	event.data.fd = fd;
+	sockets[event.data.fd].setup(event.data.fd);
 	addFdToPoll(fd, event);
 	Log::Info("New client created with socket " + StringUtils::itoa(fd));
 }

@@ -14,8 +14,8 @@ class Server {
 		~Server();
 		void	start();
 		Server	&operator=(const Server &server);
-		std::map<int, ServerConfig>	_serverConfigs;
-		std::map<int, Socket>		_sockets;
+		std::map<int, ServerConfig>	serverConfigs;
+		std::map<int, Socket>		sockets;
 		void	closeConnection(epoll_event &event);
 		void	createNewClient(Socket &socket);
 		bool	isNewClient(const epoll_event &event);

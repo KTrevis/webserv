@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <poll.h>
+#include <Request.hpp>
 
 class Socket {
 	public:
@@ -12,8 +13,8 @@ class Socket {
 		~Socket();
 		int		getFd() const;
 		void	setup(int fd, bool isServer = false);
-		std::string	request;
 		bool	isServer();
+		Request	request;
 	private:
 		bool	_isServer;
 		int		_fd;

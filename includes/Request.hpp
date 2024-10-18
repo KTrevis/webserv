@@ -11,11 +11,13 @@ enum e_methods {
 class Request
 {
 	public:
+		void	parseRequest();
 		Request();
 		~Request();
+		e_methods	method;
+		std::string path;
+		std::string httpVer;
+		std::string request;
 	private:
-		/* e_methods	_method; */
-		/* std::string _path; */
-		/* std::string _httpVer; */
-		/* std::string _plainTxt; */
+		int	_i;
 };

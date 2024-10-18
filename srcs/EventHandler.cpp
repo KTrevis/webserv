@@ -7,17 +7,15 @@
 
 static void handleReceivedData(Server &server, epoll_event event) {
 	char buffer[1024];
-	Socket &client = server._sockets[event.data.fd];
-	std::string &request = client.request;
+	Socket &client = server.sockets[event.data.fd];
+	std::string &request = client.request.request;
 	int n = recv(event.data.fd, buffer, sizeof(buffer), MSG_NOSIGNAL);
 
 	if (n == -1)
 		return Log::Error("recv failed");
 	buffer[n] = '\0';
 	request += buffer;
-	Log::Trace(buffer);
-	if (request.find("\r\n"))
-		request.clear();
+	client.request.parseRequest();
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
 	server.modifyPoll(event.data.fd, event);
 }
