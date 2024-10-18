@@ -4,6 +4,7 @@
 #include "Log.hpp"
 #include <cstdlib>
 #include <cwctype>
+#include <exception>
 #include <map>
 #include <netinet/in.h>
 #include <stdexcept>
@@ -89,7 +90,11 @@ bool	ConfigParser::addLocationConfig(size_t &i, const std::string &locationName)
 }
 
 ConfigParser::ConfigParser(const std::string &filename) {
-	tokenizeFile(filename); // this function is in ConfigTokenizer.cpp
+	try {
+		tokenizeFile(filename); // this function is in ConfigTokenizer.cpp
+	} catch (std::exception &e) {
+		throw std::runtime_error("Failed to read config file.");
+	}
 	_scope = 0;
 	_currScope = NONE;
 

@@ -1,5 +1,7 @@
 #include "StringUtils.hpp"
+#include <fstream>
 #include <cctype>
+#include <stdexcept>
 
 static int	nbrLen(int n)
 {
@@ -22,8 +24,9 @@ std::string	StringUtils::itoa(int n)
 	int		i = nbrLen(n);
 	long	nb = static_cast<long>(n);
 	std::string	str;
-	str.resize(i + 1);
+	str.resize(i);
 
+	i--;
 	if (n == 0)
 		str[i] = '0';
 	if (n < 0) {
@@ -53,7 +56,6 @@ std::vector<std::string> StringUtils::split(std::string str, const std::string &
 
 	while ((pos = str.find(lim)) != std::string::npos) {
 		word = str.substr(0, pos);
-
 		if (word != "") {
 			if (prependLim)
 				word = lim + word;
@@ -66,4 +68,29 @@ std::vector<std::string> StringUtils::split(std::string str, const std::string &
 		arr.push_back(word);
 	}
 	return arr;
+}
+
+std::vector<std::string> StringUtils::getVectorFile(const std::string &filename) {
+	std::ifstream			stream(filename.c_str());
+	std::string				buffer;
+	std::vector<std::string>	file;
+
+	if (stream.fail() || stream.bad())
+		throw std::runtime_error("Failed to read file.");
+	while (std::getline(stream, buffer))
+		file.push_back(buffer);
+	return file;
+}
+
+std::string	StringUtils::getFile(const std::string &filename) {
+	std::ifstream			stream(filename.c_str());
+	std::string				buffer;
+	std::string				str;
+
+	if (stream.fail() || stream.bad())
+		throw std::runtime_error("Failed to read file.");
+	while (std::getline(stream, buffer))
+		str += buffer;
+	return str;
+
 }

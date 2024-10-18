@@ -3,6 +3,7 @@
 #include "Log.hpp"
 #include "Server.hpp"
 #include "Request.hpp"
+#include "Response.hpp"
 #include <algorithm>
 #include <cstdio>
 #include <unistd.h>
@@ -26,18 +27,10 @@ static void	sendResponse(Server &server, epoll_event event) {
 	const Socket &client = server.sockets[event.data.fd];
 	const Request &request = client.request;
 	ServerConfig &config = server.serverConfigs[client.getServerFd()];
-	const std::string &url = "/";
-	std::vector<std::string> path = StringUtils::split(url, "/", true);
+	Response response(client, request, config);
 
-	(void)config;
-	(void)request;
-	if (path.size() == 0)
-		path.push_back("/");
-	Log::Debug(path[0]);
-	Log::Debug(config.locations[path[0]].root);
-	dprintf(event.data.fd, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 66\n\n<html><head><title>Basic Page</title></head><body><h1>Hello, World!</body></html>");
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
-	server.modifyPoll(event.data.fd, event);
+	server.modifyPoll(client.getFd(), event);
 }
 
 void	EventHandler::handleEvent(Server &server, epoll_event &event) {

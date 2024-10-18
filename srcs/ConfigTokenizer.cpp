@@ -1,6 +1,6 @@
 #include "ConfigParser.hpp"
+#include "StringUtils.hpp"
 #include <exception>
-#include <fstream>
 #include <stdexcept>
 
 bool	ConfigParser::isToken(const char &c) {
@@ -39,20 +39,13 @@ static std::vector<std::string>	tokenizeLine(const std::string &str) {
 	return list;
 }
 
-static std::vector<std::string>	getFile(const std::string &filename) {
-	std::ifstream			stream(filename.c_str());
-	std::string				buffer;
-	std::vector<std::string>	file;
-
-	while (std::getline(stream, buffer))
-		file.push_back(buffer);
-	return file;
-}
-
 std::string	ConfigParser::tokenizeFile(const std::string &filename) {
-	const std::vector<std::string> &file = getFile(filename);
-	if (file.size() == 0)
+	std::vector<std::string> file;
+	try {
+		file = StringUtils::getVectorFile(filename);
+	} catch (std::exception &e) {
 		throw std::runtime_error("Failed to read file.");
+	}
 	std::vector<std::string>::const_iterator it = file.begin();
 
 	while (it != file.end()) {
@@ -63,4 +56,3 @@ std::string	ConfigParser::tokenizeFile(const std::string &filename) {
 	}
 	return "";
 }
- 

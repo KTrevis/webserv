@@ -82,6 +82,7 @@ LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines
 	map["alias"] = &LocationConfig::setAlias;
 	map["autoindex"] = &LocationConfig::setAutoIndex;
 
+	indexFile = "index.html";
 	methodMask = 0;
 	i++;
 	for (;i < lines.size(); i++) {
