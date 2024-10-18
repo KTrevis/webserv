@@ -8,7 +8,7 @@ SRCS =	main.cpp Server.cpp Address.cpp NetworkUtils.cpp Socket.cpp \
 		ConfigTokenizer.cpp LocationConfig.cpp ServerConfig.cpp Request.cpp 
 OBJS = $(addprefix objs/,$(SRCS:.cpp=.o))
 DEPS = $(OBJS:.o=.d)
-LOG_LEVEL = DEBUG
+LOG_LEVEL = TRACE
 
 all: $(NAME)
 

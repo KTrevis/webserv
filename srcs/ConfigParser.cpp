@@ -1,4 +1,5 @@
 #include "ConfigParser.hpp"
+#include "StringUtils.hpp"
 #include "LocationConfig.hpp"
 #include "Log.hpp"
 #include <cstdlib>
@@ -61,6 +62,8 @@ bool	ConfigParser::locationParsing(std::vector<std::string> &line) {
 bool	ConfigParser::parseLine(std::vector<std::string> &line) {
 	if (line.size() == 2 && line[0] == "listen") {
 		if (!(_scope & SERVER)) return false;
+		if (!StringUtils::isPositiveNumber(line[1])) return false;
+		Log::Info("Creating server on port " + line[1]);
 		(_configs.end() - 1)->address = Address(INADDR_ANY, std::atoi(line[1].c_str()));
 	}
 	_currScope = strToScope(*line.begin());

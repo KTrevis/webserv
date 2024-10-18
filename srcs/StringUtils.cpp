@@ -1,4 +1,5 @@
 #include "StringUtils.hpp"
+#include <cctype>
 
 static int	nbrLen(int n)
 {
@@ -35,4 +36,12 @@ std::string	StringUtils::itoa(int n)
 		i--;
 	}
 	return (str);
+}
+
+bool	StringUtils::isPositiveNumber(const std::string &str) {
+	for (int i = 0; str[i]; i++) {
+		if (!std::isdigit(str[i]))
+			return false;
+	}
+	return true;
 }
