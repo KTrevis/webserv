@@ -94,9 +94,9 @@ void	Server::createNewClient(Socket &socket) {
 		Log::Error("Server: Accept failed");
 		return;
 	}
+	sockets[fd].setup(fd);
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	event.data.fd = fd;
-	sockets[event.data.fd].setup(event.data.fd);
 	addFdToPoll(fd, event);
 	Log::Info("New client created with socket " + StringUtils::itoa(fd));
 }
