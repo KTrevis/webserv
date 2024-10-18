@@ -1,9 +1,12 @@
 #include "EventHandler.hpp"
+#include "StringUtils.hpp"
 #include "Log.hpp"
 #include "Server.hpp"
 #include "Request.hpp"
+#include <algorithm>
 #include <cstdio>
 #include <unistd.h>
+#include <vector>
 
 static void handleReceivedData(Server &server, epoll_event event) {
 	char buffer[1024];
@@ -20,7 +23,18 @@ static void handleReceivedData(Server &server, epoll_event event) {
 }
 
 static void	sendResponse(Server &server, epoll_event event) {
-	/* const Socket &client = server.sockets[event.data.fd]; */
+	const Socket &client = server.sockets[event.data.fd];
+	const Request &request = client.request;
+	ServerConfig &config = server.serverConfigs[client.getServerFd()];
+	const std::string &url = "/";
+	std::vector<std::string> path = StringUtils::split(url, "/", true);
+
+	(void)config;
+	(void)request;
+	if (path.size() == 0)
+		path.push_back("/");
+	Log::Debug(path[0]);
+	Log::Debug(config.locations[path[0]].root);
 	dprintf(event.data.fd, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 66\n\n<html><head><title>Basic Page</title></head><body><h1>Hello, World!</body></html>");
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	server.modifyPoll(event.data.fd, event);
@@ -37,7 +51,7 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 		return;
 	}
 	if (event.events & EPOLLOUT) {
-		sendResponse(server, event);
-		/* if (server.sockets[event.data.fd].request.request.find("\r\n\r\n")) */
+		if (server.sockets[event.data.fd].request.request.find("\r\n\r\n"))
+			sendResponse(server, event);
 	}
 }

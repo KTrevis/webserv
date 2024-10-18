@@ -9,6 +9,7 @@ typedef std::vector<std::string> StringVector;
 
 class LocationConfig {
 	public:
+		LocationConfig();
 		LocationConfig(size_t &i, const std::vector<StringVector> &lines);
 		int									methodMask;
 		bool								autoIndex;

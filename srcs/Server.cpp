@@ -4,6 +4,7 @@
 #include "Log.hpp"
 #include "NetworkUtils.hpp"
 #include "StringUtils.hpp"
+#include <asm-generic/socket.h>
 #include <cstring>
 #include <netinet/in.h>
 #include <signal.h>
@@ -19,8 +20,11 @@ void	Server::start() {
 
 bool Server::parseConfig(ServerConfig &config) {
 	int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+
 	Log::Trace(StringUtils::itoa(fd) + " server socket created");
 	if (fd == -1) return false;
+	int n = 1;
+	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &n, sizeof(n));
 	serverConfigs[fd] = config;
 	sockets[fd].setup(fd, fd);
 	if (NetworkUtils::bind(sockets[fd], config.address) == false)

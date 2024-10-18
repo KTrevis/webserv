@@ -1,4 +1,5 @@
 #include "LocationConfig.hpp"
+#include <Log.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <map>
@@ -97,6 +98,8 @@ LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines
 	}
 	displayData();
 }
+
+LocationConfig::LocationConfig() {}
 
 static std::string	methodToStr(int method) {
 	std::map<int, std::string>	map;

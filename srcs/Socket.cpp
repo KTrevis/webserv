@@ -23,6 +23,10 @@ int	Socket::getFd() const {
 	return _fd;
 }
 
+int	Socket::getServerFd() const {
+	return _serverFd;
+}
+
 Socket::~Socket() {
 	if (_fd < 0) return;
 	close(_fd);

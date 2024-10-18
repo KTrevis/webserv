@@ -1,5 +1,7 @@
 #include "ConfigParser.hpp"
+#include <exception>
 #include <fstream>
+#include <stdexcept>
 
 bool	ConfigParser::isToken(const char &c) {
 	return c == '{' || c == '}' || c == ';';
@@ -49,6 +51,8 @@ static std::vector<std::string>	getFile(const std::string &filename) {
 
 std::string	ConfigParser::tokenizeFile(const std::string &filename) {
 	const std::vector<std::string> &file = getFile(filename);
+	if (file.size() == 0)
+		throw std::runtime_error("Failed to read file.");
 	std::vector<std::string>::const_iterator it = file.begin();
 
 	while (it != file.end()) {
@@ -59,4 +63,4 @@ std::string	ConfigParser::tokenizeFile(const std::string &filename) {
 	}
 	return "";
 }
-
+ 

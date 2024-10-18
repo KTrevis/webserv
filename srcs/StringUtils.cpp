@@ -45,3 +45,25 @@ bool	StringUtils::isPositiveNumber(const std::string &str) {
 	}
 	return true;
 }
+
+std::vector<std::string> StringUtils::split(std::string str, const std::string &lim, bool prependLim) {
+	std::vector<std::string> arr;
+	std::string word;
+	size_t pos = 0;
+
+	while ((pos = str.find(lim)) != std::string::npos) {
+		word = str.substr(0, pos);
+
+		if (word != "") {
+			if (prependLim)
+				word = lim + word;
+			arr.push_back(word);
+		}
+		str.erase(0, pos + lim.length());
+	}
+	if (str != "") {
+		word = lim + str;
+		arr.push_back(word);
+	}
+	return arr;
+}

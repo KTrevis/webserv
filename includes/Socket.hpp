@@ -12,6 +12,7 @@ class Socket {
 		Socket(int fd);
 		~Socket();
 		int		getFd() const;
+		int		getServerFd() const;
 		void	setup(int fd, int serverFd);
 		bool	isServer();
 		Request	request;
