@@ -6,21 +6,21 @@
 #include <exception>
 #include <sys/stat.h>
 
-static LocationConfig findLocation(ServerConfig &config, const std::vector<std::string> &split, size_t &i) {
+LocationConfig Response::findLocation(ServerConfig &config) {
 	std::map<std::string, LocationConfig>::iterator it;
 	std::string filePath;
 	std::string	found = "";
 	size_t		foundIndex = 0;
 
-	for (;i < split.size(); i++) {
-		filePath += split[i];
+	for (;_i < _split.size(); _i++) {
+		filePath += _split[_i];
 		it = config.locations.find(filePath);
 		if (it != config.locations.end()) {
-			foundIndex = i;
+			foundIndex = _i;
 			found = it->first;
 		}
 	}
-	i = foundIndex;
+	_i = foundIndex;
 	if (found != "")
 		return config.locations[found];
 	it = config.locations.find("/");
@@ -36,11 +36,11 @@ static bool	isFolder(const char *name)
 	return (stat(name, &s_stat) == 0 && S_ISDIR(s_stat.st_mode));
 }
 
-static std::string setFilepath(const LocationConfig &locationConfig, const std::vector<std::string> &split, size_t &i) {
+std::string Response::setFilepath(const LocationConfig &locationConfig) {
 	std::string filePath = locationConfig.root;
 
-	for(;i < split.size(); i++)
-		filePath += split[i];
+	for(;_i < _split.size(); _i++)
+		filePath += _split[_i];
 	filePath += "/";
 	if (isFolder(filePath.c_str()))
 		filePath += locationConfig.indexFile;
@@ -50,9 +50,8 @@ static std::string setFilepath(const LocationConfig &locationConfig, const std::
 }
 
 void	Response::setResponse(ServerConfig &serverConfig) {
-	size_t i = 0;
-	LocationConfig locationConfig = findLocation(serverConfig, _split, i);
-	std::string filePath = setFilepath(locationConfig, _split, i);
+	LocationConfig locationConfig = findLocation(serverConfig);
+	std::string filePath = setFilepath(locationConfig);
 	_contentType = StringUtils::fileExtensionToType(filePath);
 
 	Log::Debug("Fetching file at: " + filePath);
@@ -67,9 +66,19 @@ void	Response::setResponse(ServerConfig &serverConfig) {
 	_response += _body;
 }
 
+static void	redirect(const std::string &url, int clientFd) {
+	std::string response = "HTTP/1.1 301\r\n";
+	response += "content-length: 0\r\n";
+	response += "location: " + url + "\r\n\r\n";
+	dprintf(clientFd, "%s", response.c_str());
+}
+
 Response::Response(const Socket &client, Request &request, ServerConfig &serverConfig) {
-	if (request.path[request.path.size() - 1] != '/')
-		request.path += "/";
+	_i = 0;
+	if (request.path[request.path.size() - 1] != '/') {
+		redirect(request.path + "/", client.getFd());
+		return;
+	}
 	_split = StringUtils::split(request.path, "/", true);
 
 	if (request.method == "GET")
