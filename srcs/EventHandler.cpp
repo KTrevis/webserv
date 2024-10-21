@@ -47,10 +47,10 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 	}
 	if (event.events & EPOLLOUT) {
 		server.sockets[event.data.fd].request.parseRequest();
-		Log::Info(server.sockets[event.data.fd].request.method);
-		Log::Info(server.sockets[event.data.fd].request.path);
-		Log::Info(server.sockets[event.data.fd].request.httpVer);
-		server.sockets[event.data.fd].request.displayArgs();
+		// Log::Info(server.sockets[event.data.fd].request.method);
+		// Log::Info(server.sockets[event.data.fd].request.path);
+		// Log::Info(server.sockets[event.data.fd].request.httpVer);
+		// server.sockets[event.data.fd].request.displayArgs();
 		if (server.sockets[event.data.fd].request.request.find("\r\n\r\n"))
 			sendResponse(server, event);
 	}

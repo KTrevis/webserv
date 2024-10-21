@@ -2,7 +2,9 @@
 #include "Log.hpp"
 #include "StringUtils.hpp"
 #include <cstdio>
+#include <unistd.h>
 #include <exception>
+#include <sys/stat.h>
 
 static LocationConfig findLocation(ServerConfig &config, const std::vector<std::string> &split, size_t &i) {
 	std::map<std::string, LocationConfig>::iterator it;
@@ -27,6 +29,13 @@ static LocationConfig findLocation(ServerConfig &config, const std::vector<std::
 	return LocationConfig();
 }
 
+static bool	isFolder(const char *name)
+{
+	struct stat	s_stat;
+
+	return (stat(name, &s_stat) == 0 && S_ISDIR(s_stat.st_mode));
+}
+
 static std::string	getHtml(std::vector<std::string> split, ServerConfig &serverConfig) {
 	size_t i = 0;
 	LocationConfig locationConfig = findLocation(serverConfig, split, i);
@@ -35,15 +44,17 @@ static std::string	getHtml(std::vector<std::string> split, ServerConfig &serverC
 
 	for(;i < split.size(); i++)
 		filePath += split[i];
-	filePath += "/" + locationConfig.indexFile;
+	filePath += "/";
+	if (isFolder(filePath.c_str()))
+		filePath += locationConfig.indexFile;
+	if (filePath.find_last_of("/") == filePath.size() - 1)
+		filePath.erase(filePath.size() - 1);
 	Log::Debug("Fetching file at: " + filePath);
 	try {
 		fileContent = StringUtils::getFile(filePath);
 	} catch (std::exception &e) {
 		Log::Error("Failed to read file at: " + filePath);
 	}
-	std::cout << StringUtils::itoa(fileContent.length()) << std::endl;
-	std::cout << fileContent.length() << std::endl;
 	std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n";
 	response += "Content-Length: " + StringUtils::itoa(fileContent.length()) + "\r\n\r\n";
 	response += fileContent;
@@ -51,12 +62,12 @@ static std::string	getHtml(std::vector<std::string> split, ServerConfig &serverC
 }
 
 Response::Response(const Socket &client, const Request &request, ServerConfig &serverConfig) {
-	const std::string &url = "/caca/non"; // hardcoded url, will have to get it from the request later
-	std::vector<std::string> split = StringUtils::split(url, "/", true);
+	std::vector<std::string> split = StringUtils::split(request.path, "/", true);
 
-	(void)request;
 	if (split.size() == 0)
 		split.push_back("/");
-	std::string response = getHtml(split, serverConfig);
+	std::string response;
+	if (request.method == "GET")
+		response = getHtml(split, serverConfig);
 	dprintf(client.getFd(), "%s", response.c_str());
 }

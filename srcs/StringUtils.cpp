@@ -87,7 +87,7 @@ std::string	StringUtils::getFile(const std::string &filename) {
 	std::string				buffer;
 	std::string				str;
 
-	if (stream.fail() || stream.bad())
+	if (stream.fail())
 		throw std::runtime_error("Failed to read file.");
 	while (std::getline(stream, buffer))
 		str += buffer;
