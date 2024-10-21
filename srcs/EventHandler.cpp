@@ -33,7 +33,10 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 	}
 	if (event.events & EPOLLOUT) {
 		server.sockets[event.data.fd].request.parseRequest();
-		Log::Info(server.sockets[event.data.fd].request.method);
+		Log::Info(StringUtils::itoa(server.sockets[event.data.fd].request.method));
+		Log::Info(server.sockets[event.data.fd].request.path);
+		Log::Info(server.sockets[event.data.fd].request.httpVer);
+		Log::Info(server.sockets[event.data.fd].request.request);
 		dprintf(event.data.fd, "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 66\n\n<html><head><title>Basic Page</title></head><body><h1>Hello, World!</body></html>");
 		epoll_event modEvent = event;
 		modEvent.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;

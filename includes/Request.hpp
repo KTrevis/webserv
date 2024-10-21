@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <map>
+#include <vector>
 
 
 enum e_methods {
@@ -26,6 +27,8 @@ class Request
 		e_methods	parseMethode();
 		std::string parsePath();
 		std::string parseVer();
+		void		parseHeader();
+		std::pair<std::string, std::string>	parseHeaderline();
 	private:
 		int	_i;
 };
