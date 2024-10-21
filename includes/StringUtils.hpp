@@ -9,4 +9,5 @@ namespace StringUtils {
 	std::vector<std::string> split(std::string str, const std::string &lim, bool prependLim = false);
 	std::vector<std::string> getVectorFile(const std::string &filename);
 	std::string	getFile(const std::string &filename);
+	std::string fileExtensionToType(std::string str);
 };

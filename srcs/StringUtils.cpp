@@ -1,4 +1,5 @@
 #include "StringUtils.hpp"
+#include <map>
 #include <fstream>
 #include <cctype>
 #include <stdexcept>
@@ -75,7 +76,7 @@ std::vector<std::string> StringUtils::getVectorFile(const std::string &filename)
 	std::string				buffer;
 	std::vector<std::string>	file;
 
-	if (stream.fail() || stream.bad())
+	if (stream.fail())
 		throw std::runtime_error("Failed to read file.");
 	while (std::getline(stream, buffer))
 		file.push_back(buffer);
@@ -93,4 +94,16 @@ std::string	StringUtils::getFile(const std::string &filename) {
 		str += buffer;
 	return str;
 
+}
+
+std::string StringUtils::fileExtensionToType(std::string str) {
+	size_t pos = str.find_last_of(".");
+
+	if (pos == std::string::npos)
+		return "";
+	str.erase(0, pos);
+	std::map<std::string, std::string> map;
+	map[".css"] = "text/css";
+	map[".html"] = "text/html";
+	return map[str];
 }

@@ -26,8 +26,8 @@ static void handleReceivedData(Server &server, epoll_event event) {
 }
 
 static void	sendResponse(Server &server, epoll_event event) {
-	const Socket &client = server.sockets[event.data.fd];
-	const Request &request = client.request;
+	Socket &client = server.sockets[event.data.fd];
+	Request &request = client.request;
 	ServerConfig &config = server.serverConfigs[client.getServerFd()];
 	Response response(client, request, config);
 

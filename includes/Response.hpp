@@ -7,9 +7,12 @@
 
 class Response {
 	public:
-		Response(const Socket &client, const Request &request, ServerConfig &config);
+		Response(const Socket &client, Request &request, ServerConfig &config);
+		void setResponse(ServerConfig &serverConfig);
 	private:
-		std::string	statusCode;
-		std::string	body;
-		std::string	contentType;
+		std::string _response;
+		std::string	_statusCode;
+		std::string	_body;
+		std::string	_contentType;
+		std::vector<std::string> _split;
 };
