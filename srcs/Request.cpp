@@ -56,10 +56,11 @@ void Request::parseHeader() {
 		headerArguments.insert(tmp);
 	}
 	if (method == "GET") {
+		std::cout << "quoicoubebou" << std::endl;
 		isReqGenerated = true;
 		return request.clear();
 	}
-	request.erase(2);
+	request.erase(0, 2);
 }
 
 void	Request::displayArgs() {
@@ -90,11 +91,12 @@ void	Request::parseBody() {
 	{
 		return;
 	}
-	std::cout << static_cast<size_t> (std::atoi(it->second.c_str())) << std::endl;
-	std::cout << request.size() << std::endl;
-	std::cout << request << std::endl;
+	// std::cout << static_cast<size_t> (std::atoi(it->second.c_str())) << std::endl;
+	// std::cout << request.size() << std::endl;
+	// std::cout << request << std::endl;
 	if (static_cast<size_t> (std::atoi(it->second.c_str())) == request.size())
 	{
+	std::cout << "quoicoubaka" << std::endl;
 		isReqGenerated = true;
 		return;
 	}
