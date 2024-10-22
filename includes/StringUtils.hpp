@@ -10,4 +10,5 @@ namespace StringUtils {
 	std::vector<std::string> getVectorFile(const std::string &filename);
 	std::string	getFile(const std::string &filename);
 	std::string fileExtensionToType(std::string str);
+	void 	lowerStr(std::string &c);
 };

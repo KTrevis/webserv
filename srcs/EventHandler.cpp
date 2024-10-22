@@ -18,11 +18,8 @@ static void handleReceivedData(Server &server, epoll_event event) {
 		return Log::Error("recv failed");
 	buffer[n] = '\0';
 	request += buffer;
-	if (request.find("\r\n\r\n"))
-	{
-		event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
-		server.modifyPoll(event.data.fd, event);
-	}
+	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
+	server.modifyPoll(event.data.fd, event);
 }
 
 static void	sendResponse(Server &server, epoll_event event) {
@@ -31,6 +28,7 @@ static void	sendResponse(Server &server, epoll_event event) {
 	ServerConfig &config = server.serverConfigs[client.getServerFd()];
 	Response response(client, request, config);
 
+	request.clear();
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	server.modifyPoll(client.getFd(), event);
 }
@@ -47,11 +45,11 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 	}
 	if (event.events & EPOLLOUT) {
 		server.sockets[event.data.fd].request.parseRequest();
-		// Log::Info(server.sockets[event.data.fd].request.method);
-		// Log::Info(server.sockets[event.data.fd].request.path);
-		// Log::Info(server.sockets[event.data.fd].request.httpVer);
-		// server.sockets[event.data.fd].request.displayArgs();
-		if (server.sockets[event.data.fd].request.request.find("\r\n\r\n"))
+		if (server.sockets[event.data.fd].request.resCode == 202)
+			dprintf(event.data.fd, "HTTP/1.1 202 Accepted\nContent-Type: text/html\nContent-Length: 0\n\n");
+		if (server.sockets[event.data.fd].request.isReqGenerated == true)
+		{
 			sendResponse(server, event);
+		}
 	}
 }

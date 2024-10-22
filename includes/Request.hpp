@@ -18,6 +18,7 @@ class Request
 		void	parseRequest();
 		Request();
 		~Request();
+		int			resCode;
 		std::string	method;
 		std::string path;
 		std::string httpVer;
@@ -27,8 +28,12 @@ class Request
 		std::string	parseMethode();
 		std::string parsePath();
 		std::string parseVer();
+		void		parseBody();
+		bool		isReqGenerated;
+		bool		isHeaderParse;
 		void		parseHeader();
-		void	displayArgs();
+		void		displayArgs();
+		void		clear();
 		std::pair<std::string, std::string>	parseHeaderline();
 	private:
 		int	_i;

@@ -81,7 +81,7 @@ Response::Response(const Socket &client, Request &request, ServerConfig &serverC
 	}
 	_split = StringUtils::split(request.path, "/", true);
 
-	if (request.method == "GET")
+	// if (request.method == "GET")
 		setResponse(serverConfig);
 	dprintf(client.getFd(), "%s", _response.c_str());
 }

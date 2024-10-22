@@ -107,3 +107,12 @@ std::string StringUtils::fileExtensionToType(std::string str) {
 	map[".html"] = "text/html";
 	return map[str];
 }
+
+void StringUtils::lowerStr(std::string &c) {
+	size_t i = 0;
+	while (c[i])
+	{
+		c[i] = std::tolower(c[i]);
+		i++;
+	}
+}
