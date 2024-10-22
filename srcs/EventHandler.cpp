@@ -14,14 +14,10 @@ static void handleReceivedData(Server &server, epoll_event event) {
 	Socket &client = server.sockets[event.data.fd];
 	std::string &request = client.request.request;
 	int n = recv(event.data.fd, buffer, sizeof(buffer), MSG_NOSIGNAL);
-	totale += n;
-	std::cout << totale	 << std::endl;
 	if (n == -1)
 		return Log::Error("recv failed");
-	buffer[n] = '\0';
 	for (int i = 0; i < n; i++)
 		request += buffer[i];
-	std::cout << request.size() << std::endl;
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
 	server.modifyPoll(event.data.fd, event);
 }

@@ -2,6 +2,7 @@
 #include "Log.hpp"
 #include <algorithm>
 #include "StringUtils.hpp"
+#include <fstream>
 
 Request::Request() {
 	resCode = 0;
@@ -84,19 +85,58 @@ void	Request::clear() {
 	isReqGenerated = false;
 }
 
+std::string	Request::findPathConfig() {
+	std::map<std::string, LocationConfig>::iterator it = config.locations.begin();
+	while (it != config.locations.end()) {
+		if (it->first == path)
+			return it->second.uploadPath;
+		it++;
+	}
+	return config.locations.find("/")->second.uploadPath;
+}
+
+
+void	Request::createPostOutput(std::string &name) {
+	std::string uploadPath = findPathConfig();
+	std::cout << name << std::endl;
+	uploadPath += '/' + name;
+	std::cout << uploadPath << std::endl;
+	std::ofstream file(uploadPath.c_str());
+	if (file.bad())
+		return;
+	file << request;
+	file.close();
+}
+
+
+std::string	Request::findFilename() {
+	std::string tmp(request, request.find("filename"), request.find("\r\n") - request.find("filename"));
+	int firstQuote = tmp.find('"') + 1;
+	std::string name(tmp, firstQuote, tmp.find('"', firstQuote) - firstQuote);
+	request.erase(0, request.find("\r\n") + 2);
+	return (name);
+}
+
+void	Request::createBody() {
+	std::string boundarieKey(request, 0, request.find("\r\n"));
+	request.erase(0, request.find("\r\n") + 2);
+	std::string name = findFilename();
+	request.erase(0, request.find("\r\n") + 2);
+	request.erase(0, request.find("\r\n") + 2);
+	request.erase(request.find(boundarieKey));
+	createPostOutput(name);
+}
+
 void	Request::parseBody() {
-	resCode = 202;
 	std::map<std::string, std::string>::iterator it = headerArguments.find("content-length");
 	if (it == headerArguments.end())
 	{
 		return;
 	}
-	// std::cout << static_cast<size_t> (std::atoi(it->second.c_str())) << std::endl;
-	// std::cout << request.size() << std::endl;
-	// std::cout << request << std::endl;
 	if (static_cast<size_t> (std::atoi(it->second.c_str())) == request.size())
 	{
-	std::cout << "quoicoubaka" << std::endl;
+		createBody();
+		resCode = 202;
 		isReqGenerated = true;
 		return;
 	}

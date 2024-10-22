@@ -36,7 +36,8 @@ Socket::~Socket() {
 	Log::Trace(err);
 }
 
-void	Socket::setup(int fd, int serverFd) {
+void	Socket::setup(int fd, int serverFd, ServerConfig &config) {
+	request.config = config;
 	_fd = fd;
 	_serverFd = serverFd;
 }

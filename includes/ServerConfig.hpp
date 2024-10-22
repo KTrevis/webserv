@@ -4,7 +4,6 @@
 #include <map>
 #include "Address.hpp"
 #include "LocationConfig.hpp"
-#include "Socket.hpp"
 
 class ServerConfig {
 	public:

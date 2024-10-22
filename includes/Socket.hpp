@@ -13,10 +13,10 @@ class Socket {
 		~Socket();
 		int		getFd() const;
 		int		getServerFd() const;
-		void	setup(int fd, int serverFd);
+		void	setup(int fd, int serverFd, ServerConfig &config);
 		bool	isServer();
 		Request	request;
 	private:
-		int		_fd;
-		int		_serverFd;
+		int				_fd;
+		int				_serverFd;
 };

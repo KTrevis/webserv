@@ -26,7 +26,7 @@ bool Server::parseConfig(ServerConfig &config) {
 	int n = 1;
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &n, sizeof(n));
 	serverConfigs[fd] = config;
-	sockets[fd].setup(fd, fd);
+	sockets[fd].setup(fd, fd, config);
 	if (NetworkUtils::bind(sockets[fd], config.address) == false)
 		return false;
 	if (listen(fd, 5) == -1)
@@ -98,7 +98,7 @@ void	Server::createNewClient(Socket &socket) {
 		Log::Error("Server: Accept failed");
 		return;
 	}
-	sockets[fd].setup(fd, socket.getFd());
+	sockets[fd].setup(fd, socket.getFd(), config);
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	event.data.fd = fd;
 	addFdToPoll(fd, event);

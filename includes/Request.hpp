@@ -3,6 +3,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include "ServerConfig.hpp"
 
 
 enum e_methods {
@@ -29,12 +30,17 @@ class Request
 		std::string parsePath();
 		std::string parseVer();
 		void		parseBody();
+		void		createBody();
+		std::string	findFilename();
+		std::string	findPathConfig();
+		void		createPostOutput(std::string &name);
 		bool		isReqGenerated;
 		bool		isHeaderParse;
 		void		parseHeader();
 		void		displayArgs();
 		void		clear();
 		std::pair<std::string, std::string>	parseHeaderline();
+		ServerConfig config;
 	private:
 		int	_i;
 };
