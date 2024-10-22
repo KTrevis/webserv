@@ -6,21 +6,21 @@
 #include <exception>
 #include <sys/stat.h>
 
-static LocationConfig findLocation(ServerConfig &config, const std::vector<std::string> &split, size_t &i) {
+LocationConfig Response::findLocation(ServerConfig &config) {
 	std::map<std::string, LocationConfig>::iterator it;
 	std::string filePath;
 	std::string	found = "";
 	size_t		foundIndex = 0;
 
-	for (;i < split.size(); i++) {
-		filePath += split[i];
+	for (;_i < _split.size(); _i++) {
+		filePath += _split[_i];
 		it = config.locations.find(filePath);
 		if (it != config.locations.end()) {
-			foundIndex = i;
+			foundIndex = _i;
 			found = it->first;
 		}
 	}
-	i = foundIndex;
+	_i = foundIndex;
 	if (found != "")
 		return config.locations[found];
 	it = config.locations.find("/");
@@ -36,38 +36,52 @@ static bool	isFolder(const char *name)
 	return (stat(name, &s_stat) == 0 && S_ISDIR(s_stat.st_mode));
 }
 
-static std::string	getHtml(std::vector<std::string> split, ServerConfig &serverConfig) {
-	size_t i = 0;
-	LocationConfig locationConfig = findLocation(serverConfig, split, i);
+std::string Response::setFilepath(const LocationConfig &locationConfig) {
 	std::string filePath = locationConfig.root;
-	std::string fileContent;
 
-	for(;i < split.size(); i++)
-		filePath += split[i];
+	for(;_i < _split.size(); _i++)
+		filePath += _split[_i];
 	filePath += "/";
 	if (isFolder(filePath.c_str()))
 		filePath += locationConfig.indexFile;
 	if (filePath.find_last_of("/") == filePath.size() - 1)
 		filePath.erase(filePath.size() - 1);
+	return filePath;
+}
+
+void	Response::setResponse(ServerConfig &serverConfig) {
+	LocationConfig locationConfig = findLocation(serverConfig);
+	std::string filePath = setFilepath(locationConfig);
+	_contentType = StringUtils::fileExtensionToType(filePath);
+
 	Log::Debug("Fetching file at: " + filePath);
 	try {
-		fileContent = StringUtils::getFile(filePath);
+		_body = StringUtils::getFile(filePath);
 	} catch (std::exception &e) {
 		Log::Error("Failed to read file at: " + filePath);
 	}
-	std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n";
-	response += "Content-Length: " + StringUtils::itoa(fileContent.length()) + "\r\n\r\n";
-	response += fileContent;
-	return response;
+	_response = "HTTP/1.1 200 OK\r\n";
+	_response += "Content-Type: " + _contentType + "\r\n";
+	_response += "Content-Length: " + StringUtils::itoa(_body.size()) + "\r\n\r\n";
+	_response += _body;
 }
 
-Response::Response(const Socket &client, const Request &request, ServerConfig &serverConfig) {
-	std::vector<std::string> split = StringUtils::split(request.path, "/", true);
+static void	redirect(const std::string &url, int clientFd) {
+	std::string response = "HTTP/1.1 301\r\n";
+	response += "content-length: 0\r\n";
+	response += "location: " + url + "\r\n\r\n";
+	dprintf(clientFd, "%s", response.c_str());
+}
 
-	if (split.size() == 0)
-		split.push_back("/");
-	std::string response;
+Response::Response(const Socket &client, Request &request, ServerConfig &serverConfig) {
+	_i = 0;
+	if (request.path[request.path.size() - 1] != '/') {
+		redirect(request.path + "/", client.getFd());
+		return;
+	}
+	_split = StringUtils::split(request.path, "/", true);
+
 	if (request.method == "GET")
-		response = getHtml(split, serverConfig);
-	dprintf(client.getFd(), "%s", response.c_str());
+		setResponse(serverConfig);
+	dprintf(client.getFd(), "%s", _response.c_str());
 }
