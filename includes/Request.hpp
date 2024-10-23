@@ -33,7 +33,7 @@ class Request
 		void		createBody();
 		std::string	findFilename();
 		std::string	findPathConfig();
-		void		createPostOutput(std::string &name);
+		void		createPostOutput(std::string &name, std::string content);
 		bool		isReqGenerated;
 		bool		isHeaderParse;
 		void		parseHeader();

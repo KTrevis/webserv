@@ -96,35 +96,44 @@ std::string	Request::findPathConfig() {
 }
 
 
-void	Request::createPostOutput(std::string &name) {
+void	Request::createPostOutput(std::string &name, std::string content) {
 	std::string uploadPath = findPathConfig();
-	std::cout << name << std::endl;
 	uploadPath += '/' + name;
 	std::cout << uploadPath << std::endl;
 	std::ofstream file(uploadPath.c_str());
 	if (file.bad())
 		return;
-	file << request;
+	file << content;
 	file.close();
 }
 
 
 std::string	Request::findFilename() {
-	std::string tmp(request, request.find("filename"), request.find("\r\n") - request.find("filename"));
-	int firstQuote = tmp.find('"') + 1;
-	std::string name(tmp, firstQuote, tmp.find('"', firstQuote) - firstQuote);
+	std::string name("noname");
+	std::string tmp(request, 0, request.find("\r\n"));
+	if (tmp.find("filename") != std::string::npos) {
+		int firstQuote = tmp.find('"', tmp.find("filename")) + 1;
+		name = tmp.substr(firstQuote, tmp.find('"', firstQuote) - firstQuote);
+	}
+	else if (tmp.find("name")) {
+		int firstQuote = tmp.find('"', tmp.find("name")) + 1;
+		name = tmp.substr(firstQuote, tmp.find('"', firstQuote) - firstQuote);
+	}
 	request.erase(0, request.find("\r\n") + 2);
 	return (name);
 }
 
 void	Request::createBody() {
 	std::string boundarieKey(request, 0, request.find("\r\n"));
-	request.erase(0, request.find("\r\n") + 2);
-	std::string name = findFilename();
-	request.erase(0, request.find("\r\n") + 2);
-	request.erase(0, request.find("\r\n") + 2);
-	request.erase(request.find(boundarieKey));
-	createPostOutput(name);
+	while (request.find_last_of("--") != (request.find(boundarieKey) + boundarieKey.size() + 1)){
+		request.erase(0, request.find("\r\n") + 2);
+		std::string name = findFilename();
+		if (request.find("Content-Type") == 0)
+			request.erase(0, request.find("\r\n") + 2);
+		request.erase(0, request.find("\r\n") + 2);
+		createPostOutput(name, request.substr(0, request.find(boundarieKey)));
+		request.erase(0, request.find(boundarieKey) + boundarieKey.size());
+	}
 }
 
 void	Request::parseBody() {
