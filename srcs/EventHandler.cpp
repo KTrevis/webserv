@@ -16,6 +16,7 @@ static void handleReceivedData(Server &server, epoll_event event) {
 	int n = recv(event.data.fd, buffer, sizeof(buffer), MSG_NOSIGNAL);
 	if (n == -1)
 		return Log::Error("recv failed");
+	request.reserve(n);
 	for (int i = 0; i < n; i++)
 		request += buffer[i];
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
