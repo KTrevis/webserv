@@ -110,9 +110,19 @@ std::string StringUtils::fileExtensionToType(std::string str) {
 
 void StringUtils::lowerStr(std::string &c) {
 	size_t i = 0;
-	while (c[i])
-	{
+
+	while (c[i]) {
 		c[i] = std::tolower(c[i]);
 		i++;
 	}
+}
+
+std::string StringUtils::createResponse(int httpCode, const std::vector<std::string> &fields, const std::string &body) {
+	std::string str;
+	str = "HTTP/1.1 " + StringUtils::itoa(httpCode) + "\r\n";
+	for (size_t i = 0; i < fields.size(); i++)
+		str += fields[i] + "\r\n";
+	str += "content-length: " + StringUtils::itoa(body.size()) + "\r\n\r\n";
+	str += body;
+	return str;
 }

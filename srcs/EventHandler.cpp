@@ -23,11 +23,10 @@ static void handleReceivedData(Server &server, epoll_event event) {
 	server.modifyPoll(event.data.fd, event);
 }
 
-static void	sendResponse(Server &server, epoll_event event) {
-	Socket &client = server.sockets[event.data.fd];
+static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 	Request &request = client.request;
 	ServerConfig &config = server.serverConfigs[client.getServerFd()];
-	Response response(client, request, config);
+	Response response(client, config);
 
 	request.clear();
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
@@ -45,12 +44,11 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 		return;
 	}
 	if (event.events & EPOLLOUT) {
-		server.sockets[event.data.fd].request.parseRequest();
-		if (server.sockets[event.data.fd].request.resCode == 202)
+		Socket &client = server.sockets[event.data.fd];
+		client.request.parseRequest();
+		if (client.request.resCode == 202)
 			dprintf(event.data.fd, "HTTP/1.1 202 Accepted\nContent-Type: text/html\nContent-Length: 0\n\n");
-		if (server.sockets[event.data.fd].request.isReqGenerated == true)
-		{
-			sendResponse(server, event);
-		}
+		if (client.request.isReqGenerated == true)
+			sendResponse(server, client, event);
 	}
 }
