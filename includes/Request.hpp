@@ -34,6 +34,7 @@ class Request
 		std::string	findFilename();
 		std::string	findPathConfig();
 		void		createPostOutput(std::string &name, std::string content);
+		void		createOneFile(std::string &boundarieKey);
 		bool		isReqGenerated;
 		bool		isHeaderParse;
 		void		parseHeader();

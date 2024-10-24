@@ -123,17 +123,21 @@ std::string	Request::findFilename() {
 	return (name);
 }
 
+void Request::createOneFile(std::string &boundarieKey) {
+	request.erase(0, request.find("\r\n") + 2);
+	std::string name = findFilename();
+	if (request.find("Content-Type") == 0)
+		request.erase(0, request.find("\r\n") + 2);
+	request.erase(0, request.find("\r\n") + 2);
+	createPostOutput(name, request.substr(0, request.find(boundarieKey)));
+	request.erase(0, request.find(boundarieKey));
+}
+
 void	Request::createBody() {
 	std::string boundarieKey(request, 0, request.find("\r\n"));
-	while (request.find_last_of("--") != (request.find(boundarieKey) + boundarieKey.size() + 1)){
-		request.erase(0, request.find("\r\n") + 2);
-		std::string name = findFilename();
-		if (request.find("Content-Type") == 0)
-			request.erase(0, request.find("\r\n") + 2);
-		request.erase(0, request.find("\r\n") + 2);
-		createPostOutput(name, request.substr(0, request.find(boundarieKey)));
-		request.erase(0, request.find(boundarieKey) + boundarieKey.size());
-	}
+	while ((request.find_last_of("--") != (request.find(boundarieKey) + boundarieKey.size() + 1)))
+		createOneFile(boundarieKey);
+	std::cout <<  request << std::endl;
 }
 
 void	Request::parseBody() {
