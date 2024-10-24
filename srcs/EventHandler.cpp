@@ -1,14 +1,11 @@
 #include "EventHandler.hpp"
-#include "StringUtils.hpp"
 #include "Log.hpp"
 #include "Server.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
-#include <algorithm>
 #include <cstdio>
 #include <unistd.h>
-#include <vector>
-int totale = 0;
+
 static void handleReceivedData(Server &server, epoll_event event) {
 	char buffer[1024];
 	Socket &client = server.sockets[event.data.fd];

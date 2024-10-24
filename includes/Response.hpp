@@ -10,13 +10,13 @@ class Response {
 		Response(Socket &client, ServerConfig &config);
 	private:
 		void handleGet(ServerConfig &serverConfig);
-		void handlePost(Request &request);
-		std::string setFilepath(const LocationConfig &locationConfig);
-		LocationConfig findLocation(ServerConfig &config);
+		void handleDelete(ServerConfig &serverConfig);
+		std::string getFilepath(const LocationConfig &locationConfig);
+		LocationConfig &findLocation(ServerConfig &config);
 		std::string _response;
 		std::string	_statusCode;
 		std::string	_body;
 		std::string	_contentType;
-		std::vector<std::string> _split;
+		std::vector<std::string> _urlSplit;
 		size_t		_i;
 };
