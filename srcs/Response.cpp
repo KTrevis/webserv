@@ -1,4 +1,5 @@
 #include "Response.hpp"
+#include "HeaderFields.hpp"
 #include "Log.hpp"
 #include "StringUtils.hpp"
 #include <cstdio>
@@ -49,7 +50,7 @@ std::string Response::setFilepath(const LocationConfig &locationConfig) {
 	return filePath;
 }
 
-void	Response::setResponse(ServerConfig &serverConfig) {
+void	Response::handleGet(ServerConfig &serverConfig) {
 	LocationConfig locationConfig = findLocation(serverConfig);
 	std::string filePath = setFilepath(locationConfig);
 	_contentType = StringUtils::fileExtensionToType(filePath);
@@ -60,20 +61,32 @@ void	Response::setResponse(ServerConfig &serverConfig) {
 	} catch (std::exception &e) {
 		Log::Error("Failed to read file at: " + filePath);
 	}
-	_response = "HTTP/1.1 200 OK\r\n";
-	_response += "Content-Type: " + _contentType + "\r\n";
-	_response += "Content-Length: " + StringUtils::itoa(_body.size()) + "\r\n\r\n";
-	_response += _body;
+	std::vector<std::string> headerFields;
+	headerFields.reserve(2);
+	headerFields.push_back(HeaderFields::contentLength(_body.size()));
+	headerFields.push_back(HeaderFields::contentType(_contentType));
+	_response = StringUtils::createResponse(200, headerFields, _body);
+}
+
+void	Response::handlePost(Request &request) {
+	std::vector<std::string> headerFields;
+
+	headerFields.push_back(HeaderFields::contentLength(0));
+	_response = StringUtils::createResponse(request.resCode, headerFields);
 }
 
 static void	redirect(const std::string &url, int clientFd) {
-	std::string response = "HTTP/1.1 301\r\n";
-	response += "content-length: 0\r\n";
-	response += "location: " + url + "\r\n\r\n";
+	std::vector<std::string> headerFields;
+	headerFields.reserve(2);
+	headerFields.push_back(HeaderFields::contentLength(0));
+	headerFields.push_back(HeaderFields::location(url));
+
+	std::string response = StringUtils::createResponse(301, headerFields);
 	dprintf(clientFd, "%s", response.c_str());
 }
 
-Response::Response(const Socket &client, Request &request, ServerConfig &serverConfig) {
+Response::Response(Socket &client, ServerConfig &serverConfig) {
+	Request &request = client.request;
 	_i = 0;
 	if (request.path[request.path.size() - 1] != '/') {
 		redirect(request.path + "/", client.getFd());
@@ -81,7 +94,9 @@ Response::Response(const Socket &client, Request &request, ServerConfig &serverC
 	}
 	_split = StringUtils::split(request.path, "/", true);
 
-	// if (request.method == "GET")
-		setResponse(serverConfig);
+	if (request.method == "GET")
+		handleGet(serverConfig);
+	else if (request.method == "POST")
+		handlePost(request);
 	dprintf(client.getFd(), "%s", _response.c_str());
 }

@@ -7,9 +7,10 @@
 
 class Response {
 	public:
-		Response(const Socket &client, Request &request, ServerConfig &config);
-		void setResponse(ServerConfig &serverConfig);
+		Response(Socket &client, ServerConfig &config);
 	private:
+		void handleGet(ServerConfig &serverConfig);
+		void handlePost(Request &request);
 		std::string setFilepath(const LocationConfig &locationConfig);
 		LocationConfig findLocation(ServerConfig &config);
 		std::string _response;

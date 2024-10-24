@@ -155,7 +155,6 @@ void	Request::parseBody() {
 	}
 }
 
-
 void	Request::parseRequest() {
 	if (isHeaderParse == false) {
 		method = parseMethode();
