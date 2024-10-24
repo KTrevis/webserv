@@ -10,6 +10,7 @@ class Response {
 		Response(Socket &client, ServerConfig &config);
 	private:
 		void handleGet(ServerConfig &serverConfig);
+		void redirect(const std::string &url);
 		void handleDelete(ServerConfig &serverConfig);
 		std::string getFilepath(const LocationConfig &locationConfig);
 		LocationConfig &findLocation(ServerConfig &config);

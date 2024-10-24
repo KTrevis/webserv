@@ -71,39 +71,41 @@ void	Response::handleGet(ServerConfig &serverConfig) {
 	_response = StringUtils::createResponse(httpCode, headerFields, _body);
 }
 
-void	Response::handleDelete(ServerConfig &serverConfig) {
+void Response::handleDelete(ServerConfig &serverConfig) {
 	LocationConfig &locationConfig = findLocation(serverConfig);
 
 	if (locationConfig.uploadPath == "") {
 		_response = StringUtils::createResponse(403);
+		Log::Trace("Failed to find location");
 		return;
 	}
 	std::string filePath = getFilepath(locationConfig);
 	if (access(filePath.c_str(), F_OK)) {
 		_response = StringUtils::createResponse(404);
+		Log::Trace("File does not exist");
 		return;
 	}
+	Log::Trace("Trying to remove " + filePath);
 	remove(filePath.c_str());
-	Log::Debug(filePath);
 	_response = StringUtils::createResponse(204);
 }
 
-static void	redirect(const std::string &url, int clientFd) {
+void Response::redirect(const std::string &url) {
 	std::vector<std::string> headerFields;
 	headerFields.reserve(2);
 	headerFields.push_back(HeaderFields::location(url));
 
-	std::string response = StringUtils::createResponse(301, headerFields);
-	dprintf(clientFd, "%s", response.c_str());
+	_response = StringUtils::createResponse(301, headerFields);
 }
 
 Response::Response(Socket &client, ServerConfig &serverConfig) {
 	Request &request = client.request;
-	_i = 0;
 	if (request.path[request.path.size() - 1] != '/') {
-		redirect(request.path + "/", client.getFd());
+		redirect(request.path + "/");
+		dprintf(client.getFd(), "%s", _response.c_str());
 		return;
 	}
+	_i = 0;
 	_urlSplit = StringUtils::split(request.path, "/", true);
 
 	if (request.method == "GET")

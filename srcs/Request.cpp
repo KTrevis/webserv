@@ -34,7 +34,7 @@ std::string Request::parseVer() {
 
 std::pair<std::string, std::string> Request::parseHeaderline() {
 	std::pair<std::string, std::string> pair;
-	std::string tmp(request, 0,request.find("\r\n"));
+	std::string tmp(request, 0, request.find("\r\n"));
 	
 	pair.first = tmp.substr(0, tmp.find(":"));
 	StringUtils::lowerStr(pair.first);
@@ -46,10 +46,8 @@ std::pair<std::string, std::string> Request::parseHeaderline() {
 void Request::parseHeader() {
 	std::pair<std::string, std::string> tmp;
 
-	while (request.size())
-	{
-		if (request.find("\r\n") == 0)
-		{
+	while (request.size()) {
+		if (request.find("\r\n") == 0) {
 			isHeaderParse = true;
 			break;
 		}
