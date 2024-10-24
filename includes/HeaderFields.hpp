@@ -5,5 +5,4 @@
 namespace HeaderFields {
 	std::string	location(const std::string &url);
 	std::string	contentType(const std::string &str);
-	std::string	contentLength(int len);
 };

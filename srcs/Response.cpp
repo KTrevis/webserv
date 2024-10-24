@@ -53,32 +53,30 @@ std::string Response::setFilepath(const LocationConfig &locationConfig) {
 void	Response::handleGet(ServerConfig &serverConfig) {
 	LocationConfig locationConfig = findLocation(serverConfig);
 	std::string filePath = setFilepath(locationConfig);
+	int httpCode;
 	_contentType = StringUtils::fileExtensionToType(filePath);
 
 	Log::Debug("Fetching file at: " + filePath);
 	try {
 		_body = StringUtils::getFile(filePath);
+		httpCode = 200;
 	} catch (std::exception &e) {
 		Log::Error("Failed to read file at: " + filePath);
+		httpCode = 404;
 	}
 	std::vector<std::string> headerFields;
 	headerFields.reserve(2);
-	headerFields.push_back(HeaderFields::contentLength(_body.size()));
 	headerFields.push_back(HeaderFields::contentType(_contentType));
-	_response = StringUtils::createResponse(200, headerFields, _body);
+	_response = StringUtils::createResponse(httpCode, headerFields, _body);
 }
 
 void	Response::handlePost(Request &request) {
-	std::vector<std::string> headerFields;
-
-	headerFields.push_back(HeaderFields::contentLength(0));
-	_response = StringUtils::createResponse(request.resCode, headerFields);
+	_response = StringUtils::createResponse(request.resCode);
 }
 
 static void	redirect(const std::string &url, int clientFd) {
 	std::vector<std::string> headerFields;
 	headerFields.reserve(2);
-	headerFields.push_back(HeaderFields::contentLength(0));
 	headerFields.push_back(HeaderFields::location(url));
 
 	std::string response = StringUtils::createResponse(301, headerFields);
