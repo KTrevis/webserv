@@ -142,16 +142,12 @@ void	Request::createBody() {
 void	Request::parseBody() {
 	std::map<std::string, std::string>::iterator it = headerArguments.find("content-length");
 	if (it == headerArguments.end())
-	{
 		return;
-	}
-	if (static_cast<size_t> (std::atoi(it->second.c_str())) == request.size())
-	{
-		createBody();
-		resCode = 202;
-		isReqGenerated = true;
+	if (static_cast<size_t> (std::atoi(it->second.c_str())) != request.size())
 		return;
-	}
+	createBody();
+	resCode = 202;
+	isReqGenerated = true;
 }
 
 void	Request::parseRequest() {
@@ -166,4 +162,6 @@ void	Request::parseRequest() {
 	// displayArgs();
 	if (method == "POST")
 		parseBody();
+	else if (method == "DELETE")
+		isReqGenerated = true;
 }
