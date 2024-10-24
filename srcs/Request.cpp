@@ -57,7 +57,6 @@ void Request::parseHeader() {
 		headerArguments.insert(tmp);
 	}
 	if (method == "GET") {
-		std::cout << "quoicoubebou" << std::endl;
 		isReqGenerated = true;
 		return request.clear();
 	}

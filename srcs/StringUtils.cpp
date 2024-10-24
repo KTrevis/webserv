@@ -117,12 +117,33 @@ void StringUtils::lowerStr(std::string &c) {
 	}
 }
 
-std::string StringUtils::createResponse(int httpCode, const std::vector<std::string> &fields, const std::string &body) {
-	std::string str;
-	str = "HTTP/1.1 " + StringUtils::itoa(httpCode) + "\r\n";
+static std::string get404Page() {
+	std::string error;
+
+	error += "<!DOCTYPE html>";
+	error += "<html>";
+	error += "<head>";
+	error += "<title>Page Not Found</title>";
+	error += "</head>";
+	error += "<body>";
+	error += "<p>404 page not found</p>";
+	error += "</body>";
+	error += "</html>";
+	return error;
+}
+
+std::string StringUtils::createResponse(int httpCode,
+		const std::vector<std::string> &fields, const std::string &body) {
+	std::string str = "HTTP/1.1 " + StringUtils::itoa(httpCode) + "\r\n";
 	for (size_t i = 0; i < fields.size(); i++)
 		str += fields[i] + "\r\n";
-	str += "content-length: " + StringUtils::itoa(body.size()) + "\r\n\r\n";
-	str += body;
+	if (httpCode == 404) {
+		const std::string &notFound = get404Page();
+		str += "content-length: " + StringUtils::itoa(notFound.size()) + "\r\n\r\n";
+		str += notFound;
+	} else {
+		str += "content-length: " + StringUtils::itoa(body.size()) + "\r\n\r\n";
+		str += body;
+	}
 	return str;
 }
