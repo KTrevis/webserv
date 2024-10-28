@@ -2,6 +2,7 @@
 #include "HeaderFields.hpp"
 #include "Log.hpp"
 #include "StringUtils.hpp"
+#include "Utils.hpp"
 #include <cstdio>
 #include <stdexcept>
 #include <unistd.h>
@@ -38,22 +39,21 @@ static bool	isFolder(const char *name)
 	return (stat(name, &s_stat) == 0 && S_ISDIR(s_stat.st_mode));
 }
 
-std::string Response::getFilepath(const LocationConfig &locationConfig) {
-	std::string filePath = locationConfig.root;
+std::string Response::getFilepath() {
+	std::string filePath = _locationConfig.root;
 
 	for(;_i < _urlSplit.size(); _i++)
 		filePath += _urlSplit[_i];
 	filePath += "/";
 	if (isFolder(filePath.c_str()))
-		filePath += locationConfig.indexFile;
+		filePath += _locationConfig.indexFile;
 	if (filePath.find_last_of("/") == filePath.size() - 1)
 		filePath.erase(filePath.size() - 1);
 	return filePath;
 }
 
-void	Response::handleGet(ServerConfig &serverConfig) {
-	LocationConfig &locationConfig = findLocation(serverConfig);
-	std::string filePath = getFilepath(locationConfig);
+void	Response::handleGet() {
+	std::string filePath = getFilepath();
 	int httpCode;
 	_contentType = StringUtils::fileExtensionToType(filePath);
 
@@ -71,15 +71,13 @@ void	Response::handleGet(ServerConfig &serverConfig) {
 	_response = StringUtils::createResponse(httpCode, headerFields, _body);
 }
 
-void Response::handleDelete(ServerConfig &serverConfig) {
-	LocationConfig &locationConfig = findLocation(serverConfig);
-
-	if (locationConfig.uploadPath == "") {
+void Response::handleDelete() {
+	if (_locationConfig.uploadPath == "") {
 		_response = StringUtils::createResponse(403);
 		Log::Trace("Failed to find location");
 		return;
 	}
-	std::string filePath = getFilepath(locationConfig);
+	std::string filePath = getFilepath();
 	if (access(filePath.c_str(), F_OK)) {
 		_response = StringUtils::createResponse(404);
 		Log::Trace("File does not exist");
@@ -92,27 +90,32 @@ void Response::handleDelete(ServerConfig &serverConfig) {
 
 void Response::redirect(const std::string &url) {
 	std::vector<std::string> headerFields;
-	headerFields.reserve(2);
+	headerFields.reserve(1);
 	headerFields.push_back(HeaderFields::location(url));
 
 	_response = StringUtils::createResponse(301, headerFields);
 }
 
-Response::Response(Socket &client, ServerConfig &serverConfig) {
+Response::Response(Socket &client, ServerConfig &serverConfig):
+	_urlSplit(StringUtils::split(client.request.path, "/", true)),
+	_locationConfig(findLocation(serverConfig)),
+	_cgi(getFilepath(), _locationConfig) {
 	Request &request = client.request;
+
 	if (request.path[request.path.size() - 1] != '/') {
 		redirect(request.path + "/");
 		dprintf(client.getFd(), "%s", _response.c_str());
 		return;
 	}
 	_i = 0;
-	_urlSplit = StringUtils::split(request.path, "/", true);
 
+	/* if ((request.method == "GET" || request.method == "POST") && _cgiPath != "") */
+	/* 	std::cout << _cgiPath << std::endl; */
 	if (request.method == "GET")
-		handleGet(serverConfig);
+		handleGet();
 	else if (request.method == "POST")
 		_response = StringUtils::createResponse(request.resCode);
 	else if (request.method == "DELETE")
-		handleDelete(serverConfig);
+		handleDelete();
 	dprintf(client.getFd(), "%s", _response.c_str());
 }

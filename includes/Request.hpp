@@ -26,6 +26,11 @@ class Request
 		std::string request;
 		std::map<std::string, std::string>	headerArguments;
 		std::string	body;
+		ServerConfig config;
+		void		clear();
+		bool		isReqGenerated;
+		bool		isHeaderParse;
+	private:
 		std::string	parseMethode();
 		std::string parsePath();
 		std::string parseVer();
@@ -35,13 +40,8 @@ class Request
 		std::string	findPathConfig();
 		void		createPostOutput(std::string &name, std::string content);
 		void		createOneFile(std::string &boundarieKey);
-		bool		isReqGenerated;
-		bool		isHeaderParse;
 		void		parseHeader();
 		void		displayArgs();
-		void		clear();
 		std::pair<std::string, std::string>	parseHeaderline();
-		ServerConfig config;
-	private:
 		int	_i;
 };

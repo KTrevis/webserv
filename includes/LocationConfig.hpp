@@ -18,7 +18,7 @@ class LocationConfig {
 		std::string							uploadPath;
 		std::string							alias;
 		// key is the extension (.py/.php...) and value is the cgi path
-		std::map<std::string , std::string>	cgi; 
+		std::map<std::string, std::string>	cgi;
 		std::string							redirection;
 		void								displayData();
 	private:
