@@ -43,8 +43,6 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 	if (event.events & EPOLLOUT) {
 		Socket &client = server.sockets[event.data.fd];
 		client.request.parseRequest();
-		if (client.request.resCode == 202)
-			dprintf(event.data.fd, "HTTP/1.1 202 Accepted\nContent-Type: text/html\nContent-Length: 0\n\n");
 		if (client.request.isReqGenerated == true)
 			sendResponse(server, client, event);
 	}

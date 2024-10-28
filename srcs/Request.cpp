@@ -54,7 +54,7 @@ void Request::parseHeader() {
 		tmp = parseHeaderline();
 		headerArguments.insert(tmp);
 	}
-	if (method == "GET") {
+	if (method == "GET" || method == "DELETE") {
 		isReqGenerated = true;
 		return request.clear();
 	}
@@ -160,6 +160,4 @@ void	Request::parseRequest() {
 	// displayArgs();
 	if (method == "POST")
 		parseBody();
-	else if (method == "DELETE")
-		isReqGenerated = true;
 }
