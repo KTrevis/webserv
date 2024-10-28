@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Response.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ketrevis <ketrevis@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/10/28 15:04:22 by ketrevis          #+#    #+#             */
+/*   Updated: 2024/10/28 15:05:45 by ketrevis         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "Response.hpp"
 #include "HeaderFields.hpp"
 #include "Log.hpp"
@@ -109,8 +121,8 @@ Response::Response(Socket &client, ServerConfig &serverConfig):
 	}
 	_i = 0;
 
-	/* if ((request.method == "GET" || request.method == "POST") && _cgiPath != "") */
-	/* 	std::cout << _cgiPath << std::endl; */
+	/* if ((request.method == "GET" || request.method == "POST") && _cgi.getScriptPath() != "") */
+	/* 	std::cout << _cgi.exec() << std::endl; */
 	if (request.method == "GET")
 		handleGet();
 	else if (request.method == "POST")
