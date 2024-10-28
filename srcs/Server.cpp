@@ -79,10 +79,13 @@ bool Server::isNewClient(const epoll_event &event) {
 }
 
 void	Server::closeConnection(epoll_event &event) {
-	Log::Info("Closed client with socket " + StringUtils::itoa(event.data.fd));
 	removeFdFromPoll(event.data.fd, event);
-	close(event.data.fd);
-	sockets.erase(event.data.fd);
+	if (sockets.find(event.data.fd) == sockets.end()) {
+		Log::Info("client socket closed " + StringUtils::itoa(event.data.fd));
+		close(event.data.fd);
+	}
+	else
+		sockets.erase(event.data.fd);
 }
 
 void	Server::createNewClient(Socket &socket) {

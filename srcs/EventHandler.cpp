@@ -6,11 +6,18 @@
 #include <cstdio>
 #include <unistd.h>
 
+static std::string	&getStrToModify(int eventFd, Socket &client) {
+	if (eventFd == client.getCgiFd()[0])
+		return client.request.cgiResponse;
+	return client.request.request;
+}
+
 static void handleReceivedData(Server &server, epoll_event event) {
 	char buffer[1024];
 	Socket &client = server.sockets[event.data.fd];
-	std::string &request = client.request.request;
+	std::string &request = getStrToModify(event.data.fd, client);
 	int n = recv(event.data.fd, buffer, sizeof(buffer), MSG_NOSIGNAL);
+
 	if (n == -1)
 		return Log::Error("recv failed");
 	request.reserve(n);
@@ -23,11 +30,13 @@ static void handleReceivedData(Server &server, epoll_event event) {
 static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 	Request &request = client.request;
 	ServerConfig &config = server.serverConfigs[client.getServerFd()];
-	Response response(client, config);
 
+	server.responses.insert(std::pair<int, Response>(client.getFd(), Response(client, config)));
 	request.clear();
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	server.modifyPoll(client.getFd(), event);
+	if (client.getCgiFd()[1] != -1)
+		server.addFdToPoll(client.getCgiFd()[1], event);
 }
 
 void	EventHandler::handleEvent(Server &server, epoll_event &event) {

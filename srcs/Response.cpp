@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Response.cpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ketrevis <ketrevis@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/10/28 15:04:22 by ketrevis          #+#    #+#             */
-/*   Updated: 2024/10/28 15:05:45 by ketrevis         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "Response.hpp"
 #include "HeaderFields.hpp"
 #include "Log.hpp"
@@ -108,10 +96,10 @@ void Response::redirect(const std::string &url) {
 	_response = StringUtils::createResponse(301, headerFields);
 }
 
-Response::Response(Socket &client, ServerConfig &serverConfig):
-	_urlSplit(StringUtils::split(client.request.path, "/", true)),
-	_locationConfig(findLocation(serverConfig)),
-	_cgi(getFilepath(), _locationConfig) {
+void	Response::setup(Socket &client, ServerConfig &serverConfig) {
+	_urlSplit = StringUtils::split(client.request.path, "/", true);
+	_locationConfig = findLocation(serverConfig);
+	_cgi = CGI(getFilepath(), _locationConfig, client);
 	Request &request = client.request;
 
 	if (request.path[request.path.size() - 1] != '/') {
@@ -121,13 +109,20 @@ Response::Response(Socket &client, ServerConfig &serverConfig):
 	}
 	_i = 0;
 
-	/* if ((request.method == "GET" || request.method == "POST") && _cgi.getScriptPath() != "") */
-	/* 	std::cout << _cgi.exec() << std::endl; */
-	if (request.method == "GET")
+	if ((request.method == "GET" || request.method == "POST") && _cgi.getScriptPath() != "")
+		_cgi.exec();
+	else if (request.method == "GET")
 		handleGet();
 	else if (request.method == "POST")
 		_response = StringUtils::createResponse(request.resCode);
 	else if (request.method == "DELETE")
 		handleDelete();
 	dprintf(client.getFd(), "%s", _response.c_str());
+}
+
+Response::Response(Socket &client, ServerConfig &serverConfig):
+	_urlSplit(StringUtils::split(client.request.path, "/", true)),
+	_locationConfig(findLocation(serverConfig)),
+	_cgi(getFilepath(), _locationConfig, client) {
+	setup(client, serverConfig);
 }

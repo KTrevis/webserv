@@ -4,16 +4,16 @@
 #include <map>
 #include <vector>
 #include <sys/epoll.h>
-#include <ServerConfig.hpp>
+#include "ServerConfig.hpp"
+#include "Response.hpp"
 
-#define MAX_EVENTS 100
+#define MAX_EVENTS 1000
 
 class Server {
 	public:
 		Server(std::vector<ServerConfig> &arr);
 		~Server();
 		void	start();
-		Server	&operator=(const Server &server);
 		std::map<int, ServerConfig>	serverConfigs;
 		std::map<int, Socket>		sockets;
 		void	closeConnection(epoll_event &event);
@@ -24,6 +24,7 @@ class Server {
 		void	removeFdFromPoll(int fd, epoll_event &event);
 		void	modifyPoll(int fd, epoll_event &event);
 		bool	parseConfig(ServerConfig &config);
+		std::map<int, Response>	responses;
 	private:
 		int			_epollfd;
 		epoll_event	_events[MAX_EVENTS]; 

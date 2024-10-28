@@ -92,7 +92,6 @@ std::string	Request::findPathConfig() {
 	return config.locations.find("/")->second.uploadPath;
 }
 
-
 void	Request::createPostOutput(std::string &name, std::string content) {
 	std::string uploadPath = findPathConfig();
 	uploadPath += '/' + name;
@@ -103,7 +102,6 @@ void	Request::createPostOutput(std::string &name, std::string content) {
 	file << content;
 	file.close();
 }
-
 
 std::string	Request::findFilename() {
 	std::string name("noname");
@@ -134,7 +132,6 @@ void	Request::createBody() {
 	std::string boundarieKey(request, 0, request.find("\r\n"));
 	while ((request.find_last_of("--") != (request.find(boundarieKey) + boundarieKey.size() + 1)))
 		createOneFile(boundarieKey);
-	std::cout <<  request << std::endl;
 }
 
 void	Request::parseBody() {
@@ -143,6 +140,7 @@ void	Request::parseBody() {
 		return;
 	if (static_cast<size_t> (std::atoi(it->second.c_str())) != request.size())
 		return;
+	cgiBody = body;
 	createBody();
 	resCode = 202;
 	isReqGenerated = true;

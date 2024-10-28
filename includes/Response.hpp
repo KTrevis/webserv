@@ -2,14 +2,16 @@
 
 #include <iostream>
 #include "LocationConfig.hpp"
-#include "Socket.hpp"
 #include "Request.hpp"
 #include "ServerConfig.hpp"
 #include "CGI.hpp"
+#include "Socket.hpp"
 
 class Response {
 	public:
 		Response(Socket &client, ServerConfig &config);
+		Response();
+		void	setup(Socket &client, ServerConfig &serverConfig);
 	private:
 		void handleGet();
 		void redirect(const std::string &url);
