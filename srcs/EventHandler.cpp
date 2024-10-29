@@ -1,11 +1,15 @@
 #include "EventHandler.hpp"
+#include "HeaderFields.hpp"
 #include "Log.hpp"
 #include "Server.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
+#include "StringUtils.hpp"
 #include <cstdio>
+#include <ostream>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <vector>
 
 static std::string	&getStrToModify(int eventFd, Socket &client, Server &server) {
 	std::map<int, Response*>::iterator it = server.cgiResponses.find(eventFd);
@@ -53,16 +57,27 @@ static bool isCGI(int fd, Server &server) {
 	return server.cgiResponses.find(fd) != server.cgiResponses.end();
 }
 
-static void displayPipe(Response &response) {
+static void displayPipe(Server &server, Socket &socket, Response &response) {
+	std::string str = StringUtils::createResponse(200, std::vector<std::string>(), response.getCGI().body);
+	dprintf(socket.getFd(), "%s", str.c_str());
+	server.cgiResponses.erase(socket.getFd());
+}
+
+static void readPipe(Response &response) {
 	int fd = response.getCGI().getCgiFd()[0];
 	char buffer[1024];
-	int n = read(fd, buffer, 1023);
-	buffer[n] = 0;
-	printf("%s", buffer);
+	int n = read(fd, buffer, 1024);
+	if (n == -1) {
+		response.fileIsRed = true;
+		return;
+	}
+	response.getCGI().body.reserve(n);
+	for (int i = 0; i < n; i++)
+		response.getCGI().body += buffer[i];
 }
 
 void	EventHandler::handleEvent(Server &server, epoll_event &event) {
-	Log::Event(event.events);
+	/* Log::Event(event.events); */
 	if (event.events & EPOLLIN && !isCGI(event.data.fd, server) && server.isNewClient(event))
 		return;
 	if (event.events & EPOLLIN)
@@ -72,11 +87,14 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 		return;
 	}
 	if (event.events & EPOLLOUT) {
-		std::map<int, Response*>::iterator it = server.cgiResponses.find(event.data.fd);
 		Socket &client = server.sockets[event.data.fd];
+		std::map<int, Response*>::iterator it = server.cgiResponses.find(event.data.fd);
 
 		if (it != server.cgiResponses.end() && it->second->getCGI().isReady()) {
-			displayPipe(*it->second);
+			if ((*it->second).fileIsRed == false)
+				readPipe(*it->second);
+			else
+				displayPipe(server, client, *it->second);
 			return;
 		}
 		client.request.parseRequest();

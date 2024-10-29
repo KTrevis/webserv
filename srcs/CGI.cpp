@@ -24,6 +24,7 @@ CGI::CGI(const std::string &str, LocationConfig &locationConfig, Socket &client)
 	_locationConfig(locationConfig), _client(client) {
 	_cgiFd[0] = -1;
 	_cgiFd[1] = -1;
+	_ready = false;
 	_scriptPath = str;
 	setCGI();
 }
@@ -71,8 +72,7 @@ void	CGI::exec(Socket &client) {
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	_pid = fork();
 
-	if (_pid == 0)
-		child(client);
+	if (_pid == 0) child(client);
 }
 
 void	CGI::setArgs(const std::vector<std::string> &arr, size_t &i) {
@@ -106,7 +106,9 @@ void CGI::setCGI() {
 }
 
 bool	CGI::isReady() {
-	return waitpid(_pid, NULL, WNOHANG) == _pid;
+	if (waitpid(_pid, NULL, WNOHANG) == _pid)
+		_ready = true;
+	return _ready;
 }
 
 const std::string &CGI::getScriptPath() const {
@@ -127,4 +129,8 @@ const int	(&CGI::getCgiFd() const)[2] {
 
 void	CGI::createPipe() {
 	pipe(_cgiFd);
+	int flags = fcntl(_cgiFd[0], F_GETFL);
+	fcntl(_cgiFd[0], F_SETFL, flags | O_NONBLOCK);
+	flags = fcntl(_cgiFd[1], F_GETFL);
+	fcntl(_cgiFd[1], F_SETFL, flags | O_NONBLOCK);
 }

@@ -34,8 +34,7 @@ LocationConfig &Response::findLocation(ServerConfig &config) {
 	return it->second;
 }
 
-static bool	isFolder(const char *name)
-{
+static bool	isFolder(const char *name) {
 	struct stat	s_stat;
 
 	return (stat(name, &s_stat) == 0 && S_ISDIR(s_stat.st_mode));
@@ -125,7 +124,8 @@ Response::Response(Socket &client, ServerConfig &serverConfig):
 	_serverConfig(serverConfig),
 	_urlSplit(StringUtils::split(client.request.path, "/", true)),
 	_locationConfig(findLocation(serverConfig)),
-	_cgi(getFilepath(), _locationConfig, client) {}
+	_cgi(getFilepath(), _locationConfig, client) 
+	{fileIsRed = false;}
 
 CGI	&Response::getCGI() {
 	return _cgi;

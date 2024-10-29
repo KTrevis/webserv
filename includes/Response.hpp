@@ -14,6 +14,7 @@ class Response {
 		Response(Socket &client, ServerConfig &config);
 		Response();
 		void	setup(Socket &client);
+		bool fileIsRed;
 		CGI	&getCGI();
 		std::string _response;
 	private:

@@ -23,6 +23,7 @@ class CGI {
 		const int	(&getCgiFd() const)[2];
 		std::string			body;
 	private:
+		bool	_ready;
 		LocationConfig &_locationConfig;
 		Socket		&_client;
 		std::string	_binPath;
