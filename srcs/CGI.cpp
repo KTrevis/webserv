@@ -27,7 +27,7 @@ CGI::CGI(const std::string &str, LocationConfig &locationConfig, Socket &client)
 	setCGI();
 }
 
-void	CGI::child() {
+void	CGI::child(Socket &client) {
 	srand(time(0));
     std::stringstream ss;
     ss << std::hex << std::setfill('0') << std::setw(8) << rand();
@@ -38,9 +38,9 @@ void	CGI::child() {
 	
 	for (size_t i = 0; i < cgiBody.size();)
 		i += write(fd, cgiBody.c_str() + i, WRITE_SIZE);
-	dup2(fd, 1);
+	dup2(fd, 0);
 	close(fd);
-	dup2(_cgiFd[1], 1);
+	dup2(_cgiFd[1], client.getFd());
 	close(_cgiFd[1]);
 	close(_cgiFd[0]);
 
@@ -61,15 +61,14 @@ void	CGI::child() {
 	return;
 }
 
-void	CGI::exec(Server &server) {
+void	CGI::exec(Socket &client) {
 	createPipe();
 	epoll_event event;
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
-	server.addFdToPoll(_cgiFd[0], event);
 	int pid = fork();
 
 	if (pid == 0)
-		child();
+		child(client);
 	close(_cgiFd[1]);
 }
 

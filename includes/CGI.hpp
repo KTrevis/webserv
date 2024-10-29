@@ -13,8 +13,8 @@ class CGI {
 		CGI	&operator=(const CGI &copy);
 		void setCGI();
 		void				setArgs(const std::vector<std::string> &arr, size_t &i);
-		void				exec(Server &server);
-		void				child();
+		void				exec(Socket &client);
+		void				child(Socket &client);
 		void				createPipe();
 		const std::string	&getScriptPath() const;
 		const std::string	&getArgs() const;

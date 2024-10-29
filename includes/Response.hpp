@@ -13,7 +13,7 @@ class Response {
 	public:
 		Response(Socket &client, ServerConfig &config);
 		Response();
-		void	setup(Server &server);
+		void	setup(Server &server, Socket &client);
 		CGI	&getCGI();
 		std::string _response;
 	private:

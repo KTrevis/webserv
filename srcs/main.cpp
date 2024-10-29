@@ -19,7 +19,6 @@ void	onSigint(int signal) {
 int	main(int ac, char **av) {
 	if (ac != 2) return dprintf(2, "%s [port]\n", av[0]);
 	signal(SIGINT, onSigint);
-	signal(SIGPIPE, SIG_IGN);
 	try {
 		ConfigParser config(av[1]);
 		Server server(config.getConfigs());

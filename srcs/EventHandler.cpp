@@ -4,6 +4,7 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include <cstdio>
+#include <sys/socket.h>
 #include <unistd.h>
 
 static std::string	&getStrToModify(int eventFd, Socket &client, Server &server) {
@@ -18,8 +19,9 @@ static void handleReceivedData(Server &server, epoll_event event) {
 	char buffer[1024];
 	Socket &client = server.sockets[event.data.fd];
 	std::string &request = getStrToModify(event.data.fd, client, server);
-	int n = read(event.data.fd, buffer, sizeof(buffer));
+	int n = recv(event.data.fd, buffer, sizeof(buffer), MSG_NOSIGNAL);
 
+	std::cout << request << std::endl;
 	if (n == -1)
 		return Log::Error("recv failed");
 	request.reserve(n);
@@ -41,7 +43,7 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 		Log::Error("CGI: " + response.getCGI().getScriptPath());
 		server.cgiResponses.insert(std::pair<int, Response>(client.getFd(), response));
 	}
-	response.setup(server);
+	response.setup(server, client);
 	request.clear();
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	server.modifyPoll(client.getFd(), event);
@@ -64,9 +66,6 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 		return;
 	}
 	if (event.events & EPOLLOUT) {
-		/* if (server.cgiResponses.find(event.data.fd) != server.cgiResponses.end()) { */
-		/* 	std::cout << "IS CGI REQUEST" << std::endl; */
-		/* } */
 		Socket &client = server.sockets[event.data.fd];
 		client.request.parseRequest();
 		if (client.request.isReqGenerated == true)
