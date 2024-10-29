@@ -24,7 +24,6 @@ class Request
 		std::string path;
 		std::string httpVer;
 		std::string request;
-		std::string	cgiResponse;
 		std::map<std::string, std::string>	headerArguments;
 		std::string	body;
 		std::string	cgiBody;

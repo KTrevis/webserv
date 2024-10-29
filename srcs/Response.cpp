@@ -1,6 +1,7 @@
 #include "Response.hpp"
 #include "HeaderFields.hpp"
 #include "Log.hpp"
+#include "Server.hpp"
 #include "StringUtils.hpp"
 #include "Utils.hpp"
 #include <cstdio>
@@ -96,33 +97,35 @@ void Response::redirect(const std::string &url) {
 	_response = StringUtils::createResponse(301, headerFields);
 }
 
-void	Response::setup(Socket &client, ServerConfig &serverConfig) {
-	_urlSplit = StringUtils::split(client.request.path, "/", true);
-	_locationConfig = findLocation(serverConfig);
-	_cgi = CGI(getFilepath(), _locationConfig, client);
-	Request &request = client.request;
+void	Response::setup(Server &server) {
+	_urlSplit = StringUtils::split(_client.request.path, "/", true);
+	Request &request = _client.request;
 
 	if (request.path[request.path.size() - 1] != '/') {
 		redirect(request.path + "/");
-		dprintf(client.getFd(), "%s", _response.c_str());
+		dprintf(_client.getFd(), "%s", _response.c_str());
 		return;
 	}
 	_i = 0;
 
 	if ((request.method == "GET" || request.method == "POST") && _cgi.getScriptPath() != "")
-		_cgi.exec();
+		_cgi.exec(server);
 	else if (request.method == "GET")
 		handleGet();
 	else if (request.method == "POST")
 		_response = StringUtils::createResponse(request.resCode);
 	else if (request.method == "DELETE")
 		handleDelete();
-	dprintf(client.getFd(), "%s", _response.c_str());
+	dprintf(_client.getFd(), "%s", _response.c_str());
 }
 
 Response::Response(Socket &client, ServerConfig &serverConfig):
+	_client(client),
+	_serverConfig(serverConfig),
 	_urlSplit(StringUtils::split(client.request.path, "/", true)),
 	_locationConfig(findLocation(serverConfig)),
-	_cgi(getFilepath(), _locationConfig, client) {
-	setup(client, serverConfig);
+	_cgi(getFilepath(), _locationConfig, client) {}
+
+CGI	&Response::getCGI() {
+	return _cgi;
 }

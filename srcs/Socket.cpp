@@ -10,15 +10,11 @@
 Socket::Socket() {
 	_fd = -1;
 	_serverFd = -1;
-	_cgiFd[0] = -1;
-	_cgiFd[1] = -1;
 }
 
 Socket::Socket(int fd) {
 	_serverFd = fd;
 	_fd = fd;
-	_cgiFd[0] = -1;
-	_cgiFd[1] = -1;
 	Log::Trace(StringUtils::itoa(_fd) + " socket created");
 }
 
@@ -28,10 +24,6 @@ int	Socket::getFd() const {
 
 int	Socket::getServerFd() const {
 	return _serverFd;
-}
-
-const int	(&Socket::getCgiFd() const)[2] {
-	return _cgiFd;
 }
 
 Socket::~Socket() {
@@ -50,9 +42,7 @@ void	Socket::setup(int fd, int serverFd, ServerConfig &config) {
 }
 
 bool	Socket::isServer() {
+	if (_fd == -1)
+		return false;
 	return _serverFd == _fd;
-}
-
-void	Socket::createPipe() {
-	pipe(_cgiFd);
 }

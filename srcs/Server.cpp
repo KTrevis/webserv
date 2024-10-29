@@ -55,6 +55,7 @@ Server::Server(std::vector<ServerConfig> &arr) {
 }
 
 void	Server::addFdToPoll(int fd, epoll_event &event) {
+	Log::Trace("Added fd to poll " + StringUtils::itoa(fd));
 	if (epoll_ctl(_epollfd, EPOLL_CTL_ADD, fd, &event))
 		Log::Error("Adding socket to poll failed");
 }
@@ -71,6 +72,7 @@ void	Server::removeFdFromPoll(int fd, epoll_event &event) {
 
 bool Server::isNewClient(const epoll_event &event) {
 	std::map<int, Socket>::iterator it = sockets.find(event.data.fd);
+	if (it == sockets.end()) return false;
 	if (it->second.isServer()) {
 		createNewClient(it->second);
 		return true;
@@ -80,6 +82,9 @@ bool Server::isNewClient(const epoll_event &event) {
 
 void	Server::closeConnection(epoll_event &event) {
 	removeFdFromPoll(event.data.fd, event);
+	std::map<int, Response>::iterator it = cgiResponses.find(event.data.fd);
+	if (it != cgiResponses.end())
+		cgiResponses.erase(it);
 	if (sockets.find(event.data.fd) == sockets.end()) {
 		Log::Info("client socket closed " + StringUtils::itoa(event.data.fd));
 		close(event.data.fd);

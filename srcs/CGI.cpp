@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <vector>
 #include "StringUtils.hpp"
+#include "Server.hpp"
 
 CGI	&CGI::operator=(const CGI &copy) {
 	_client = copy._client;
@@ -27,22 +28,21 @@ CGI::CGI(const std::string &str, LocationConfig &locationConfig, Socket &client)
 }
 
 void	CGI::child() {
-	/* srand(time(0)); */
-	/*     std::stringstream ss; */
-	/*     ss << std::hex << std::setfill('0') << std::setw(8) << rand(); */
-	/* std::string filename = "/tmp/webserv" + ss.str(); */
-	/* std::cout << filename << std::endl; */
-	/* int fd = open(filename.c_str(), O_CREAT | O_TRUNC); */
-	/* const std::string &str = _client.request.cgiBody; */
-	/* const int WRITE_SIZE = 1024; */
-	/*  */
-	/* for (size_t i = 0; i < str.size();) */
-	/* 	i += write(fd, str.c_str() + i, WRITE_SIZE); */
-	/* dup2(fd, 1); */
-	/* close(fd); */
-	/* dup2(_client.getCgiFd()[1], 1); */
-	/* close(_client.getCgiFd()[1]); */
-	/* close(_client.getCgiFd()[0]); */
+	srand(time(0));
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0') << std::setw(8) << rand();
+	std::string filename = "/tmp/webserv" + ss.str();
+	int fd = open(filename.c_str(), O_CREAT | O_TRUNC);
+	const std::string &cgiBody = _client.request.cgiBody;
+	const int WRITE_SIZE = 1024;
+	
+	for (size_t i = 0; i < cgiBody.size();)
+		i += write(fd, cgiBody.c_str() + i, WRITE_SIZE);
+	dup2(fd, 1);
+	close(fd);
+	dup2(_cgiFd[1], 1);
+	close(_cgiFd[1]);
+	close(_cgiFd[0]);
 
 	char **argv = new char*[3];
 	argv[0] = strdup(_binPath.c_str());
@@ -53,17 +53,24 @@ void	CGI::child() {
 	env[0] = strdup(str.c_str());
 	env[1] = NULL;
 	execve(_binPath.c_str(), argv, env);
+	free(argv[0]);
+	free(argv[1]);
+	free(env[0]);
 	delete[] env;
 	delete[] argv;
 	return;
 }
 
-void	CGI::exec() {
-	_client.createPipe();
+void	CGI::exec(Server &server) {
+	createPipe();
+	epoll_event event;
+	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
+	server.addFdToPoll(_cgiFd[0], event);
 	int pid = fork();
 
 	if (pid == 0)
 		child();
+	close(_cgiFd[1]);
 }
 
 void	CGI::setArgs(const std::vector<std::string> &arr, size_t &i) {
@@ -96,14 +103,22 @@ void CGI::setCGI() {
 	_scriptPath = "";
 }
 
-const std::string &CGI::getScriptPath() {
+const std::string &CGI::getScriptPath() const {
 	return _scriptPath;
 }
 
-const std::string	&CGI::getArgs() {
+const std::string	&CGI::getArgs() const {
 	return _args;
 }
 
-const std::string	&CGI::getBinPath() {
+const std::string	&CGI::getBinPath() const {
 	return _binPath;
+}
+
+const int	(&CGI::getCgiFd() const)[2] {
+	return _cgiFd;
+}
+
+void	CGI::createPipe() {
+	pipe(_cgiFd);
 }
