@@ -16,6 +16,7 @@ LocationConfig &Response::findLocation(ServerConfig &config) {
 	std::string	found = "";
 	size_t		foundIndex = 0;
 
+	_i = 0;
 	for (;_i < _urlSplit.size(); _i++) {
 		filePath += _urlSplit[_i];
 		it = config.locations.find(filePath);

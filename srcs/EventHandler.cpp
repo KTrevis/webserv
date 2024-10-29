@@ -21,12 +21,12 @@ static void handleReceivedData(Server &server, epoll_event event) {
 	std::string &request = getStrToModify(event.data.fd, client, server);
 	int n = recv(event.data.fd, buffer, sizeof(buffer), MSG_NOSIGNAL);
 
-	std::cout << request << std::endl;
 	if (n == -1)
 		return Log::Error("recv failed");
 	request.reserve(n);
 	for (int i = 0; i < n; i++)
 		request += buffer[i];
+	std::cout << "TEST: " << request << std::endl;
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
 	server.modifyPoll(event.data.fd, event);
 }
@@ -38,17 +38,16 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 
 	if (it != server.cgiResponses.end())
 		return;
+	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	Response response(client, config);
 	if (response.getCGI().getScriptPath() != "") {
-		Log::Error("CGI: " + response.getCGI().getScriptPath());
+		Log::Trace("CGI: " + response.getCGI().getScriptPath());
 		server.cgiResponses.insert(std::pair<int, Response>(client.getFd(), response));
+		server.addFdToPoll(response.getCGI().getCgiFd()[0], event);
 	}
 	response.setup(client);
 	request.clear();
-	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	server.modifyPoll(client.getFd(), event);
-	/* if (response.getCGI().getCgiFd()[1] != -1) */
-	/* 	server.addFdToPoll(response.getCGI().getCgiFd()[1], event); */
 }
 
 static bool isCGI(int fd, Server &server) {

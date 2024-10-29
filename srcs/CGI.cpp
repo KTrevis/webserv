@@ -12,13 +12,23 @@
 #include "StringUtils.hpp"
 #include "Server.hpp"
 
+CGI::~CGI() {
+	if (_cgiFd[0] == -1) return;
+	std::cout << "closed" << std::endl;
+	close(_cgiFd[0]);
+	close(_cgiFd[1]);
+}
+
 CGI::CGI(const std::string &str, LocationConfig &locationConfig, Socket &client):
 	_locationConfig(locationConfig), _client(client) {
+	_cgiFd[0] = -1;
+	_cgiFd[1] = -1;
 	_scriptPath = str;
 	setCGI();
 }
 
 void	CGI::child(Socket &client) {
+	(void)client;
 	srand(time(0));
     std::stringstream ss;
     ss << std::hex << std::setfill('0') << std::setw(8) << rand();
@@ -31,7 +41,7 @@ void	CGI::child(Socket &client) {
 		i += write(fd, cgiBody.c_str() + i, WRITE_SIZE);
 	dup2(fd, 0);
 	close(fd);
-	dup2(_cgiFd[1], client.getFd());
+	dup2(_cgiFd[1], 1);
 	close(_cgiFd[1]);
 	close(_cgiFd[0]);
 

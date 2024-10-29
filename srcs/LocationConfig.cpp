@@ -1,5 +1,4 @@
 #include "LocationConfig.hpp"
-#include <Log.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <map>
