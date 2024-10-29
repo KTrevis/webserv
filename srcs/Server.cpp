@@ -67,7 +67,7 @@ void	Server::modifyPoll(int fd, epoll_event &event) {
 
 void	Server::removeFdFromPoll(int fd, epoll_event &event) {
 	if (epoll_ctl(_epollfd, EPOLL_CTL_DEL, fd, &event))
-		Log::Error("Deleting fd from poll failed");
+		Log::Error("Deleting fd from poll failed " + StringUtils::itoa(fd));
 }
 
 bool Server::isNewClient(const epoll_event &event) {
@@ -82,7 +82,7 @@ bool Server::isNewClient(const epoll_event &event) {
 
 void	Server::closeConnection(epoll_event &event) {
 	removeFdFromPoll(event.data.fd, event);
-	std::map<int, Response>::iterator it = cgiResponses.find(event.data.fd);
+	std::map<int, Response*>::iterator it = cgiResponses.find(event.data.fd);
 	if (it != cgiResponses.end())
 		cgiResponses.erase(it);
 	if (sockets.find(event.data.fd) == sockets.end()) {

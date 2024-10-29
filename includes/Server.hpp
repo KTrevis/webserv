@@ -24,7 +24,7 @@ class Server {
 		void	removeFdFromPoll(int fd, epoll_event &event);
 		void	modifyPoll(int fd, epoll_event &event);
 		bool	parseConfig(ServerConfig &config);
-		std::map<int, Response>	cgiResponses;
+		std::map<int, Response*>	cgiResponses;
 	private:
 		int			_epollfd;
 		epoll_event	_events[MAX_EVENTS]; 

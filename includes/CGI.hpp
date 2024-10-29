@@ -19,6 +19,7 @@ class CGI {
 		const std::string	&getScriptPath() const;
 		const std::string	&getArgs() const;
 		const std::string	&getBinPath() const;
+		bool				isReady();
 		const int	(&getCgiFd() const)[2];
 		std::string			body;
 	private:
@@ -27,5 +28,6 @@ class CGI {
 		std::string	_binPath;
 		std::string _scriptPath;
 		std::string	_args;
+		int			_pid;
 		int	_cgiFd[2];
 };

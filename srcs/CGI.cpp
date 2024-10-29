@@ -1,4 +1,5 @@
 #include "CGI.hpp"
+#include <sys/wait.h>
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
@@ -39,20 +40,22 @@ void	CGI::child(Socket &client) {
 	
 	for (size_t i = 0; i < cgiBody.size();)
 		i += write(fd, cgiBody.c_str() + i, WRITE_SIZE);
-	dup2(fd, 0);
-	close(fd);
+	close(_cgiFd[0]);
 	dup2(_cgiFd[1], 1);
 	close(_cgiFd[1]);
-	close(_cgiFd[0]);
+	dup2(fd, 0);
+	close(fd);
 
 	char **argv = new char*[3];
 	argv[0] = strdup(_binPath.c_str());
 	argv[1] = strdup(_scriptPath.c_str());
 	argv[2] = NULL;
 	std::string str = "PATH_INFO=" + _args;
+
 	char **env = new (char *[2]);
 	env[0] = strdup(str.c_str());
 	env[1] = NULL;
+
 	execve(_binPath.c_str(), argv, env);
 	free(argv[0]);
 	free(argv[1]);
@@ -66,11 +69,10 @@ void	CGI::exec(Socket &client) {
 	createPipe();
 	epoll_event event;
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
-	int pid = fork();
+	_pid = fork();
 
-	if (pid == 0)
+	if (_pid == 0)
 		child(client);
-	close(_cgiFd[1]);
 }
 
 void	CGI::setArgs(const std::vector<std::string> &arr, size_t &i) {
@@ -101,6 +103,10 @@ void CGI::setCGI() {
 		}
 	}
 	_scriptPath = "";
+}
+
+bool	CGI::isReady() {
+	return waitpid(_pid, NULL, WNOHANG) == _pid;
 }
 
 const std::string &CGI::getScriptPath() const {
