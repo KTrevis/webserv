@@ -12,15 +12,6 @@
 #include "StringUtils.hpp"
 #include "Server.hpp"
 
-CGI	&CGI::operator=(const CGI &copy) {
-	_client = copy._client;
-	_locationConfig = copy._locationConfig;
-	_scriptPath = copy._scriptPath;
-	_binPath = copy._binPath;
-	_args = copy._args;
-	return *this;
-}
-
 CGI::CGI(const std::string &str, LocationConfig &locationConfig, Socket &client):
 	_locationConfig(locationConfig), _client(client) {
 	_scriptPath = str;

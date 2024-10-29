@@ -10,7 +10,6 @@ class CGI {
 	public:
 		CGI(const std::string &str, LocationConfig &locationConfig, Socket &client);
 		CGI();
-		CGI	&operator=(const CGI &copy);
 		void setCGI();
 		void				setArgs(const std::vector<std::string> &arr, size_t &i);
 		void				exec(Socket &client);

@@ -43,7 +43,7 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 		Log::Error("CGI: " + response.getCGI().getScriptPath());
 		server.cgiResponses.insert(std::pair<int, Response>(client.getFd(), response));
 	}
-	response.setup(server, client);
+	response.setup(client);
 	request.clear();
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	server.modifyPoll(client.getFd(), event);
