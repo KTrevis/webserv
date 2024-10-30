@@ -12,11 +12,11 @@
 #include <vector>
 
 static std::string	&getStrToModify(int eventFd, Socket &client, Server &server) {
-	std::map<int, Response*>::iterator it = server.cgiResponses.find(eventFd);
+	std::map<int, Response>::iterator it = server.cgiResponses.find(eventFd);
 
 	if (it == server.cgiResponses.end())
 		return client.request.request;
-	return it->second->getCGI().body;
+	return it->second.getCGI().body;
 }
 
 static void handleReceivedData(Server &server, epoll_event event) {
@@ -37,18 +37,20 @@ static void handleReceivedData(Server &server, epoll_event event) {
 static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 	Request &request = client.request;
 	ServerConfig &config = server.serverConfigs[client.getServerFd()];
-	std::map<int, Response*>::iterator it = server.cgiResponses.find(client.getFd());
+	std::map<int, Response>::iterator it = server.cgiResponses.find(client.getFd());
 
 	if (it != server.cgiResponses.end())
 		return;
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
-	Response *response = new Response(client, config);
-	response->setup(client);
-	if (response->getCGI().getScriptPath() != "") {
-		Log::Trace("CGI: " + response->getCGI().getScriptPath());
-		server.cgiResponses.insert(std::pair<int, Response*>(client.getFd(), response));
+	std::pair<int, Response> pair(client.getFd(), Response(client, config));
+	server.cgiResponses.insert(pair);
+	it = server.cgiResponses.find(client.getFd());
+	Response &response = it->second;
+	response.setup(client);
+	if (response.getCGI().getScriptPath() != "") {
+		Log::Trace("CGI: " + response.getCGI().getScriptPath());
 		event.events += EPOLLOUT;
-	} else delete response;
+	} else server.cgiResponses.erase(client.getFd());
 	request.clear();
 	server.modifyPoll(client.getFd(), event);
 }
@@ -88,13 +90,13 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 	}
 	if (event.events & EPOLLOUT) {
 		Socket &client = server.sockets[event.data.fd];
-		std::map<int, Response*>::iterator it = server.cgiResponses.find(event.data.fd);
+		std::map<int, Response>::iterator it = server.cgiResponses.find(event.data.fd);
 
-		if (it != server.cgiResponses.end() && it->second->getCGI().isReady()) {
-			if ((*it->second).fileIsRed == false)
-				readPipe(*it->second);
+		if (it != server.cgiResponses.end() && it->second.getCGI().isReady()) {
+			if ((it->second).fileIsRed == false)
+				readPipe(it->second);
 			else
-				displayPipe(server, client, *it->second);
+				displayPipe(server, client, it->second);
 			return;
 		}
 		client.request.parseRequest();

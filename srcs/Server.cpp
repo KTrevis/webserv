@@ -82,7 +82,7 @@ bool Server::isNewClient(const epoll_event &event) {
 
 void	Server::closeConnection(epoll_event &event) {
 	removeFdFromPoll(event.data.fd, event);
-	std::map<int, Response*>::iterator it = cgiResponses.find(event.data.fd);
+	std::map<int, Response>::iterator it = cgiResponses.find(event.data.fd);
 	if (it != cgiResponses.end())
 		cgiResponses.erase(it);
 	if (sockets.find(event.data.fd) == sockets.end()) {

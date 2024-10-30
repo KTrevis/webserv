@@ -68,8 +68,6 @@ void	CGI::child(Socket &client) {
 
 void	CGI::exec(Socket &client) {
 	createPipe();
-	epoll_event event;
-	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	_pid = fork();
 
 	if (_pid == 0) child(client);
