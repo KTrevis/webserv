@@ -13,7 +13,7 @@ class CGI {
 		~CGI();
 		void setCGI();
 		void				setArgs(const std::vector<std::string> &arr, size_t &i);
-		void				exec(Socket &client);
+		void				exec();
 		void				child(Socket &client);
 		void				createPipe();
 		const std::string	&getScriptPath() const;

@@ -46,7 +46,7 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 	server.cgiResponses.insert(pair);
 	it = server.cgiResponses.find(client.getFd());
 	Response &response = it->second;
-	response.setup(client);
+	response.setup();
 	if (response.getCGI().getScriptPath() != "") {
 		Log::Trace("CGI: " + response.getCGI().getScriptPath());
 		event.events += EPOLLOUT;

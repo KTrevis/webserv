@@ -97,7 +97,7 @@ void Response::redirect(const std::string &url) {
 	_response = StringUtils::createResponse(301, headerFields);
 }
 
-void	Response::setup(Socket &client) {
+void	Response::setup() {
 	_urlSplit = StringUtils::split(_client.request.path, "/", true);
 	Request &request = _client.request;
 
@@ -109,7 +109,7 @@ void	Response::setup(Socket &client) {
 	_i = 0;
 
 	if ((request.method == "GET" || request.method == "POST") && _cgi.getScriptPath() != "")
-		_cgi.exec(client);
+		_cgi.exec();
 	else if (request.method == "GET")
 		handleGet();
 	else if (request.method == "POST")

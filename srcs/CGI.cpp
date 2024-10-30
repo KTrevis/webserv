@@ -65,11 +65,11 @@ void	CGI::child(Socket &client) {
 	return;
 }
 
-void	CGI::exec(Socket &client) {
+void	CGI::exec() {
 	createPipe();
 	_pid = fork();
 
-	if (_pid == 0) child(client);
+	if (_pid == 0) child(_client);
 }
 
 void	CGI::setArgs(const std::vector<std::string> &arr, size_t &i) {
