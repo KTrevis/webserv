@@ -59,25 +59,6 @@ static bool isCGI(int fd, Server &server) {
 	return server.cgiResponses.find(fd) != server.cgiResponses.end();
 }
 
-static void displayPipe(Server &server, Socket &socket, Response &response) {
-	std::string str = StringUtils::createResponse(200, std::vector<std::string>(), response.getCGI().body);
-	dprintf(socket.getFd(), "%s", str.c_str());
-	server.cgiResponses.erase(socket.getFd());
-}
-
-static void readPipe(Response &response) {
-	int fd = response.getCGI().getCgiFd()[0];
-	char buffer[1024];
-	int n = read(fd, buffer, 1024);
-	if (n == -1) {
-		response.fileIsRed = true;
-		return;
-	}
-	response.getCGI().body.reserve(n);
-	for (int i = 0; i < n; i++)
-		response.getCGI().body += buffer[i];
-}
-
 void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 	/* Log::Event(event.events); */
 	if (event.events & EPOLLIN && !isCGI(event.data.fd, server) && server.isNewClient(event))
@@ -93,10 +74,7 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 		std::map<int, Response>::iterator it = server.cgiResponses.find(event.data.fd);
 
 		if (it != server.cgiResponses.end() && it->second.getCGI().isReady()) {
-			if ((it->second).fileIsRed == false)
-				readPipe(it->second);
-			else
-				displayPipe(server, client, it->second);
+			it->second.handleCGI(server);
 			return;
 		}
 		client.request.parseRequest();

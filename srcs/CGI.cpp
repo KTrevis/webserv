@@ -15,7 +15,6 @@
 
 CGI::~CGI() {
 	if (_cgiFd[0] == -1) return;
-	std::cout << "closed" << std::endl;
 	close(_cgiFd[0]);
 	close(_cgiFd[1]);
 }

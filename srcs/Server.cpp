@@ -55,7 +55,6 @@ Server::Server(std::vector<ServerConfig> &arr) {
 }
 
 void	Server::addFdToPoll(int fd, epoll_event &event) {
-	Log::Trace("Added fd to poll " + StringUtils::itoa(fd));
 	if (epoll_ctl(_epollfd, EPOLL_CTL_ADD, fd, &event))
 		Log::Error("Adding socket to poll failed");
 }

@@ -14,9 +14,11 @@ class Response {
 		Response(Socket &client, ServerConfig &config);
 		Response();
 		void	setup(Socket &client);
-		bool fileIsRed;
 		CGI	&getCGI();
 		std::string _response;
+		void	handleCGI(Server &server);
+		void	sendCGI(Server &server);
+		void	readPipe();
 	private:
 		void handleGet();
 		void redirect(const std::string &url);
@@ -33,4 +35,5 @@ class Response {
 		std::string	_contentType;
 		CGI			_cgi;
 		size_t		_i;
+		bool 		_pipeEmpty;
 };

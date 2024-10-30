@@ -124,9 +124,35 @@ Response::Response(Socket &client, ServerConfig &serverConfig):
 	_serverConfig(serverConfig),
 	_urlSplit(StringUtils::split(client.request.path, "/", true)),
 	_locationConfig(findLocation(serverConfig)),
-	_cgi(getFilepath(), _locationConfig, client) 
-	{fileIsRed = false;}
+	_cgi(getFilepath(), _locationConfig, client),
+	_pipeEmpty(false) {}
 
 CGI	&Response::getCGI() {
 	return _cgi;
+}
+
+void	Response::readPipe() {
+	int fd = getCGI().getCgiFd()[0];
+	char buffer[1024];
+	int n = read(fd, buffer, 1024);
+	if (n == -1) {
+		_pipeEmpty = true;
+		return;
+	}
+	getCGI().body.reserve(n);
+	for (int i = 0; i < n; i++)
+		getCGI().body += buffer[i];
+}
+
+void	Response::sendCGI(Server &server) {
+	std::string str = StringUtils::createResponse(200, std::vector<std::string>(), getCGI().body);
+	dprintf(_client.getFd(), "%s", str.c_str());
+	server.cgiResponses.erase(_client.getFd());
+}
+
+void	Response::handleCGI(Server &server) {
+	if (!_pipeEmpty)
+		readPipe();
+	else
+		sendCGI(server);
 }
