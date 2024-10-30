@@ -1,4 +1,5 @@
 #include "Response.hpp"
+#include <sys/types.h>
 #include "HeaderFields.hpp"
 #include "Log.hpp"
 #include "Server.hpp"
@@ -53,6 +54,10 @@ std::string Response::getFilepath() {
 	return filePath;
 }
 
+bool	Response::isChunked() {
+	return _chunkedResponse.size() > 0;
+}
+
 void	Response::handleGet() {
 	std::string filePath = getFilepath();
 	int httpCode;
@@ -69,7 +74,23 @@ void	Response::handleGet() {
 	std::vector<std::string> headerFields;
 	headerFields.reserve(1);
 	headerFields.push_back(HeaderFields::contentType(_contentType));
-	_response = StringUtils::createResponse(httpCode, headerFields, _body);
+	if (_body.size() < 100000)
+		_response = StringUtils::createResponse(httpCode, headerFields, _body);
+	else {
+		_response = StringUtils::createResponse(200, _body.size());
+		_body.clear();
+		_chunkedResponse = StringUtils::getVectorFile(filePath);
+	}
+}
+
+void	Response::sendChunk() {
+	if (_chunkedResponse.size() == 0) {
+		Log::Trace("Chunk fully sent");
+		return;
+	}
+	const std::string &toSend = _chunkedResponse[0].c_str();
+	send(_client.getFd(), toSend.c_str(), toSend.size(), 0);
+	_chunkedResponse.erase(_chunkedResponse.begin(), _chunkedResponse.begin() + 1);
 }
 
 void Response::handleDelete() {
@@ -108,8 +129,10 @@ void	Response::setup() {
 	}
 	_i = 0;
 
-	if ((request.method == "GET" || request.method == "POST") && _cgi.getScriptPath() != "")
+	if ((request.method == "GET" || request.method == "POST") && _cgi.getScriptPath() != "") {
 		_cgi.exec();
+		return;
+	}
 	else if (request.method == "GET")
 		handleGet();
 	else if (request.method == "POST")

@@ -41,16 +41,20 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 
 	if (it != server.cgiResponses.end())
 		return;
-	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	std::pair<int, Response> pair(client.getFd(), Response(client, config));
 	server.cgiResponses.insert(pair);
 	it = server.cgiResponses.find(client.getFd());
+
+	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	Response &response = it->second;
 	response.setup();
-	if (response.getCGI().getScriptPath() != "") {
-		Log::Trace("CGI: " + response.getCGI().getScriptPath());
+	if (!response.isChunked() && response.getCGI().getScriptPath() == "") {
+		server.cgiResponses.erase(client.getFd());
+	} else {
+		Log::Trace("CGI/Chunk: " + response.getCGI().getScriptPath());
 		event.events += EPOLLOUT;
-	} else server.cgiResponses.erase(client.getFd());
+	}
+
 	request.clear();
 	server.modifyPoll(client.getFd(), event);
 }
@@ -73,8 +77,13 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 		Socket &client = server.sockets[event.data.fd];
 		std::map<int, Response>::iterator it = server.cgiResponses.find(event.data.fd);
 
-		if (it != server.cgiResponses.end() && it->second.getCGI().isReady()) {
+		Response &response = it->second;
+		if (it != server.cgiResponses.end() && response.getCGI().isReady()) {
 			it->second.handleCGI(server);
+			return;
+		}
+		if (response.isChunked()) {
+			response.sendChunk();
 			return;
 		}
 		client.request.parseRequest();

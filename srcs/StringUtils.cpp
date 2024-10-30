@@ -93,7 +93,6 @@ std::string	StringUtils::getFile(const std::string &filename) {
 	while (std::getline(stream, buffer))
 		str += buffer;
 	return str;
-
 }
 
 std::string StringUtils::fileExtensionToType(std::string str) {
@@ -133,7 +132,7 @@ static std::string get404Page() {
 }
 
 std::string StringUtils::createResponse(int httpCode,
-		const std::vector<std::string> &fields, const std::string &body) {
+	const std::vector<std::string> &fields, const std::string &body) {
 	std::string str = "HTTP/1.1 " + StringUtils::itoa(httpCode) + "\r\n";
 	for (size_t i = 0; i < fields.size(); i++)
 		str += fields[i] + "\r\n";
@@ -145,5 +144,12 @@ std::string StringUtils::createResponse(int httpCode,
 		str += "content-length: " + StringUtils::itoa(body.size()) + "\r\n\r\n";
 		str += body;
 	}
+	return str;
+}
+
+std::string StringUtils::createResponse(int httpCode, size_t contentLength) {
+	std::string str = "HTTP/1.1 " + StringUtils::itoa(httpCode) + "\r\n";
+	str += "content-length: " + StringUtils::itoa(contentLength) + "\r\n";
+	str += "content-type: text/html\r\n\r\n";
 	return str;
 }

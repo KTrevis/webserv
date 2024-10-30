@@ -19,6 +19,8 @@ class Response {
 		void	handleCGI(Server &server);
 		void	sendCGI(Server &server);
 		void	readPipe();
+		bool	isChunked();
+		void	sendChunk();
 	private:
 		void handleGet();
 		void redirect(const std::string &url);
@@ -33,6 +35,7 @@ class Response {
 		std::string	_statusCode;
 		std::string	_body;
 		std::string	_contentType;
+		std::vector<std::string> _chunkedResponse;
 		CGI			_cgi;
 		size_t		_i;
 		bool 		_pipeEmpty;
