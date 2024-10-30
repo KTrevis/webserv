@@ -151,8 +151,5 @@ void	Response::sendCGI(Server &server) {
 }
 
 void	Response::handleCGI(Server &server) {
-	if (!_pipeEmpty)
-		readPipe();
-	else
-		sendCGI(server);
+	_pipeEmpty ? sendCGI(server) : readPipe();
 }
