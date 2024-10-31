@@ -57,7 +57,7 @@ static void handleExistingResponse(Socket &client, Response &response, Server &s
 	if (response.getCGI().getScriptPath() != "") {
 		if (!response.getCGI().isReady())
 			return;
-		response.handleCGI(server);
+		response.handleCGI(server, event);
 		return;
 	}
 	if (response.fullySent()) {

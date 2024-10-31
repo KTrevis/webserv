@@ -162,12 +162,13 @@ void	Response::readPipe() {
 		getCGI().body += buffer[i];
 }
 
-void	Response::sendCGI(Server &server) {
+void	Response::sendCGI(Server &server, epoll_event &event) {
 	std::string str = StringUtils::createResponse(200, std::vector<std::string>(), getCGI().body);
 	dprintf(_client.getFd(), "%s", str.c_str());
+	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	server.cgiResponses.erase(_client.getFd());
 }
 
-void	Response::handleCGI(Server &server) {
-	_pipeEmpty ? sendCGI(server) : readPipe();
+void	Response::handleCGI(Server &server, epoll_event &event) {
+	_pipeEmpty ? sendCGI(server, event) : readPipe();
 }

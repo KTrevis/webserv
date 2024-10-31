@@ -6,6 +6,7 @@
 #include "ServerConfig.hpp"
 #include "CGI.hpp"
 #include "Socket.hpp"
+#include <sys/epoll.h>
 
 class Server;
 
@@ -15,8 +16,8 @@ class Response {
 		Response();
 		void	setup();
 		CGI	&getCGI();
-		void	handleCGI(Server &server);
-		void	sendCGI(Server &server);
+		void	handleCGI(Server &server, epoll_event &event);
+		void	sendCGI(Server &server, epoll_event &event);
 		void	readPipe();
 		bool	fullySent();
 		void	sendChunk();
