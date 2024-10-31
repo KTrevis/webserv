@@ -4,8 +4,7 @@
 #include <cctype>
 #include <stdexcept>
 
-static int	nbrLen(int n)
-{
+static int	nbrLen(int n) {
 	int		size = 1;
 	long	nb = static_cast<long>(n);
 
@@ -20,8 +19,7 @@ static int	nbrLen(int n)
 	return (size);
 }
 
-std::string	StringUtils::itoa(int n)
-{
+std::string	StringUtils::itoa(int n) {
 	int		i = nbrLen(n);
 	long	nb = static_cast<long>(n);
 	std::string	str;
@@ -71,9 +69,27 @@ std::vector<std::string> StringUtils::split(std::string str, const std::string &
 	return arr;
 }
 
+std::vector<std::string> StringUtils::getFileChunks(const std::string &filename) {
+	const int SIZE = 100000;
+	std::ifstream stream(filename.c_str(), std::ios::binary);
+	std::vector<std::string> file;
+	std::string buffer(SIZE, 0);
+
+	if (stream.fail())
+		throw std::runtime_error("Failed to read file.");
+	while (stream.read(&buffer[0], SIZE)) {
+		buffer.resize(stream.gcount());
+		file.push_back(buffer);
+	}
+	buffer.resize(stream.gcount());
+	if (!buffer.empty())
+		file.push_back(buffer);
+	return file;
+}
+
 std::vector<std::string> StringUtils::getVectorFile(const std::string &filename) {
-	std::ifstream			stream(filename.c_str());
-	std::string				buffer;
+	std::ifstream				stream(filename.c_str());
+	std::string					buffer;
 	std::vector<std::string>	file;
 
 	if (stream.fail())
@@ -83,7 +99,7 @@ std::vector<std::string> StringUtils::getVectorFile(const std::string &filename)
 	return file;
 }
 
-std::string	StringUtils::getFile(const std::string &filename) {
+std::string	StringUtils::getFileLines(const std::string &filename) {
 	std::ifstream			stream(filename.c_str());
 	std::string				buffer;
 	std::string				str;
@@ -116,6 +132,14 @@ void StringUtils::lowerStr(std::string &c) {
 	}
 }
 
+size_t	StringUtils::getStrVectorSize(const std::vector<std::string> &arr) {
+	size_t len = 0;
+
+	for (size_t i = 0; i < arr.size(); i++)
+		len += arr[i].size();
+	return len;
+}
+
 static std::string get404Page() {
 	std::string error;
 
@@ -131,6 +155,12 @@ static std::string get404Page() {
 	return error;
 }
 
+static void addContentLength(std::string &str, size_t size) {
+	if (str.find("content-length") == std::string::npos)
+		str += "content-length: " + StringUtils::itoa(size) + "\r\n";
+	str += "\r\n";
+}
+
 std::string StringUtils::createResponse(int httpCode,
 	const std::vector<std::string> &fields, const std::string &body) {
 	std::string str = "HTTP/1.1 " + StringUtils::itoa(httpCode) + "\r\n";
@@ -138,18 +168,11 @@ std::string StringUtils::createResponse(int httpCode,
 		str += fields[i] + "\r\n";
 	if (httpCode == 404) {
 		const std::string &notFound = get404Page();
-		str += "content-length: " + StringUtils::itoa(notFound.size()) + "\r\n\r\n";
+		addContentLength(str, notFound.size());
 		str += notFound;
 	} else {
-		str += "content-length: " + StringUtils::itoa(body.size()) + "\r\n\r\n";
+		addContentLength(str, body.size());
 		str += body;
 	}
-	return str;
-}
-
-std::string StringUtils::createResponse(int httpCode, size_t contentLength) {
-	std::string str = "HTTP/1.1 " + StringUtils::itoa(httpCode) + "\r\n";
-	str += "content-length: " + StringUtils::itoa(contentLength) + "\r\n";
-	str += "content-type: text/html\r\n\r\n";
 	return str;
 }

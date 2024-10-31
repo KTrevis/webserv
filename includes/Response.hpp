@@ -15,12 +15,12 @@ class Response {
 		Response();
 		void	setup();
 		CGI	&getCGI();
-		std::string _response;
 		void	handleCGI(Server &server);
 		void	sendCGI(Server &server);
 		void	readPipe();
-		bool	isChunked();
+		bool	fullySent();
 		void	sendChunk();
+		std::string _response;
 	private:
 		void handleGet();
 		void redirect(const std::string &url);
@@ -33,10 +33,10 @@ class Response {
 		std::vector<std::string> _urlSplit;
 		LocationConfig &_locationConfig;
 		std::string	_statusCode;
-		std::string	_body;
+		std::vector<std::string>	_body;
 		std::string	_contentType;
-		std::vector<std::string> _chunkedResponse;
 		CGI			_cgi;
 		size_t		_i;
 		bool 		_pipeEmpty;
+		size_t		_chunkToSend;
 };

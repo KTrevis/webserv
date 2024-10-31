@@ -54,8 +54,8 @@ std::string Response::getFilepath() {
 	return filePath;
 }
 
-bool	Response::isChunked() {
-	return _chunkedResponse.size() > 0;
+bool	Response::fullySent() {
+	return _chunkToSend == _body.size();
 }
 
 void	Response::handleGet() {
@@ -65,32 +65,26 @@ void	Response::handleGet() {
 
 	Log::Debug("Fetching file at: " + filePath);
 	try {
-		_body = StringUtils::getFile(filePath);
+		_body = StringUtils::getFileChunks(filePath);
 		httpCode = 200;
 	} catch (std::exception &e) {
 		Log::Error("Failed to read file at: " + filePath);
 		httpCode = 404;
 	}
 	std::vector<std::string> headerFields;
-	headerFields.reserve(1);
+	headerFields.reserve(2);
 	headerFields.push_back(HeaderFields::contentType(_contentType));
-	if (_body.size() < 100000)
-		_response = StringUtils::createResponse(httpCode, headerFields, _body);
-	else {
-		_response = StringUtils::createResponse(200, _body.size());
-		_body.clear();
-		_chunkedResponse = StringUtils::getVectorFile(filePath);
-	}
+	headerFields.push_back(HeaderFields::contentLength(StringUtils::getStrVectorSize(_body)));
+	if (httpCode == 404)
+		_response = StringUtils::createResponse(httpCode);
+	else
+		_response = StringUtils::createResponse(httpCode, headerFields);
 }
 
 void	Response::sendChunk() {
-	if (_chunkedResponse.size() == 0) {
-		Log::Trace("Chunk fully sent");
-		return;
-	}
-	const std::string &toSend = _chunkedResponse[0].c_str();
-	send(_client.getFd(), toSend.c_str(), toSend.size(), 0);
-	_chunkedResponse.erase(_chunkedResponse.begin(), _chunkedResponse.begin() + 1);
+	const std::string &toSend = _body[_chunkToSend];
+	if (send(_client.getFd(), toSend.c_str(), toSend.size(), 0) != -1)
+		_chunkToSend++;
 }
 
 void Response::handleDelete() {
@@ -148,7 +142,8 @@ Response::Response(Socket &client, ServerConfig &serverConfig):
 	_urlSplit(StringUtils::split(client.request.path, "/", true)),
 	_locationConfig(findLocation(serverConfig)),
 	_cgi(getFilepath(), _locationConfig, client),
-	_pipeEmpty(false) {}
+	_pipeEmpty(false),
+	_chunkToSend(0) {}
 
 CGI	&Response::getCGI() {
 	return _cgi;
