@@ -74,6 +74,7 @@ void	Response::handleGet() {
 	std::vector<std::string> headerFields;
 	headerFields.reserve(2);
 	headerFields.push_back(HeaderFields::contentType(_contentType));
+	headerFields.push_back(HeaderFields::contentDisposition("inline", filePath.substr(filePath.find_last_of("/"), filePath.size() - filePath.find_last_of("/"))));
 	if (_body.size() != 0)
 		headerFields.push_back(HeaderFields::contentLength(StringUtils::getStrVectorSize(_body)));
 	_response = StringUtils::createResponse(httpCode, headerFields);

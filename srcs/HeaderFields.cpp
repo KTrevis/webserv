@@ -12,3 +12,7 @@ std::string	HeaderFields::contentType(const std::string &str) {
 std::string	HeaderFields::contentLength(const int &i) {
 	return "content-length: " + StringUtils::itoa(i);
 }
+
+std::string	HeaderFields::contentDisposition(const std::string &str, const std::string &fileName) {
+	return "content-disposition: " + str + "; filename= " + fileName;
+}
