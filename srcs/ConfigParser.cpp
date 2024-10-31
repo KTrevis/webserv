@@ -67,7 +67,7 @@ bool	ConfigParser::parseLine(std::vector<std::string> &line) {
 		Log::Info("Creating server on port " + line[1]);
 		(_configs.end() - 1)->address = Address(INADDR_ANY, std::atoi(line[1].c_str()));
 	}
-	_currScope = strToScope(*line.begin());
+	_currScope = strToScope(line[0]);
 	switch (_currScope) {
 		case (SERVER): return serverParsing(line);
 		case (LOCATION): return locationParsing(line);
@@ -79,8 +79,7 @@ bool	ConfigParser::parseLine(std::vector<std::string> &line) {
 bool	ConfigParser::addLocationConfig(size_t &i, const std::string &locationName) {
 	ServerConfig	&serverConfig = _configs[_configs.size() - 1];
 	try {
-		LocationConfig locationConfig(i, _lines);
-		serverConfig.locations.insert(std::make_pair(locationName, locationConfig));
+		serverConfig.locations.insert(std::make_pair(locationName, LocationConfig(i, _lines)));
 		/* locationConfig.displayData(); */
 	} catch (std::exception &e) {
 		Log::Error(e.what());
@@ -99,18 +98,18 @@ ConfigParser::ConfigParser(const std::string &filename) {
 	_currScope = NONE;
 
 	for (size_t i = 0; i < _lines.size(); i++) {
-		if (_lines[i][0] == "}") {
+		while (i < _lines.size() && _lines[i][0] == "}") {
 			if (_lines[i].size() != 1)
 				throw std::runtime_error("ConfigParser constructor: unexpected token");
 			_scope -= _currScope;
 			if (_scope < 0)
 				throw std::runtime_error("ConfigParser constructor: duplicate location/server");
-			_currScope = NONE;
+			_currScope = static_cast<e_scope>(_scope);
 			i++;
 		}
-		if (!parseLine(_lines[i]))
-			throw std::runtime_error("ConfigParser constructor: location parsing failed");
-		if (_currScope == LOCATION && !addLocationConfig(i, _lines[i][1]))
+		if (i < _lines.size() && !parseLine(_lines[i]))
+			throw std::runtime_error("ConfigParser constructor: parse line failed");
+		if (i < _lines.size() && _currScope == LOCATION && !addLocationConfig(i, _lines[i][1]))
 			throw std::runtime_error("ConfigParser constructor: location parsing failed");
 	}
 }
