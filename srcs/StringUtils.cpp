@@ -120,7 +120,10 @@ std::string StringUtils::fileExtensionToType(std::string str) {
 	std::map<std::string, std::string> map;
 	map[".css"] = "text/css";
 	map[".html"] = "text/html";
-	return map[str];
+	std::map<std::string, std::string>::iterator it = map.find(str);
+	if (it != map.end())
+		return it->second;
+	return "text/plain";
 }
 
 void StringUtils::lowerStr(std::string &c) {
