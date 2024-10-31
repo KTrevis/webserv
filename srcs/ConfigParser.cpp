@@ -109,7 +109,7 @@ ConfigParser::ConfigParser(const std::string &filename) {
 			i++;
 		}
 		if (!parseLine(_lines[i]))
-		    std::cout << "Parsing failed at line " << i + 1 << std::endl;
+			throw std::runtime_error("ConfigParser constructor: location parsing failed");
 		if (_currScope == LOCATION && !addLocationConfig(i, _lines[i][1]))
 			throw std::runtime_error("ConfigParser constructor: location parsing failed");
 	}
