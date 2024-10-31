@@ -45,31 +45,28 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 	server.cgiResponses.insert(pair);
 	it = server.cgiResponses.find(client.getFd());
 
-	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
+	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
 	Response &response = it->second;
 	response.setup();
-	event.events += EPOLLOUT;
 
 	request.clear();
 	server.modifyPoll(client.getFd(), event);
 }
 
-static void handleResponse(Socket &client, Response &response, Server &server, epoll_event &event) {
+static void handleExistingResponse(Socket &client, Response &response, Server &server, epoll_event &event) {
 	if (response.getCGI().getScriptPath() != "") {
 		if (!response.getCGI().isReady())
 			return;
 		response.handleCGI(server);
 		return;
 	}
-	if (!response.fullySent()) {
-		response.sendChunk();
-		return;
-	}
-	else {
-		event.events -= EPOLLOUT;
+	if (response.fullySent()) {
+		event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 		Log::Debug("Chunk fully sent");
 		server.cgiResponses.erase(client.getFd());
+		return;
 	}
+	response.sendChunk();
 }
 
 static bool isCGI(int fd, Server &server) {
@@ -92,8 +89,8 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 		Response &response = it->second;
 
 		if (it != server.cgiResponses.end()) {
-			handleResponse(client, response, server, event);
-			/* server.modifyPoll(client.getFd(), event); */
+			handleExistingResponse(client, response, server, event);
+			server.modifyPoll(client.getFd(), event);
 			return;
 		}
 		client.request.parseRequest();
