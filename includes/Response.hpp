@@ -18,14 +18,15 @@ class Response {
 		CGI	&getCGI();
 		void	handleCGI(Server &server, epoll_event &event);
 		void	sendCGI(Server &server, epoll_event &event);
-		void	readPipe();
 		bool	fullySent();
 		void	sendChunk();
 		std::string _response;
 	private:
+		void	readPipe();
 		void handleGet();
 		void redirect(const std::string &url);
 		void handleDelete();
+		void	handleRedirections(const Request &request);
 		std::string getFilepath();
 		LocationConfig &findLocation(ServerConfig &config);
 		std::string setCGI();

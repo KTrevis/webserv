@@ -152,6 +152,7 @@ void	Request::parseRequest() {
 		if (method == "")
 			return;
 		path = parsePath();
+		Log::Trace(method + " " + path);
 		httpVer = parseVer();
 		parseHeader();
 	}

@@ -12,9 +12,9 @@
 #include <vector>
 
 static std::string	&getStrToModify(int eventFd, Socket &client, Server &server) {
-	std::map<int, Response>::iterator it = server.cgiResponses.find(eventFd);
+	std::map<int, Response>::iterator it = server.responses.find(eventFd);
 
-	if (it == server.cgiResponses.end())
+	if (it == server.responses.end())
 		return client.request.request;
 	return it->second.getCGI().body;
 }
@@ -37,13 +37,13 @@ static void handleReceivedData(Server &server, epoll_event event) {
 static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 	Request &request = client.request;
 	ServerConfig &config = server.serverConfigs[client.getServerFd()];
-	std::map<int, Response>::iterator it = server.cgiResponses.find(client.getFd());
+	std::map<int, Response>::iterator it = server.responses.find(client.getFd());
 
-	if (it != server.cgiResponses.end())
+	if (it != server.responses.end())
 		return;
 	std::pair<int, Response> pair(client.getFd(), Response(client, config));
-	server.cgiResponses.insert(pair);
-	it = server.cgiResponses.find(client.getFd());
+	server.responses.insert(pair);
+	it = server.responses.find(client.getFd());
 
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
 	Response &response = it->second;
@@ -63,18 +63,18 @@ static void handleExistingResponse(Socket &client, Response &response, Server &s
 	if (response.fullySent()) {
 		event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 		Log::Debug("Chunk fully sent");
-		server.cgiResponses.erase(client.getFd());
+		server.responses.erase(client.getFd());
 		return;
 	}
 	response.sendChunk();
 }
 
 static bool isCGI(int fd, Server &server) {
-	return server.cgiResponses.find(fd) != server.cgiResponses.end();
+	return server.responses.find(fd) != server.responses.end();
 }
 
 void	EventHandler::handleEvent(Server &server, epoll_event &event) {
-	Log::Event(event.events);
+	/* Log::Event(event.events); */
 	if (event.events & EPOLLIN && !isCGI(event.data.fd, server) && server.isNewClient(event))
 		return;
 	if (event.events & EPOLLIN)
@@ -85,10 +85,10 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 	}
 	if (event.events & EPOLLOUT) {
 		Socket &client = server.sockets[event.data.fd];
-		std::map<int, Response>::iterator it = server.cgiResponses.find(client.getFd());
+		std::map<int, Response>::iterator it = server.responses.find(client.getFd());
 		Response &response = it->second;
 
-		if (it != server.cgiResponses.end()) {
+		if (it != server.responses.end()) {
 			handleExistingResponse(client, response, server, event);
 			server.modifyPoll(client.getFd(), event);
 			return;

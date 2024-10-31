@@ -74,11 +74,9 @@ void	Response::handleGet() {
 	std::vector<std::string> headerFields;
 	headerFields.reserve(2);
 	headerFields.push_back(HeaderFields::contentType(_contentType));
-	headerFields.push_back(HeaderFields::contentLength(StringUtils::getStrVectorSize(_body)));
-	if (httpCode == 404)
-		_response = StringUtils::createResponse(httpCode);
-	else
-		_response = StringUtils::createResponse(httpCode, headerFields);
+	if (_body.size() != 0)
+		headerFields.push_back(HeaderFields::contentLength(StringUtils::getStrVectorSize(_body)));
+	_response = StringUtils::createResponse(httpCode, headerFields);
 }
 
 void	Response::sendChunk() {
@@ -112,15 +110,22 @@ void Response::redirect(const std::string &url) {
 	_response = StringUtils::createResponse(301, headerFields);
 }
 
+void	Response::handleRedirections(const Request &request) {
+	if (request.path[request.path.size() - 1] != '/') {
+		redirect(request.path + "/");
+	}
+	else if (_locationConfig.redirection != "") {
+		redirect(_locationConfig.redirection);
+	} 
+	else 
+		return;
+	dprintf(_client.getFd(), "%s", _response.c_str());
+}
+
 void	Response::setup() {
 	_urlSplit = StringUtils::split(_client.request.path, "/", true);
 	Request &request = _client.request;
-
-	if (request.path[request.path.size() - 1] != '/') {
-		redirect(request.path + "/");
-		dprintf(_client.getFd(), "%s", _response.c_str());
-		return;
-	}
+	handleRedirections(request);
 	_i = 0;
 
 	if ((request.method == "GET" || request.method == "POST") && _cgi.getScriptPath() != "") {
@@ -166,7 +171,7 @@ void	Response::sendCGI(Server &server, epoll_event &event) {
 	std::string str = StringUtils::createResponse(200, std::vector<std::string>(), getCGI().body);
 	dprintf(_client.getFd(), "%s", str.c_str());
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
-	server.cgiResponses.erase(_client.getFd());
+	server.responses.erase(_client.getFd());
 }
 
 void	Response::handleCGI(Server &server, epoll_event &event) {
