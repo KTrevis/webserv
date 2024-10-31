@@ -93,7 +93,7 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 
 		if (it != server.cgiResponses.end()) {
 			handleResponse(client, response, server, event);
-			server.modifyPoll(client.getFd(), event);
+			/* server.modifyPoll(client.getFd(), event); */
 			return;
 		}
 		client.request.parseRequest();
