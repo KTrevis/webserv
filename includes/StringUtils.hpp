@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
+#include "Request.hpp"
 
 namespace StringUtils {
 	std::vector<std::string> getVectorFile(const std::string &filename);
@@ -20,4 +22,5 @@ namespace StringUtils {
 	std::string createResponse(int httpCode,
 			const std::vector<std::string> &fields = std::vector<std::string>(),
 			const std::string &body = "");
+	std::map<std::string, e_methods> getStrToMaskMethod();
 };

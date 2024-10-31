@@ -31,4 +31,5 @@ class CGI {
 		std::string	_args;
 		int			_pid;
 		int	_cgiFd[2];
+		friend class Response;
 };

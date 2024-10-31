@@ -161,7 +161,6 @@ static std::string get404Page() {
 static void addContentLength(std::string &str, size_t size) {
 	if (str.find("content-length") == std::string::npos)
 		str += "content-length: " + StringUtils::itoa(size) + "\r\n";
-	str += "\r\n";
 }
 
 std::string StringUtils::createResponse(int httpCode,
@@ -177,5 +176,14 @@ std::string StringUtils::createResponse(int httpCode,
 		addContentLength(str, body.size());
 		str += body;
 	}
+	str += "\r\n";
 	return str;
+}
+
+std::map<std::string, e_methods> StringUtils::getStrToMaskMethod() {
+	std::map<std::string, e_methods> map;
+	map["GET"] = GET;
+	map["POST"] = POST;
+	map["DELETE"] = DELETE;
+	return map;
 }

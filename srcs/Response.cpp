@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include "HeaderFields.hpp"
 #include "Log.hpp"
+#include "Request.hpp"
 #include "Server.hpp"
 #include "StringUtils.hpp"
 #include "Utils.hpp"
@@ -111,32 +112,37 @@ void Response::redirect(const std::string &url) {
 }
 
 void	Response::handleRedirections(const Request &request) {
-	if (request.path[request.path.size() - 1] != '/') {
+	if (request.path[request.path.size() - 1] != '/')
 		redirect(request.path + "/");
-	}
-	else if (_locationConfig.redirection != "") {
+	else if (_locationConfig.redirection != "")
 		redirect(_locationConfig.redirection);
-	} 
-	else 
-		return;
+	else return;
+
 	dprintf(_client.getFd(), "%s", _response.c_str());
+}
+
+static bool methodAllowed(int methodMask, e_methods method) {
+	return methodMask & method;
 }
 
 void	Response::setup() {
 	_urlSplit = StringUtils::split(_client.request.path, "/", true);
 	Request &request = _client.request;
+	e_methods method = StringUtils::getStrToMaskMethod()[request.method];
 	handleRedirections(request);
 	_i = 0;
 
-	if ((request.method == "GET" || request.method == "POST") && _cgi.getScriptPath() != "") {
-		_cgi.exec();
-		return;
+	if (!methodAllowed(_locationConfig.methodMask, method)) {
+		_response = StringUtils::createResponse(405);
+		_cgi._scriptPath = "";
 	}
-	else if (request.method == "GET")
+	else if ((method == GET || method == POST) && _cgi.getScriptPath() != "")
+		_cgi.exec();
+	else if (method == GET)
 		handleGet();
-	else if (request.method == "POST")
+	else if (method == POST)
 		_response = StringUtils::createResponse(request.resCode);
-	else if (request.method == "DELETE")
+	else if (method == DELETE)
 		handleDelete();
 	dprintf(_client.getFd(), "%s", _response.c_str());
 }

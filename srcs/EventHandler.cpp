@@ -45,11 +45,11 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 	server.responses.insert(pair);
 	it = server.responses.find(client.getFd());
 
-	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
 	Response &response = it->second;
 	response.setup();
 
 	request.clear();
+	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
 	server.modifyPoll(client.getFd(), event);
 }
 
