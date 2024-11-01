@@ -168,9 +168,8 @@ void	Response::readPipe() {
 		_pipeEmpty = true;
 		return;
 	}
-	getCGI().body.reserve(n);
-	for (int i = 0; i < n; i++)
-		getCGI().body += buffer[i];
+	buffer[n] = 0;
+	getCGI().body += buffer;
 }
 
 void	Response::sendCGI(Server &server, epoll_event &event) {
