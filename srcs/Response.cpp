@@ -16,7 +16,7 @@ LocationConfig &Response::findLocation(ServerConfig &config) {
 	std::map<std::string, LocationConfig>::iterator it;
 	std::string filePath;
 	std::string	found = "";
-	size_t		foundIndex = 0;
+	long int		foundIndex = -1;
 
 	_i = 0;
 	for (;_i < _urlSplit.size(); _i++) {
@@ -27,7 +27,7 @@ LocationConfig &Response::findLocation(ServerConfig &config) {
 			found = it->first;
 		}
 	}
-	_i = foundIndex;
+	foundIndex != -1 ? _i = foundIndex + 1 : _i = 0;
 	if (found != "")
 		return config.locations[found];
 	it = config.locations.find("/");
@@ -60,16 +60,15 @@ bool	Response::fullySent() {
 }
 
 void	Response::handleGet() {
-	std::string filePath = getFilepath();
 	int httpCode;
-	_contentType = StringUtils::fileExtensionToType(filePath);
+	_contentType = StringUtils::fileExtensionToType(_filepath);
 
-	Log::Debug("Fetching file at: " + filePath);
+	Log::Debug("Fetching file at: " + _filepath);
 	try {
-		_body = StringUtils::getFileChunks(filePath);
+		_body = StringUtils::getFileChunks(_filepath);
 		httpCode = 200;
 	} catch (std::exception &e) {
-		Log::Error("Failed to read file at: " + filePath);
+		Log::Error("Failed to read file at: " + _filepath);
 		httpCode = 404;
 	}
 	std::vector<std::string> headerFields;
@@ -92,14 +91,13 @@ void Response::handleDelete() {
 		Log::Trace("Failed to find location");
 		return;
 	}
-	std::string filePath = getFilepath();
-	if (access(filePath.c_str(), F_OK)) {
+	if (access(_filepath.c_str(), F_OK)) {
 		_response = StringUtils::createResponse(404);
 		Log::Trace("File does not exist");
 		return;
 	}
-	Log::Trace("Trying to remove " + filePath);
-	remove(filePath.c_str());
+	Log::Trace("Trying to remove " + _filepath);
+	remove(_filepath.c_str());
 	_response = StringUtils::createResponse(204);
 }
 
@@ -132,6 +130,8 @@ void	Response::setup() {
 	handleRedirections(request);
 	_i = 0;
 
+	/* if (access(_filepath.c_str(), R_OK)) */
+	/* 	_response = StringUtils::createResponse(404); */
 	if (!methodAllowed(_locationConfig.methodMask, method)) {
 		_response = StringUtils::createResponse(405);
 		_cgi._scriptPath = "";
@@ -152,7 +152,8 @@ Response::Response(Socket &client, ServerConfig &serverConfig):
 	_serverConfig(serverConfig),
 	_urlSplit(StringUtils::split(client.request.path, "/", true)),
 	_locationConfig(findLocation(serverConfig)),
-	_cgi(getFilepath(), _locationConfig, client),
+	_filepath(getFilepath()),
+	_cgi(_filepath, _locationConfig, client),
 	_pipeEmpty(false),
 	_chunkToSend(0) {}
 
