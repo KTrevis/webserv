@@ -1,4 +1,7 @@
 #include "StringUtils.hpp"
+#include "Log.hpp"
+#include <dirent.h>
+#include <exception>
 #include <map>
 #include <fstream>
 #include <cctype>
@@ -171,12 +174,57 @@ std::string StringUtils::createResponse(int httpCode,
 		str += fields[i] + "\r\n";
 	if (httpCode == 404) {
 		const std::string &notFound = get404Page();
+		str += "content-type: text/html\r\n";
 		addContentLength(str, notFound.size());
 		str += notFound;
 	} else {
 		addContentLength(str, body.size());
 		str += body;
 	}
+	return str;
+}
+
+typedef std::pair<std::string, std::string> StringPair;
+
+static std::string createHtmlTag(const std::string &tag, const std::string &content, const std::vector<StringPair> &attributes = std::vector<StringPair>()) {
+	std::string str;
+
+	str += "<" + tag + "";
+	for (size_t i = 0; i < attributes.size(); i++) {
+		str += " " + attributes[i].first;
+		str += "=\"" + attributes[i].second + "\" ";
+	}
+	str += ">";
+	str += content;
+	str += "</" + tag + ">";
+	return str;
+}
+
+static std::vector<std::string> getDirectoryContent(const std::string &dirPath) {
+	std::vector<std::string> arr;
+	DIR *dir = opendir(dirPath.c_str());
+
+	if (!dir)
+		throw std::runtime_error("Failed to open folder");
+	for (struct dirent *ent = readdir(dir); ent != NULL; ent = readdir(dir))
+		arr.push_back(ent->d_name);
+	closedir(dir);
+	return arr;
+}
+
+std::string StringUtils::createDirectoryContent(const std::string &dirPath, const std::string &basePath) {
+	std::vector<std::string> dirContent;
+	std::string str;
+
+	try {
+		dirContent = getDirectoryContent(dirPath + "/" + basePath);
+	} catch (std::exception &e) {
+		return StringUtils::createResponse(404);
+	}
+
+	for (size_t i = 0; i < dirContent.size(); i++)
+		str += createHtmlTag("p", basePath + dirContent[i]);
+	str = StringUtils::createResponse(200, std::vector<std::string>(), str);
 	return str;
 }
 

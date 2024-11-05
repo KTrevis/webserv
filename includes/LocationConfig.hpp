@@ -10,7 +10,7 @@ typedef std::vector<std::string> StringVector;
 class LocationConfig {
 	public:
 		LocationConfig();
-		LocationConfig(size_t &i, const std::vector<StringVector> &lines);
+		LocationConfig(size_t &i, const std::vector<StringVector> &lines, const std::string &name);
 		int									methodMask;
 		bool								autoIndex;
 		std::string							root;
@@ -19,6 +19,7 @@ class LocationConfig {
 		std::string							alias;
 		// key is the extension (.py/.php...) and value is the cgi path
 		std::map<std::string, std::string>	cgi;
+		std::string							name;
 		std::string							redirection;
 		void								displayData();
 	private:

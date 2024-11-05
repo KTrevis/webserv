@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include "LocationConfig.hpp"
 #include "Request.hpp"
 #include "ServerConfig.hpp"
@@ -27,10 +26,11 @@ class Response {
 		void	handleGet();
 		void	redirect(const std::string &url);
 		void	handleDelete();
-		void	handleRedirections(const Request &request);
-		std::string getFilepath();
-		LocationConfig &findLocation(ServerConfig &config);
-		std::string setCGI();
+		bool	handleRedirections(const Request &request);
+		bool	handleListDirectory();
+		std::string		getFilepath();
+		LocationConfig &findLocation();
+		std::string		setCGI();
 		Socket						&_client;
 		ServerConfig				&_serverConfig;
 		std::vector<std::string>	_urlSplit;

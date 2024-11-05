@@ -69,7 +69,7 @@ static std::string errorString(const std::string &str) {
 // to a function of the LocationConfig class
 typedef bool (LocationConfig::*MemberFunctionPtr)(const StringVector&);
 
-LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines) {
+LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines, const std::string &name) {
 	std::map<std::string, MemberFunctionPtr> map;
 	map["allow_methods"] = &LocationConfig::setMethods;
 	map["root"] = &LocationConfig::setRoot;
@@ -82,6 +82,7 @@ LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines
 
 	indexFile = "index.html";
 	methodMask = GET | POST | DELETE;
+	this->name = name;
 	i++;
 	for (;i < lines.size(); i++) {
 		const StringVector &line = lines[i];

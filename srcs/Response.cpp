@@ -1,6 +1,8 @@
 #include "Response.hpp"
+#include <string>
 #include <sys/types.h>
 #include "HeaderFields.hpp"
+#include "LocationConfig.hpp"
 #include "Log.hpp"
 #include "Request.hpp"
 #include "Server.hpp"
@@ -12,7 +14,7 @@
 #include <exception>
 #include <sys/stat.h>
 
-LocationConfig &Response::findLocation(ServerConfig &config) {
+LocationConfig &Response::findLocation() {
 	std::map<std::string, LocationConfig>::iterator it;
 	std::string filePath;
 	std::string	found = "";
@@ -21,25 +23,25 @@ LocationConfig &Response::findLocation(ServerConfig &config) {
 	_i = 0;
 	for (;_i < _urlSplit.size(); _i++) {
 		filePath += _urlSplit[_i];
-		it = config.locations.find(filePath);
-		if (it != config.locations.end()) {
+		it = _serverConfig.locations.find(filePath);
+		if (it != _serverConfig.locations.end()) {
 			foundIndex = _i;
 			found = it->first;
 		}
 	}
 	foundIndex != -1 ? _i = foundIndex + 1 : _i = 0;
 	if (found != "")
-		return config.locations[found];
-	it = config.locations.find("/");
-	if (it == config.locations.end())
+		return _serverConfig.locations[found];
+	it = _serverConfig.locations.find("/");
+	if (it == _serverConfig.locations.end())
 		throw std::runtime_error("Could not find location config");
 	return it->second;
 }
 
-static bool	isFolder(const char *name) {
+static bool	isFolder(const std::string &name) {
 	struct stat	s_stat;
 
-	return (stat(name, &s_stat) == 0 && S_ISDIR(s_stat.st_mode));
+	return (stat(name.c_str(), &s_stat) == 0 && S_ISDIR(s_stat.st_mode));
 }
 
 std::string Response::getFilepath() {
@@ -109,14 +111,45 @@ void Response::redirect(const std::string &url) {
 	_response = StringUtils::createResponse(301, headerFields);
 }
 
-void	Response::handleRedirections(const Request &request) {
+bool	Response::handleRedirections(const Request &request) {
 	if (request.path[request.path.size() - 1] != '/')
 		redirect(request.path + "/");
 	else if (_locationConfig.redirection != "")
 		redirect(_locationConfig.redirection);
-	else return;
+	else return false;
 
 	dprintf(_client.getFd(), "%s", _response.c_str());
+	return true;
+}
+
+static LocationConfig &findAssociatedPath(std::map<std::string, LocationConfig> locations, const std::string &root) {
+	std::map<std::string, LocationConfig>::iterator it = locations.begin();
+
+	while (it != locations.end()) {
+		if (it->second.root == root)
+			return it->second;
+		it++;
+	}
+	throw std::runtime_error("Failed to find associated path");
+	return it->second;
+}
+
+bool	Response::handleListDirectory() {
+	std::string foldername = _filepath;
+	foldername.erase(_filepath.find(_locationConfig.indexFile));
+	if (!_locationConfig.autoIndex && !isFolder(foldername))
+		return false;
+	/* if (_urlSplit.size() == 0 || _urlSplit[_urlSplit.size() - 1] != _locationConfig.name) */
+	/* 	return false; */
+	LocationConfig &associated = findAssociatedPath(_serverConfig.locations, _locationConfig.root);
+	std::string basePath;
+	if (associated.name != "/")
+		basePath = associated.name;
+	for (size_t i = 0; i < _urlSplit.size(); i++)
+		basePath += _urlSplit[i] + "/";
+	_response = StringUtils::createDirectoryContent(_locationConfig.root, basePath);
+	dprintf(_client.getFd(), "%s", _response.c_str());
+	return true;
 }
 
 static bool methodAllowed(int methodMask, e_methods method) {
@@ -127,9 +160,12 @@ void	Response::setup() {
 	_urlSplit = StringUtils::split(_client.request.path, "/", true);
 	Request &request = _client.request;
 	e_methods method = StringUtils::getStrToMaskMethod()[request.method];
-	handleRedirections(request);
-	_i = 0;
 
+	_i = 0;
+	if (handleRedirections(request))
+		return;
+	if (handleListDirectory())
+		return;
 	/* if (access(_filepath.c_str(), R_OK)) */
 	/* 	_response = StringUtils::createResponse(404); */
 	if (!methodAllowed(_locationConfig.methodMask, method)) {
@@ -151,7 +187,7 @@ Response::Response(Socket &client, ServerConfig &serverConfig):
 	_client(client),
 	_serverConfig(serverConfig),
 	_urlSplit(StringUtils::split(client.request.path, "/", true)),
-	_locationConfig(findLocation(serverConfig)),
+	_locationConfig(findLocation()),
 	_filepath(getFilepath()),
 	_cgi(_filepath, _locationConfig, client),
 	_pipeEmpty(false),

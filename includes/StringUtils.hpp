@@ -19,8 +19,10 @@ namespace StringUtils {
 
 	std::string createResponse(int httpCode, size_t contentLength, 
 		const std::vector<std::string> &fields = std::vector<std::string>());
+	std::string createDirectoryContent(const std::string &dirPath, const std::string &basePath);
 	std::string createResponse(int httpCode,
 			const std::vector<std::string> &fields = std::vector<std::string>(),
 			const std::string &body = "");
+
 	std::map<std::string, e_methods> getStrToMaskMethod();
 };
