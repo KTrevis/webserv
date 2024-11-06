@@ -67,7 +67,7 @@ static void handleExistingResponse(Socket &client, Response &response, Server &s
 	}
 	if (response.fullySent()) {
 		event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
-		Log::Debug("Chunk fully sent");
+		Log::Trace("Chunk fully sent");
 		server.responses.erase(client.getFd());
 		return;
 	}

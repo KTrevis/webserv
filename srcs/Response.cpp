@@ -8,7 +8,6 @@
 #include "Request.hpp"
 #include "Server.hpp"
 #include "StringUtils.hpp"
-#include "Utils.hpp"
 #include <cstdio>
 #include <stdexcept>
 #include <unistd.h>
@@ -17,14 +16,14 @@
 
 LocationConfig &Response::findLocation() {
 	std::map<std::string, LocationConfig>::iterator it;
-	std::string filePath;
+	std::string filepath;
 	std::string	found = "";
 	long int		foundIndex = -1;
 
 	_i = 0;
 	for (;_i < _urlSplit.size(); _i++) {
-		filePath += _urlSplit[_i];
-		it = _serverConfig.locations.find(filePath);
+		filepath += _urlSplit[_i];
+		it = _serverConfig.locations.find(filepath);
 		if (it != _serverConfig.locations.end()) {
 			foundIndex = _i;
 			found = it->first;
@@ -50,9 +49,6 @@ std::string Response::getFilepath() {
 
 	for(;_i < _urlSplit.size(); _i++)
 		filepath += _urlSplit[_i];
-	filepath += "/";
-	if (isFolder(filepath.c_str()))
-		filepath += _locationConfig.indexFile;
 	if (filepath.find_last_of("/") == filepath.size() - 1)
 		filepath.erase(filepath.size() - 1);
 	return filepath;
@@ -64,9 +60,11 @@ bool	Response::fullySent() {
 
 void	Response::handleGet() {
 	int httpCode;
-	_contentType = StringUtils::fileExtensionToType(_filepath);
 
-	Log::Debug("Fetching file at: " + _filepath);
+	if (isFolder(_filepath))
+		_filepath += "/" + _locationConfig.indexFile;
+	_contentType = StringUtils::fileExtensionToType(_filepath);
+	Log::Trace("Fetching file at: " + _filepath);
 	try {
 		_body = StringUtils::getFileChunks(_filepath);
 		httpCode = 200;
@@ -128,7 +126,7 @@ static void	removeTrailingChar(std::string &str, char c) {
 }
 
 bool	Response::handleRedirections(Request &request) {
-	if (access(_filepath.c_str(), R_OK | F_OK) == 0) {
+	if (!isFolder(_filepath)) {
 		if (strEndsWith(request.path, '/')) {
 			removeTrailingChar(request.path, '/');
 			Log::Debug(request.path);

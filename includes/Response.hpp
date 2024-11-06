@@ -25,6 +25,7 @@ class Response {
 		void	readPipe();
 		void	handleGet();
 		void	redirect(const std::string &url);
+		bool	requestIsDir(Request &request);
 		void	handleDelete();
 		bool	handleRedirections(Request &request);
 		bool	handleListDirectory();
