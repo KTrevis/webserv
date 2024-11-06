@@ -226,7 +226,7 @@ std::string StringUtils::createDirectoryContent(const std::string &dirPath, cons
 		StringPair pair("href", basePath + dirContent[i]);
 		std::vector<StringPair> arr;
 		arr.push_back(pair);
-		str += createHtmlTag("a", basePath + dirContent[i], arr);
+		str += createHtmlTag("a", dirContent[i], arr);
 		str += "<br>";
 	}
 	str = StringUtils::createResponse(200, std::vector<std::string>(), str);

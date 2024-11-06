@@ -26,7 +26,7 @@ class Response {
 		void	handleGet();
 		void	redirect(const std::string &url);
 		void	handleDelete();
-		bool	handleRedirections(const Request &request);
+		bool	handleRedirections(Request &request);
 		bool	handleListDirectory();
 		std::string		getFilepath();
 		LocationConfig &findLocation();

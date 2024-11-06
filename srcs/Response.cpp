@@ -1,4 +1,5 @@
 #include "Response.hpp"
+#include <unistd.h>
 #include <string>
 #include <sys/types.h>
 #include "HeaderFields.hpp"
@@ -45,16 +46,16 @@ static bool	isFolder(const std::string &name) {
 }
 
 std::string Response::getFilepath() {
-	std::string filePath = _locationConfig.root;
+	std::string filepath = _locationConfig.root;
 
 	for(;_i < _urlSplit.size(); _i++)
-		filePath += _urlSplit[_i];
-	filePath += "/";
-	if (isFolder(filePath.c_str()))
-		filePath += _locationConfig.indexFile;
-	if (filePath.find_last_of("/") == filePath.size() - 1)
-		filePath.erase(filePath.size() - 1);
-	return filePath;
+		filepath += _urlSplit[_i];
+	filepath += "/";
+	if (isFolder(filepath.c_str()))
+		filepath += _locationConfig.indexFile;
+	if (filepath.find_last_of("/") == filepath.size() - 1)
+		filepath.erase(filepath.size() - 1);
+	return filepath;
 }
 
 bool	Response::fullySent() {
@@ -111,8 +112,30 @@ void Response::redirect(const std::string &url) {
 	_response = StringUtils::createResponse(301, headerFields);
 }
 
-bool	Response::handleRedirections(const Request &request) {
-	if (request.path[request.path.size() - 1] != '/')
+static bool strEndsWith(const std::string &str, char c) {
+	if (str.size() == 0)
+		return false;
+	return (str[str.size() - 1] == c);
+}
+
+static void	removeTrailingChar(std::string &str, char c) {
+	size_t i = str.size() - 1;
+
+	while (i >= 0 && str[i] == c) {
+		str.erase(i);
+		i--;
+	}
+}
+
+bool	Response::handleRedirections(Request &request) {
+	if (access(_filepath.c_str(), R_OK | F_OK) == 0) {
+		if (strEndsWith(request.path, '/')) {
+			removeTrailingChar(request.path, '/');
+			Log::Debug(request.path);
+			redirect(request.path);
+		} else return false;
+	}
+	else if (!strEndsWith(request.path, '/'))
 		redirect(request.path + "/");
 	else if (_locationConfig.redirection != "")
 		redirect(_locationConfig.redirection);
@@ -142,8 +165,6 @@ bool	Response::handleListDirectory() {
 		foldername.erase(pos);
 	if (!_locationConfig.autoIndex || !isFolder(foldername))
 		return false;
-	/* if (_urlSplit.size() == 0 || _urlSplit[_urlSplit.size() - 1] != _locationConfig.name) */
-	/* 	return false; */
 	LocationConfig &associated = findAssociatedPath(_serverConfig.locations, _locationConfig.root);
 	std::string basePath;
 	if (associated.name != "/")
@@ -160,6 +181,7 @@ static bool methodAllowed(int methodMask, e_methods method) {
 }
 
 void	Response::setup() {
+	_urlSplit.clear();
 	_urlSplit = StringUtils::split(_client.request.path, "/", true);
 	Request &request = _client.request;
 	e_methods method = StringUtils::getStrToMaskMethod()[request.method];
