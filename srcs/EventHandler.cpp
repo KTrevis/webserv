@@ -48,6 +48,7 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 		it = server.responses.find(client.getFd());
 		it->second.setup();
 	} catch(std::exception &e) {
+		Log::Debug(e.what());
 		dprintf(client.getFd(), "%s", StringUtils::createResponse(404).c_str());
 	}
 

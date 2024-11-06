@@ -136,8 +136,11 @@ static LocationConfig &findAssociatedPath(std::map<std::string, LocationConfig> 
 
 bool	Response::handleListDirectory() {
 	std::string foldername = _filepath;
-	foldername.erase(_filepath.find(_locationConfig.indexFile));
-	if (!_locationConfig.autoIndex && !isFolder(foldername))
+	size_t pos = _filepath.find(_locationConfig.indexFile);
+
+	if (pos != std::string::npos)
+		foldername.erase(pos);
+	if (!_locationConfig.autoIndex || !isFolder(foldername))
 		return false;
 	/* if (_urlSplit.size() == 0 || _urlSplit[_urlSplit.size() - 1] != _locationConfig.name) */
 	/* 	return false; */

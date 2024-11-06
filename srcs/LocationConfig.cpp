@@ -81,6 +81,7 @@ LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines
 	map["autoindex"] = &LocationConfig::setAutoIndex;
 
 	indexFile = "index.html";
+	autoIndex = false;
 	methodMask = GET | POST | DELETE;
 	this->name = name;
 	i++;
