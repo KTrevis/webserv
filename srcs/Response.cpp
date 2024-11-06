@@ -1,57 +1,57 @@
 #include "Response.hpp"
+#include <unistd.h>
+#include <string>
 #include <sys/types.h>
 #include "HeaderFields.hpp"
+#include "LocationConfig.hpp"
 #include "Log.hpp"
+#include "Request.hpp"
 #include "Server.hpp"
 #include "StringUtils.hpp"
-#include "Utils.hpp"
 #include <cstdio>
 #include <stdexcept>
 #include <unistd.h>
 #include <exception>
 #include <sys/stat.h>
 
-LocationConfig &Response::findLocation(ServerConfig &config) {
+LocationConfig &Response::findLocation() {
 	std::map<std::string, LocationConfig>::iterator it;
-	std::string filePath;
+	std::string filepath;
 	std::string	found = "";
-	size_t		foundIndex = 0;
+	long int		foundIndex = -1;
 
 	_i = 0;
 	for (;_i < _urlSplit.size(); _i++) {
-		filePath += _urlSplit[_i];
-		it = config.locations.find(filePath);
-		if (it != config.locations.end()) {
+		filepath += _urlSplit[_i];
+		it = _serverConfig.locations.find(filepath);
+		if (it != _serverConfig.locations.end()) {
 			foundIndex = _i;
 			found = it->first;
 		}
 	}
-	_i = foundIndex;
+	foundIndex != -1 ? _i = foundIndex + 1 : _i = 0;
 	if (found != "")
-		return config.locations[found];
-	it = config.locations.find("/");
-	if (it == config.locations.end())
+		return _serverConfig.locations[found];
+	it = _serverConfig.locations.find("/");
+	if (it == _serverConfig.locations.end())
 		throw std::runtime_error("Could not find location config");
 	return it->second;
 }
 
-static bool	isFolder(const char *name) {
+static bool	isFolder(const std::string &name) {
 	struct stat	s_stat;
 
-	return (stat(name, &s_stat) == 0 && S_ISDIR(s_stat.st_mode));
+	return (stat(name.c_str(), &s_stat) == 0 && S_ISDIR(s_stat.st_mode));
 }
 
 std::string Response::getFilepath() {
-	std::string filePath = _locationConfig.root;
+	std::string filepath = _locationConfig.root;
 
 	for(;_i < _urlSplit.size(); _i++)
-		filePath += _urlSplit[_i];
-	filePath += "/";
-	if (isFolder(filePath.c_str()))
-		filePath += _locationConfig.indexFile;
-	if (filePath.find_last_of("/") == filePath.size() - 1)
-		filePath.erase(filePath.size() - 1);
-	return filePath;
+		filepath += _urlSplit[_i];
+	if (filepath.find_last_of("/") == filepath.size() - 1)
+		filepath.erase(filepath.size() - 1);
+	return filepath;
 }
 
 bool	Response::fullySent() {
@@ -59,16 +59,17 @@ bool	Response::fullySent() {
 }
 
 void	Response::handleGet() {
-	std::string filePath = getFilepath();
 	int httpCode;
-	_contentType = StringUtils::fileExtensionToType(filePath);
 
-	Log::Debug("Fetching file at: " + filePath);
+	if (isFolder(_filepath))
+		_filepath += "/" + _locationConfig.indexFile;
+	_contentType = StringUtils::fileExtensionToType(_filepath);
+	Log::Trace("Fetching file at: " + _filepath);
 	try {
-		_body = StringUtils::getFileChunks(filePath);
+		_body = StringUtils::getFileChunks(_filepath);
 		httpCode = 200;
 	} catch (std::exception &e) {
-		Log::Error("Failed to read file at: " + filePath);
+		Log::Error("Failed to read file at: " + _filepath);
 		httpCode = 404;
 	}
 	std::vector<std::string> headerFields;
@@ -92,14 +93,13 @@ void Response::handleDelete() {
 		Log::Trace("Failed to find location");
 		return;
 	}
-	std::string filePath = getFilepath();
-	if (access(filePath.c_str(), F_OK)) {
+	if (access(_filepath.c_str(), F_OK)) {
 		_response = StringUtils::createResponse(404);
 		Log::Trace("File does not exist");
 		return;
 	}
-	Log::Trace("Trying to remove " + filePath);
-	remove(filePath.c_str());
+	Log::Trace("Trying to remove " + _filepath);
+	remove(_filepath.c_str());
 	_response = StringUtils::createResponse(204);
 }
 
@@ -111,33 +111,94 @@ void Response::redirect(const std::string &url) {
 	_response = StringUtils::createResponse(301, headerFields);
 }
 
-void	Response::handleRedirections(const Request &request) {
-	if (request.path[request.path.size() - 1] != '/') {
-		redirect(request.path + "/");
+static bool strEndsWith(const std::string &str, char c) {
+	if (str.size() == 0)
+		return false;
+	return (str[str.size() - 1] == c);
+}
+
+static void	removeTrailingChar(std::string &str, char c) {
+	size_t i = str.size() - 1;
+
+	while (i >= 0 && str[i] == c) {
+		str.erase(i);
+		i--;
 	}
-	else if (_locationConfig.redirection != "") {
+}
+
+bool	Response::handleRedirections(Request &request) {
+	if (!isFolder(_filepath)) {
+		if (strEndsWith(request.path, '/')) {
+			removeTrailingChar(request.path, '/');
+			Log::Debug(request.path);
+			redirect(request.path);
+		} else return false;
+	}
+	else if (!strEndsWith(request.path, '/'))
+		redirect(request.path + "/");
+	else if (_locationConfig.redirection != "")
 		redirect(_locationConfig.redirection);
-	} 
-	else 
-		return;
+	else return false;
+
 	dprintf(_client.getFd(), "%s", _response.c_str());
+	return true;
+}
+
+static LocationConfig &findAssociatedPath
+	(std::map<std::string, LocationConfig> locations, const std::string &root) {
+	std::map<std::string, LocationConfig>::iterator it = locations.begin();
+
+	while (it != locations.end()) {
+		if (it->second.root == root)
+			return it->second;
+		it++;
+	}
+	throw std::runtime_error("Failed to find associated path");
+	return it->second;
+}
+
+bool	Response::handleListDirectory() {
+	if (!_locationConfig.autoIndex || !isFolder(_filepath))
+		return false;
+	LocationConfig &associated = findAssociatedPath(_serverConfig.locations, _locationConfig.root);
+	std::string basePath;
+	if (associated.name != "/")
+		basePath = associated.name;
+	for (size_t i = 0; i < _urlSplit.size(); i++)
+		basePath += _urlSplit[i] + "/";
+	_response = StringUtils::createDirectoryContent(_locationConfig.root, basePath);
+	dprintf(_client.getFd(), "%s", _response.c_str());
+	return true;
+}
+
+static bool methodAllowed(int methodMask, e_methods method) {
+	return methodMask & method;
 }
 
 void	Response::setup() {
+	_urlSplit.clear();
 	_urlSplit = StringUtils::split(_client.request.path, "/", true);
 	Request &request = _client.request;
-	handleRedirections(request);
-	_i = 0;
+	e_methods method = StringUtils::getStrToMaskMethod()[request.method];
 
-	if ((request.method == "GET" || request.method == "POST") && _cgi.getScriptPath() != "") {
-		_cgi.exec();
+	_i = 0;
+	if (handleRedirections(request))
 		return;
+	if (handleListDirectory())
+		return;
+	/* if (access(_filepath.c_str(), R_OK)) */
+	/* 	_response = StringUtils::createResponse(404); */
+	if (!methodAllowed(_locationConfig.methodMask, method)) {
+		_response = StringUtils::createResponse(405);
+		_cgi._scriptPath = "";
 	}
-	else if (request.method == "GET")
+	else if ((method == GET || method == POST) && _cgi.getScriptPath() != "")
+		_cgi.exec();
+	else if (method == GET)
 		handleGet();
-	else if (request.method == "POST")
+	else if (method == POST)
 		_response = StringUtils::createResponse(request.resCode);
-	else if (request.method == "DELETE")
+	else if (method == DELETE)
 		handleDelete();
 	dprintf(_client.getFd(), "%s", _response.c_str());
 }
@@ -146,8 +207,9 @@ Response::Response(Socket &client, ServerConfig &serverConfig):
 	_client(client),
 	_serverConfig(serverConfig),
 	_urlSplit(StringUtils::split(client.request.path, "/", true)),
-	_locationConfig(findLocation(serverConfig)),
-	_cgi(getFilepath(), _locationConfig, client),
+	_locationConfig(findLocation()),
+	_filepath(getFilepath()),
+	_cgi(_filepath, _locationConfig, client),
 	_pipeEmpty(false),
 	_chunkToSend(0) {}
 
@@ -163,9 +225,8 @@ void	Response::readPipe() {
 		_pipeEmpty = true;
 		return;
 	}
-	getCGI().body.reserve(n);
-	for (int i = 0; i < n; i++)
-		getCGI().body += buffer[i];
+	buffer[n] = 0;
+	getCGI().body += buffer;
 }
 
 void	Response::sendCGI(Server &server, epoll_event &event) {

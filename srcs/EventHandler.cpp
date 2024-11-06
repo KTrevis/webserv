@@ -6,6 +6,7 @@
 #include "Response.hpp"
 #include "StringUtils.hpp"
 #include <cstdio>
+#include <exception>
 #include <ostream>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -41,15 +42,19 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 
 	if (it != server.responses.end())
 		return;
-	std::pair<int, Response> pair(client.getFd(), Response(client, config));
-	server.responses.insert(pair);
-	it = server.responses.find(client.getFd());
-
-	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
-	Response &response = it->second;
-	response.setup();
+	try {
+		std::pair<int, Response> pair(client.getFd(), Response(client, config));
+		server.responses.insert(pair);
+		it = server.responses.find(client.getFd());
+		it->second.setup();
+	} catch(std::exception &e) {
+		std::string error = "EventHandler sendResponse: " + std::string(e.what());
+		Log::Error(error);
+		dprintf(client.getFd(), "%s", StringUtils::createResponse(404).c_str());
+	}
 
 	request.clear();
+	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
 	server.modifyPoll(client.getFd(), event);
 }
 
@@ -62,7 +67,7 @@ static void handleExistingResponse(Socket &client, Response &response, Server &s
 	}
 	if (response.fullySent()) {
 		event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
-		Log::Debug("Chunk fully sent");
+		Log::Trace("Chunk fully sent");
 		server.responses.erase(client.getFd());
 		return;
 	}
@@ -74,7 +79,6 @@ static bool isCGI(int fd, Server &server) {
 }
 
 void	EventHandler::handleEvent(Server &server, epoll_event &event) {
-	/* Log::Event(event.events); */
 	if (event.events & EPOLLIN && !isCGI(event.data.fd, server) && server.isNewClient(event))
 		return;
 	if (event.events & EPOLLIN)

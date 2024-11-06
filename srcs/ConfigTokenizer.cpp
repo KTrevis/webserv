@@ -1,5 +1,6 @@
 #include "ConfigParser.hpp"
 #include "StringUtils.hpp"
+#include <cstdio>
 #include <exception>
 #include <stdexcept>
 
@@ -43,6 +44,8 @@ std::string	ConfigParser::tokenizeFile(const std::string &filename) {
 	std::vector<std::string> file;
 	try {
 		file = StringUtils::getVectorFile(filename);
+		if (file.size() <= 2)
+			throw std::runtime_error("Failed to read file.");
 	} catch (std::exception &e) {
 		throw std::runtime_error("Failed to read file.");
 	}

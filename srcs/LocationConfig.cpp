@@ -1,4 +1,5 @@
 #include "LocationConfig.hpp"
+#include "StringUtils.hpp"
 #include <algorithm>
 #include <cstdlib>
 #include <map>
@@ -6,11 +7,9 @@
 #include "Request.hpp"
 
 bool	LocationConfig::setMethods(const StringVector &arr) {
-	std::map<std::string, e_methods> map;
-	map["GET"] = GET;
-	map["POST"] = POST;
-	map["DELETE"] = DELETE;
+	std::map<std::string, e_methods> map = StringUtils::getStrToMaskMethod();
 
+	methodMask = 0;
 	for (size_t i = 1; i < arr.size(); i++) {
 		std::map<std::string, e_methods>::iterator it = map.find(arr[i]);
 		if (it == map.end()) return false;
@@ -70,7 +69,7 @@ static std::string errorString(const std::string &str) {
 // to a function of the LocationConfig class
 typedef bool (LocationConfig::*MemberFunctionPtr)(const StringVector&);
 
-LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines) {
+LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines, const std::string &name) {
 	std::map<std::string, MemberFunctionPtr> map;
 	map["allow_methods"] = &LocationConfig::setMethods;
 	map["root"] = &LocationConfig::setRoot;
@@ -82,7 +81,9 @@ LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines
 	map["autoindex"] = &LocationConfig::setAutoIndex;
 
 	indexFile = "index.html";
-	methodMask = 0;
+	autoIndex = false;
+	methodMask = GET | POST | DELETE;
+	this->name = name;
 	i++;
 	for (;i < lines.size(); i++) {
 		const StringVector &line = lines[i];

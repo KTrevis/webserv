@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
+#include "Request.hpp"
 
 namespace StringUtils {
 	std::vector<std::string> getVectorFile(const std::string &filename);
@@ -15,9 +17,10 @@ namespace StringUtils {
 	void 		lowerStr(std::string &c);
 	std::vector<std::string> split(std::string str, const std::string &lim, bool prependLim = false);
 
-	std::string createResponse(int httpCode, size_t contentLength, 
-		const std::vector<std::string> &fields = std::vector<std::string>());
 	std::string createResponse(int httpCode,
 			const std::vector<std::string> &fields = std::vector<std::string>(),
 			const std::string &body = "");
+	std::string createDirectoryContent(const std::string &dirPath, const std::string &basePath);
+
+	std::map<std::string, e_methods> getStrToMaskMethod();
 };

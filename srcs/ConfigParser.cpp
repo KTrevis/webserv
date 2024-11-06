@@ -61,17 +61,24 @@ bool	ConfigParser::locationParsing(std::vector<std::string> &line) {
 }
 
 bool	ConfigParser::parseLine(std::vector<std::string> &line) {
-	if (line.size() == 2 && line[0] == "listen") {
-		if (!(_scope & SERVER)) return false;
+	if (line[0] == "listen") {
+		if (!(_scope & SERVER) || line.size() != 2) return false;
 		if (!StringUtils::isPositiveNumber(line[1])) return false;
 		Log::Info("Creating server on port " + line[1]);
 		(_configs.end() - 1)->address = Address(INADDR_ANY, std::atoi(line[1].c_str()));
+		return true;
+	} else if (line[0] == "max_body_size") {
+		if (!(_scope & SERVER) || line.size() != 2) return false;
+		if (!StringUtils::isPositiveNumber(line[1])) return false;
+		(_configs.end() - 1)->maxBodySize = std::atoi(line[1].c_str());
+		return true;
 	}
+
 	_currScope = strToScope(line[0]);
 	switch (_currScope) {
 		case (SERVER): return serverParsing(line);
 		case (LOCATION): return locationParsing(line);
-		case (NONE): return true;
+		case (NONE): return (line[0] == "location");
 	}
 	return (false);
 }
@@ -79,7 +86,7 @@ bool	ConfigParser::parseLine(std::vector<std::string> &line) {
 bool	ConfigParser::addLocationConfig(size_t &i, const std::string &locationName) {
 	ServerConfig	&serverConfig = _configs[_configs.size() - 1];
 	try {
-		serverConfig.locations.insert(std::make_pair(locationName, LocationConfig(i, _lines)));
+		serverConfig.locations.insert(std::make_pair(locationName, LocationConfig(i, _lines, locationName)));
 		/* locationConfig.displayData(); */
 	} catch (std::exception &e) {
 		Log::Error(e.what());

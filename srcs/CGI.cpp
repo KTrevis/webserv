@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <iomanip>
 #include <vector>
+#include "Log.hpp"
 #include "StringUtils.hpp"
 #include "Server.hpp"
 
@@ -66,6 +67,7 @@ void	CGI::child(Socket &client) {
 }
 
 void	CGI::exec() {
+	Log::Trace("CGI called: " + _binPath + " " + _scriptPath);
 	createPipe();
 	_pid = fork();
 
