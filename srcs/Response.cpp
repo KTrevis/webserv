@@ -143,7 +143,8 @@ bool	Response::handleRedirections(Request &request) {
 	return true;
 }
 
-static LocationConfig &findAssociatedPath(std::map<std::string, LocationConfig> locations, const std::string &root) {
+static LocationConfig &findAssociatedPath
+	(std::map<std::string, LocationConfig> locations, const std::string &root) {
 	std::map<std::string, LocationConfig>::iterator it = locations.begin();
 
 	while (it != locations.end()) {
@@ -156,12 +157,7 @@ static LocationConfig &findAssociatedPath(std::map<std::string, LocationConfig> 
 }
 
 bool	Response::handleListDirectory() {
-	std::string foldername = _filepath;
-	size_t pos = _filepath.find(_locationConfig.indexFile);
-
-	if (pos != std::string::npos)
-		foldername.erase(pos);
-	if (!_locationConfig.autoIndex || !isFolder(foldername))
+	if (!_locationConfig.autoIndex || !isFolder(_filepath))
 		return false;
 	LocationConfig &associated = findAssociatedPath(_serverConfig.locations, _locationConfig.root);
 	std::string basePath;
