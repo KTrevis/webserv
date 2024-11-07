@@ -6,6 +6,7 @@
 #include "ServerConfig.hpp"
 
 enum State {
+	IDLE,
     PARSE_METHOD,
     PARSE_PATH,
     PARSE_VERSION,
@@ -41,6 +42,7 @@ class Request
 		bool		isHeaderParse;
 		State		state;
 	private:
+		bool		checkMethods(std::string method);
 		std::string	parseMethode();
 		std::string parsePath();
 		std::string parseVer();

@@ -33,6 +33,8 @@ static void handleReceivedData(Server &server, epoll_event event) {
 	request.reserve(n);
 	for (int i = 0; i < n; i++)
 		request += buffer[i];
+	if (client.request.state == IDLE)
+		client.request.state = PARSE_METHOD;
 }
 
 static std::string	getDefaultServerName
