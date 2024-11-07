@@ -171,27 +171,31 @@ bool	Response::handleListDirectory() {
 	return true;
 }
 
-static bool methodAllowed(int methodMask, e_methods method) {
-	return methodMask & method;
-}
+// static bool methodAllowed(int methodMask, e_methods method) {
+// 	return methodMask & method;
+// }
 
 void	Response::setup() {
 	_urlSplit.clear();
 	_urlSplit = StringUtils::split(_client.request.path, "/", true);
 	Request &request = _client.request;
-	e_methods method = StringUtils::getStrToMaskMethod()[request.method];
+	std::map<std::string, e_methods> map = StringUtils::getStrToMaskMethod();
+	std::map<std::string, e_methods>::iterator it = map.find(request.method);
+	e_methods method = it->second;
 
 	_i = 0;
+	if (request.resCode != -1) {
+		_response = StringUtils::createResponse(request.resCode);
+		_cgi._scriptPath = "";
+		dprintf(_client.getFd(), "%s", _response.c_str());
+		return;
+	}
 	if (handleRedirections(request))
 		return;
 	if (handleListDirectory())
 		return;
 	/* if (access(_filepath.c_str(), R_OK)) */
 	/* 	_response = StringUtils::createResponse(404); */
-	if (!methodAllowed(_locationConfig.methodMask, method)) {
-		_response = StringUtils::createResponse(405);
-		_cgi._scriptPath = "";
-	}
 	else if ((method == GET || method == POST) && _cgi.getScriptPath() != "")
 		_cgi.exec();
 	else if (method == GET)

@@ -132,14 +132,19 @@ void Server::checkClientTimeouts() {
 		Socket &client = it->second;
 		double inactiveDuration = std::difftime(now, client.lastActivity);
 
-		if (inactiveDuration > CLIENT_TIMEOUT && !it->second.isServer()) {
+		if (inactiveDuration > CLIENT_TIMEOUT && !it->second.isServer() && client.request.state != IDLE) {
 			Log::Info("Closing inactive connection: " + StringUtils::itoa(client.getFd()));
 			epoll_event event;
 			++it;
 			std::map<int, Response>::iterator itt = responses.find(client.getFd());
 			if (itt != responses.end())
+			{
 				itt->second.getCGI().killCGI();
-			dprintf(client.getFd(), "%s", StringUtils::createResponse(504).c_str());
+				dprintf(client.getFd(), "%s", StringUtils::createResponse(504).c_str());
+			}
+			else {
+				dprintf(client.getFd(), "%s", StringUtils::createResponse(408).c_str());
+			}
 			event.data.fd = client.getFd();
 			closeConnection(event);
 		}

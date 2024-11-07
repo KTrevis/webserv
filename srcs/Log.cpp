@@ -4,22 +4,22 @@
 
 void	Log::Error(const std::string &str) {
 	if (LOG_LEVEL >= ERROR)
-		std::cout << "[ERROR]: " << str << std::endl;
+		std::cout << RED<< "[ERROR]: " << str << RESET << std::endl;
 }
 
 void	Log::Info(const std::string &str) {
 	if (LOG_LEVEL >= INFO)
-		std::cout << "[INFO]: " << str << std::endl;
+		std::cout << GREEN << "[INFO]: " << str << RESET << std::endl;
 }
 
 void	Log::Debug(const std::string &str) {
 	if (LOG_LEVEL >= DEBUG)
-		std::cout << "[DEBUG]: " << str << std::endl;
+		std::cout << YELLOW << "[DEBUG]: " << str << RESET << std::endl;
 }
 
 void	Log::Trace(const std::string &str) {
 	if (LOG_LEVEL >= TRACE)
-		std::cout << "[TRACE]: " << str << std::endl;
+		std::cout << BLUE << "[TRACE]: " << str << RESET << std::endl;
 }
 
 static std::map<EPOLL_EVENTS, std::string> getEventsMap() {

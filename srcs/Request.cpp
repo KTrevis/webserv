@@ -6,7 +6,7 @@
 
 Request::Request() {
 	resCode = 0;
-	state = PARSE_METHOD;
+	state = IDLE;
 	_i = 0;
 }
 
@@ -73,7 +73,7 @@ void	Request::clear() {
 	request.clear();
 	headerArguments.clear();
 	body.clear();
-	state = PARSE_METHOD;
+	state = IDLE;
 }
 
 std::string	Request::findPathConfig() {
@@ -139,12 +139,27 @@ void	Request::parseBody() {
 	resCode = 202;
 }
 
+bool	Request::checkMethods(std::string method) {
+	std::map<std::string, LocationConfig>::iterator it = config.locations.begin();
+	while (it != config.locations.end()) {
+		if (it->first == "allow_methods")
+			break;
+		it++;
+	}
+	std::map<std::string, e_methods> map = StringUtils::getStrToMaskMethod();
+	return map.find(method) == map.end();
+}
+
 void	Request::parseRequest() {
 	switch (state) {
 		case (PARSE_METHOD) : 
 			if (request.find(" ") != std::string::npos) {
 				method = parseMethode(); 
 				state = PARSE_PATH;
+			}
+			if (checkMethods(method)) {
+				resCode = 405;
+				state = SEND_RESPONSE;
 			}
 			break;
 		case (PARSE_PATH) :
@@ -172,6 +187,7 @@ void	Request::parseRequest() {
 			}
 			break;
 		case (PARSE_BODY) : parseBody(); break;
-		case (SEND_RESPONSE) : return;		
+		case (SEND_RESPONSE) : return;
+		case (IDLE) : return;		
 	}
 }
