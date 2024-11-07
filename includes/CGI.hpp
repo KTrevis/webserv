@@ -20,6 +20,7 @@ class CGI {
 		const std::string	&getArgs() const;
 		const std::string	&getBinPath() const;
 		bool				isReady();
+		void				killCGI();
 		const int	(&getCgiFd() const)[2];
 		std::string			body;
 	private:

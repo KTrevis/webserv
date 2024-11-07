@@ -6,8 +6,7 @@
 
 Request::Request() {
 	resCode = 0;
-	isReqGenerated = false;
-	isHeaderParse = false;
+	state = PARSE_METHOD;
 	_i = 0;
 }
 
@@ -54,10 +53,6 @@ void Request::parseHeader() {
 		tmp = parseHeaderline();
 		headerArguments.insert(tmp);
 	}
-	if (method == "GET" || method == "DELETE") {
-		isReqGenerated = true;
-		return request.clear();
-	}
 	request.erase(0, 2);
 }
 
@@ -78,8 +73,7 @@ void	Request::clear() {
 	request.clear();
 	headerArguments.clear();
 	body.clear();
-	isHeaderParse = false;
-	isReqGenerated = false;
+	state = PARSE_METHOD;
 }
 
 std::string	Request::findPathConfig() {
@@ -143,20 +137,41 @@ void	Request::parseBody() {
 	cgiBody = body;
 	createBody();
 	resCode = 202;
-	isReqGenerated = true;
 }
 
 void	Request::parseRequest() {
-	if (isHeaderParse == false) {
-		method = parseMethode();
-		if (method == "")
-			return;
-		path = parsePath();
-		Log::Trace(method + " " + path);
-		httpVer = parseVer();
-		parseHeader();
+	switch (state) {
+		case (PARSE_METHOD) : 
+			if (request.find(" ") != std::string::npos) {
+				method = parseMethode(); 
+				state = PARSE_PATH;
+			}
+			break;
+		case (PARSE_PATH) :
+			if (request.find(" ") != std::string::npos) {
+				path = parsePath(); 
+				state = PARSE_VERSION;
+			}
+			break;
+		case (PARSE_VERSION) :
+			if (request.find("\r\n") != std::string::npos) {
+				httpVer = parseVer();
+				state = PARSE_HEADERS;
+			}
+			break;
+		case (PARSE_HEADERS) : 
+			if (request.find("\r\n\r\n") != std::string::npos) {
+				parseHeader();
+				if (method == "POST") {
+					state = PARSE_BODY;
+				} else {
+
+					state = SEND_RESPONSE;
+					return request.clear();
+				}
+			}
+			break;
+		case (PARSE_BODY) : parseBody(); break;
+		case (SEND_RESPONSE) : return;		
 	}
-	// displayArgs();
-	if (method == "POST")
-		parseBody();
 }

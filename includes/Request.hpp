@@ -5,6 +5,14 @@
 #include <vector>
 #include "ServerConfig.hpp"
 
+enum State {
+    PARSE_METHOD,
+    PARSE_PATH,
+    PARSE_VERSION,
+    PARSE_HEADERS,
+    PARSE_BODY,
+    SEND_RESPONSE
+};
 
 enum e_methods {
 	GET = 1,
@@ -31,6 +39,7 @@ class Request
 		void		clear();
 		bool		isReqGenerated;
 		bool		isHeaderParse;
+		State		state;
 	private:
 		std::string	parseMethode();
 		std::string parsePath();

@@ -10,11 +10,15 @@
 Socket::Socket() {
 	_fd = -1;
 	_serverFd = -1;
+	TimedOut = false;
+	lastActivity = std::time(NULL);
 }
 
 Socket::Socket(int fd) {
 	_serverFd = fd;
 	_fd = fd;
+	lastActivity = std::time(NULL);
+	TimedOut = false;
 	Log::Trace(StringUtils::itoa(_fd) + " socket created");
 }
 
@@ -45,4 +49,8 @@ bool	Socket::isServer() {
 	if (_fd == -1)
 		return false;
 	return _serverFd == _fd;
+}
+
+void	Socket::updateActivity() {
+	lastActivity = std::time(NULL);
 }

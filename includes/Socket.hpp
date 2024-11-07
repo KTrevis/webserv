@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <poll.h>
 #include "Request.hpp"
+#include <ctime>
 
 class Socket {
 	public:
@@ -14,6 +15,9 @@ class Socket {
 		int		getServerFd() const;
 		void	setup(int fd, int serverFd, ServerConfig &config);
 		bool	isServer();
+		void	updateActivity();
+		bool	TimedOut;
+		time_t	lastActivity;
 		Request	request;
 	private:
 		int				_fd;

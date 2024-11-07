@@ -79,6 +79,12 @@ static bool isCGI(int fd, Server &server) {
 }
 
 void	EventHandler::handleEvent(Server &server, epoll_event &event) {
+	if (event.data.fd == server._timerFd) {
+		uint64_t expirations;
+		read(server._timerFd, &expirations, sizeof(expirations));
+		server.checkClientTimeouts();
+		return;
+	}
 	if (event.events & EPOLLIN && !isCGI(event.data.fd, server) && server.isNewClient(event))
 		return;
 	if (event.events & EPOLLIN)
@@ -89,6 +95,8 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 	}
 	if (event.events & EPOLLOUT) {
 		Socket &client = server.sockets[event.data.fd];
+		if (client.TimedOut == true)
+			server.closeConnection(event);
 		std::map<int, Response>::iterator it = server.responses.find(client.getFd());
 		Response &response = it->second;
 
@@ -98,7 +106,7 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 			return;
 		}
 		client.request.parseRequest();
-		if (client.request.isReqGenerated == true)
+		if (client.request.state == SEND_RESPONSE)
 			sendResponse(server, client, event);
 	}
 }

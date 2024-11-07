@@ -75,6 +75,7 @@ void	Response::handleGet() {
 	std::vector<std::string> headerFields;
 	headerFields.reserve(2);
 	headerFields.push_back(HeaderFields::contentType(_contentType));
+	headerFields.push_back(HeaderFields::contentDisposition("inline", _filepath.substr(_filepath.find_last_of("/") + 1, _filepath.size() - _filepath.find_last_of("/"))));
 	if (_body.size() != 0)
 		headerFields.push_back(HeaderFields::contentLength(StringUtils::getStrVectorSize(_body)));
 	_response = StringUtils::createResponse(httpCode, headerFields);
@@ -119,7 +120,7 @@ static bool strEndsWith(const std::string &str, char c) {
 static void	removeTrailingChar(std::string &str, char c) {
 	size_t i = str.size() - 1;
 
-	while (i >= 0 && str[i] == c) {
+	while (str[i] == c) {
 		str.erase(i);
 		i--;
 	}
