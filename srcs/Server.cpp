@@ -51,7 +51,6 @@ Server::Server(std::vector<ServerConfig> &arr) {
 		event.data.fd = socket.getFd();
 		addFdToPoll(socket.getFd(), event);
 	}
-
 }
 
 void	Server::addFdToPoll(int fd, epoll_event &event) {

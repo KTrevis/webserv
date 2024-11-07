@@ -2,6 +2,7 @@
 #include "StringUtils.hpp"
 #include "LocationConfig.hpp"
 #include "Log.hpp"
+#include <arpa/inet.h>
 #include <cstdlib>
 #include <cwctype>
 #include <exception>
@@ -60,12 +61,23 @@ bool	ConfigParser::locationParsing(std::vector<std::string> &line) {
 	return true;
 }
 
+static unsigned int getAddress(const std::string &address) {
+	unsigned int addr;
+	if (inet_pton(AF_INET, address.c_str(), &addr) == 0)
+		throw std::runtime_error("Invalid IP: " + address);
+	return addr;
+}
+
 bool	ConfigParser::parseLine(std::vector<std::string> &line) {
 	if (line[0] == "listen") {
 		if (!(_scope & SERVER) || line.size() != 2) return false;
-		if (!StringUtils::isPositiveNumber(line[1])) return false;
-		Log::Info("Creating server on port " + line[1]);
-		(_configs.end() - 1)->address = Address(INADDR_ANY, std::atoi(line[1].c_str()));
+		std::vector<std::string> split = StringUtils::split(line[1], ":", false);
+		const std::string &port = split[split.size() - 1];
+		if (split.size() > 2) return false;
+		if (!StringUtils::isPositiveNumber(port)) return false;
+		Log::Info("Creating server on port " + port);
+		unsigned int addr = split.size() == 2 ? getAddress(split[0]) : INADDR_ANY;
+		(_configs.end() - 1)->address = Address(addr, std::atoi(port.c_str()));
 		return true;
 	} else if (line[0] == "max_body_size") {
 		if (!(_scope & SERVER) || line.size() != 2) return false;

@@ -66,7 +66,10 @@ std::vector<std::string> StringUtils::split(std::string str, const std::string &
 		str.erase(0, pos + lim.length());
 	}
 	if (str != "") {
-		word = lim + str;
+		if (prependLim)
+			word = lim + str;
+		else
+			word = str;
 		arr.push_back(word);
 	}
 	return arr;

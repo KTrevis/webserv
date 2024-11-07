@@ -6,7 +6,7 @@
 class Address {
 	public:
 		Address();
-		Address(int adress, int port);
+		Address(unsigned int adress, int port);
 		sockaddr	&toSockAddr();
 	private:
 		sockaddr_in _addr;
