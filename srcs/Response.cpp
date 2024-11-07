@@ -144,7 +144,7 @@ bool	Response::handleRedirections(Request &request) {
 }
 
 static LocationConfig &findAssociatedPath
-	(std::map<std::string, LocationConfig> locations, const std::string &root) {
+	(std::map<std::string, LocationConfig> &locations, const std::string &root) {
 	std::map<std::string, LocationConfig>::iterator it = locations.begin();
 
 	while (it != locations.end()) {
@@ -160,12 +160,12 @@ bool	Response::handleListDirectory() {
 	if (!_locationConfig.autoIndex || !isFolder(_filepath))
 		return false;
 	LocationConfig &associated = findAssociatedPath(_serverConfig.locations, _locationConfig.root);
-	std::string basePath;
+	std::string basepath;
 	if (associated.name != "/")
-		basePath = associated.name;
+		basepath = associated.name;
 	for (size_t i = 0; i < _urlSplit.size(); i++)
-		basePath += _urlSplit[i] + "/";
-	_response = StringUtils::createDirectoryContent(_locationConfig.root, basePath);
+		basepath += _urlSplit[i] + "/";
+	_response = StringUtils::createDirectoryContent(_locationConfig.root, basepath);
 	dprintf(_client.getFd(), "%s", _response.c_str());
 	return true;
 }
