@@ -174,16 +174,4 @@ void	Request::parseRequest() {
 		case (PARSE_BODY) : parseBody(); break;
 		case (SEND_RESPONSE) : return;		
 	}
-	// if (isHeaderParse == false) {
-	// 	method = parseMethode();
-	// 	if (method == "")
-	// 		return;
-	// 	path = parsePath();
-	// 	Log::Trace(method + " " + path);
-	// 	httpVer = parseVer();
-	// 	parseHeader();
-	// }
-	// // displayArgs();
-	// if (method == "POST")
-	// 	parseBody();
 }

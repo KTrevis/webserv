@@ -8,6 +8,7 @@
 #include <ctime>
 #include <ios>
 #include <unistd.h>
+#include <signal.h>
 #include <iomanip>
 #include <vector>
 #include "Log.hpp"
@@ -108,6 +109,10 @@ bool	CGI::isReady() {
 	if (waitpid(_pid, NULL, WNOHANG) == _pid)
 		_ready = true;
 	return _ready;
+}
+
+void	CGI::killCGI() {
+	kill(_pid, SIGTERM);
 }
 
 const std::string &CGI::getScriptPath() const {

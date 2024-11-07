@@ -12,6 +12,7 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <unistd.h>
+#include <stdio.h>
 
 void	Server::start() {
 	while (1)
@@ -133,9 +134,18 @@ void Server::checkClientTimeouts() {
 
 		if (inactiveDuration > CLIENT_TIMEOUT && !it->second.isServer()) {
 			Log::Info("Closing inactive connection: " + StringUtils::itoa(client.getFd()));
-			client.TimedOut = true;
-		}	
-		++it;
+			epoll_event event;
+			++it;
+			std::map<int, Response>::iterator itt = responses.find(client.getFd());
+			if (itt != responses.end())
+				itt->second.getCGI().killCGI();
+			dprintf(client.getFd(), "%s", StringUtils::createResponse(504).c_str());
+			event.data.fd = client.getFd();
+			closeConnection(event);
+		}
+		else {
+			++it;
+		}
 	}
 }
 
