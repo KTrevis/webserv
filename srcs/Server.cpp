@@ -37,6 +37,7 @@ bool Server::parseConfig(ServerConfig &config) {
 Server::Server(std::vector<ServerConfig> &arr) {
 	explicit_bzero(_events, sizeof(_events));
 	_epollfd = epoll_create1(0);
+	initializeTimer(_epollfd);
 
 	for (size_t i = 0; i < arr.size(); i++) {
 		if (!parseConfig(arr[i]))
@@ -120,6 +121,49 @@ void	Server::wait() {
 	}
 	for (int i = 0; i < nbEvents; i++)
 		EventHandler::handleEvent(*this, _events[i]);
+}
+
+void Server::checkClientTimeouts() {
+	time_t now = std::time(NULL);
+
+	std::map<int, Socket>::iterator it = sockets.begin();
+	while (it != sockets.end()) {
+		Socket &client = it->second;
+		double inactiveDuration = std::difftime(now, client.lastActivity);
+
+		if (inactiveDuration > CLIENT_TIMEOUT && !it->second.isServer()) {
+			Log::Info("Closing inactive connection: " + StringUtils::itoa(client.getFd()));
+			client.TimedOut = true;
+		}	
+		++it;
+	}
+}
+
+void Server::initializeTimer(int epollFd) {
+	int timerFd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+	if (timerFd == -1) {
+		Log::Error("Failed to create timerfd");
+		return;
+	}
+
+	struct itimerspec newValue;
+	newValue.it_value.tv_sec = 1;
+	newValue.it_value.tv_nsec = 0;
+	newValue.it_interval.tv_sec = 1;
+	newValue.it_interval.tv_nsec = 0;
+
+	if (timerfd_settime(timerFd, 0, &newValue, NULL) == -1) {
+		Log::Error("Failed to set timer");
+		close(timerFd);
+		return;
+	}
+
+	epoll_event timerEvent;
+	timerEvent.data.fd = timerFd;
+	timerEvent.events = EPOLLIN;
+	epoll_ctl(epollFd, EPOLL_CTL_ADD, timerFd, &timerEvent);
+	
+	_timerFd = timerFd;
 }
 
 Server::~Server() {

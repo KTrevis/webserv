@@ -121,6 +121,7 @@ std::string StringUtils::fileExtensionToType(std::string str) {
 		return "";
 	str.erase(0, pos);
 	std::map<std::string, std::string> map;
+	map[".html"] = "text/html";
 	map[".htm"] = "text/html";
 	map[".js"] = "application/javascript";
 	map[".json"] = "application/json";
