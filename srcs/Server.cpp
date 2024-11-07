@@ -18,17 +18,35 @@ void	Server::start() {
 		wait();
 }
 
+static bool	portAlreadyUsed(std::vector<ServerConfig> &arr, size_t i) {
+	int port = arr[i].address.getPort();
+	if (i == 0)
+		return false;
+	i--;
+
+	while (i > 0) {
+		std::cout << i << std::endl;
+		if (arr[i].address.getPort() == port)
+			return true;
+		i--;
+	}
+	if (arr[i].address.getPort() == port)
+		return true;
+	return false;
+}
+
 bool Server::parseConfig(ServerConfig &config) {
 	int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	if (fd == -1) return false;
 
 	Log::Trace(StringUtils::itoa(fd) + " server socket created");
-	if (fd == -1) return false;
 	int n = 1;
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &n, sizeof(n));
 	serverConfigs[fd] = config;
 	sockets[fd].setup(fd, fd, config);
 	if (NetworkUtils::bind(sockets[fd], config.address) == false)
 		return false;
+	Log::Info("Listening on port " + StringUtils::itoa(config.address.getPort()));
 	if (listen(fd, 5) == -1)
 		return false;
 	return true;
@@ -39,11 +57,13 @@ Server::Server(std::vector<ServerConfig> &arr) {
 	_epollfd = epoll_create1(0);
 
 	for (size_t i = 0; i < arr.size(); i++) {
+		if (portAlreadyUsed(arr, i)) continue;
 		if (!parseConfig(arr[i]))
 			throw std::runtime_error("Server constructor failed");
 	}
 
 	std::map<int, Socket>::iterator it = sockets.begin();
+
 	for (;it != sockets.end(); it++) {
 		const Socket &socket = it->second;
 		epoll_event event;

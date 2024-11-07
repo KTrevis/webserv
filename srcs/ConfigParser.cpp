@@ -41,7 +41,7 @@ void	ConfigParser::displayFile() {
 	}
 }
 
-bool	ConfigParser::serverParsing(std::vector<std::string> &line) {
+bool	ConfigParser::serverParsing(const std::vector<std::string> &line) {
 	if (line.size() != 2 || line[1] != "{" || _scope & SERVER) return false;
 
 	_configs.push_back(ServerConfig());
@@ -49,7 +49,7 @@ bool	ConfigParser::serverParsing(std::vector<std::string> &line) {
 	return true;
 }
 
-bool	ConfigParser::locationParsing(std::vector<std::string> &line) {
+bool	ConfigParser::locationParsing(const std::vector<std::string> &line) {
 	if (line.size() != 3) return false;
 
 	const std::string &locationName = line[1];
@@ -63,28 +63,49 @@ bool	ConfigParser::locationParsing(std::vector<std::string> &line) {
 
 static unsigned int getAddress(const std::string &address) {
 	unsigned int addr;
+
 	if (inet_pton(AF_INET, address.c_str(), &addr) == 0)
 		throw std::runtime_error("Invalid IP: " + address);
 	return addr;
 }
 
-bool	ConfigParser::parseLine(std::vector<std::string> &line) {
-	if (line[0] == "listen") {
-		if (!(_scope & SERVER) || line.size() != 2) return false;
-		std::vector<std::string> split = StringUtils::split(line[1], ":", false);
-		const std::string &port = split[split.size() - 1];
-		if (split.size() > 2) return false;
-		if (!StringUtils::isPositiveNumber(port)) return false;
-		Log::Info("Creating server on port " + port);
-		unsigned int addr = split.size() == 2 ? getAddress(split[0]) : INADDR_ANY;
-		(_configs.end() - 1)->address = Address(addr, std::atoi(port.c_str()));
-		return true;
-	} else if (line[0] == "max_body_size") {
-		if (!(_scope & SERVER) || line.size() != 2) return false;
-		if (!StringUtils::isPositiveNumber(line[1])) return false;
-		(_configs.end() - 1)->maxBodySize = std::atoi(line[1].c_str());
-		return true;
-	}
+bool	ConfigParser::handleListen(const std::vector<std::string> &line) {
+	if (!(_scope & SERVER) || line.size() != 2) return false;
+	std::vector<std::string> split = StringUtils::split(line[1], ":", false);
+	if (split.size() > 2) return false;
+
+	const std::string &port = split[split.size() - 1];
+	unsigned int addr = split.size() == 2 ? getAddress(split[0]) : INADDR_ANY;
+	if (!StringUtils::isPositiveNumber(port)) return false;
+
+	(_configs.end() - 1)->address = Address(addr, std::atoi(port.c_str()));
+	return true;
+
+}
+
+bool	ConfigParser::handleBodySize(const std::vector<std::string> &line) {
+	if (!(_scope & SERVER) || line.size() != 2)
+		return false;
+	if (!StringUtils::isPositiveNumber(line[1]))
+		return false;
+	(_configs.end() - 1)->maxBodySize = std::atoi(line[1].c_str());
+	return true;
+}
+
+bool	ConfigParser::handleServerName(const std::vector<std::string> &line) {
+	if (!(_scope & SERVER) || line.size() != 2)
+		return false;
+	(_configs.end() - 1)->serverName = line[1];
+	return true;
+}
+
+bool	ConfigParser::parseLine(const std::vector<std::string> &line) {
+	if (line[0] == "listen")
+		return handleListen(line);
+	if (line[0] == "max_body_size")
+		return handleBodySize(line);
+	if (line[0] == "server_name")
+		handleServerName(line);
 
 	_currScope = strToScope(line[0]);
 	switch (_currScope) {
@@ -92,7 +113,7 @@ bool	ConfigParser::parseLine(std::vector<std::string> &line) {
 		case (LOCATION): return locationParsing(line);
 		case (NONE): return (line[0] == "location");
 	}
-	return (false);
+	return false;
 }
 
 bool	ConfigParser::addLocationConfig(size_t &i, const std::string &locationName) {

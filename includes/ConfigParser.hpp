@@ -23,12 +23,16 @@ class ConfigParser {
 	private:
 		std::string	tokenizeFile(const std::string &filename);
 		bool	scopeIsDuplicated();
-		bool	serverParsing(std::vector<std::string> &line);
-		bool	locationParsing(std::vector<std::string> &line);
-		bool	parseLine(std::vector<std::string> &line);
+		bool	serverParsing(const std::vector<std::string> &line);
+		bool	locationParsing(const std::vector<std::string> &line);
+		bool	parseLine(const std::vector<std::string> &line);
 		bool	addLocationConfig(size_t &i, const std::string &locationName);
 		int		_scope;
 		e_scope	_currScope;	
 		std::vector<StringVector>	_lines;
 		std::vector<ServerConfig>	_configs;
+		bool	isServerConfig();
+		bool	handleBodySize(const std::vector<std::string> &line);
+		bool	handleListen(const std::vector<std::string> &line);
+		bool	handleServerName(const std::vector<std::string> &line);
 };
