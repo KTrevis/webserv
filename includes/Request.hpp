@@ -34,7 +34,6 @@ class Request
 		std::string request;
 		std::string	body;
 		std::string	cgiBody;
-		std::string	hostname;
 		std::map<std::string, std::string>	headerArguments;
 		ServerConfig config;
 		void		clear();
