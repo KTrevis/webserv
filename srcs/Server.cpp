@@ -19,70 +19,73 @@ void	Server::start() {
 		wait();
 }
 
-enum PortError {
-	UNUSED,
-	USED,
-	DUPLICATE_SERVER_NAME,
-};
+/* enum PortError { */
+/* 	UNUSED, */
+/* 	USED, */
+/* 	DUPLICATE_SERVER_NAME, */
+/* }; */
+/*  */
+/* static PortError 	getPortStatus(std::vector<ServerConfig> &arr, size_t i) { */
+/* 	int port = arr[i].address.getPort(); */
+/* 	const std::string &hostname = arr[i].serverName; */
+/*  */
+/* 	if (i == 0) */
+/* 		return UNUSED; */
+/* 	i--; */
+/* 	while (i >= 0) { */
+/* 		if (arr[i].address.getPort() == port && arr[i].serverName == hostname) */
+/* 			return DUPLICATE_SERVER_NAME; */
+/* 		if (arr[i].address.getPort() == port) */
+/* 			return USED; */
+/* 		if (i == 0) */
+/* 			break; */
+/* 		i--; */
+/* 	} */
+/* 	return UNUSED; */
+/* } */
 
-static PortError 	getPortStatus(std::vector<ServerConfig> &arr, size_t i) {
-	int port = arr[i].address.getPort();
-	const std::string &hostname = arr[i].serverName;
-
-	if (i == 0)
-		return UNUSED;
-	i--;
-	while (i > 0) {
-		if (arr[i].serverName == hostname)
-			return DUPLICATE_SERVER_NAME;
-		if (arr[i].address.getPort() == port)
-			return USED;
-		i--;
-	}
-	if (arr[i].address.getPort() == port && arr[i].serverName == hostname)
-		return DUPLICATE_SERVER_NAME;
-	if (arr[i].address.getPort() == port)
-		return USED;
-	return UNUSED;
-}
-
-bool Server::parseConfig(ServerConfig &config) {
+bool Server::parseConfig(std::map<std::string, ServerConfig> &map) {
 	int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 	if (fd == -1) return false;
+	int n = 1;
+	int port = map.begin()->second.address.getPort();
+	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &n, sizeof(n));
 
 	Log::Trace(StringUtils::itoa(fd) + " server socket created");
-	int n = 1;
-	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &n, sizeof(n));
-	serverConfigs[fd] = config;
-	sockets[fd].setup(fd, fd, config);
-	if (NetworkUtils::bind(sockets[fd], config.address) == false)
+	sockets[fd].setup(fd, fd, port);
+	if (NetworkUtils::bind(sockets[fd], map.begin()->second.address) == false)
 		return false;
-	Log::Info("Listening on port " + StringUtils::itoa(config.address.getPort()));
+	Log::Info("Listening on port " + StringUtils::itoa(port));
 	if (listen(fd, 5) == -1)
 		return false;
 	return true;
+}
+
+void	Server::initServerConfigs(std::vector<ServerConfig> &arr) {
+	for (size_t i = 0; i < arr.size(); i++) {
+		int port = arr[i].address.getPort();
+		std::map<std::string, ServerConfig> &map = serverConfigs[port];
+		const std::string &hostname = arr[i].serverName;
+		ServerConfig &config = map[hostname];
+		config = arr[i];
+		config.position = map.size();
+	}
 }
 
 Server::Server(std::vector<ServerConfig> &arr) {
 	explicit_bzero(_events, sizeof(_events));
 	_epollfd = epoll_create1(0);
 	initializeTimer(_epollfd);
+	initServerConfigs(arr);
 
-	for (size_t i = 0; i < arr.size(); i++) {
-		PortError err = getPortStatus(arr, i);
-		switch (err) {
-			case (USED): continue;
-			case (DUPLICATE_SERVER_NAME): 
-			throw std::runtime_error("Server construction: duplicate hostname found");
-			case (UNUSED):;
-		}
-		if (!parseConfig(arr[i]))
+	for (std::map<int, std::map<std::string, ServerConfig> >::iterator it = serverConfigs.begin();
+			it != serverConfigs.end(); it++) {
+		if (!parseConfig(it->second))
 			throw std::runtime_error("Server constructor failed");
 	}
 
-	std::map<int, Socket>::iterator it = sockets.begin();
-
-	for (;it != sockets.end(); it++) {
+	for (std::map<int, Socket>::iterator it = sockets.begin();
+			it != sockets.end(); it++) {
 		const Socket &socket = it->second;
 		epoll_event event;
 		event.events = EPOLLIN;
@@ -129,11 +132,11 @@ void	Server::closeConnection(epoll_event &event) {
 }
 
 void	Server::createNewClient(Socket &socket) {
-	std::map<int, ServerConfig>::iterator it;
-	it = serverConfigs.find(socket.getFd());
+	std::map<int, std::map<std::string, ServerConfig> >::iterator it;
+	it = serverConfigs.find(socket.getPort());
 	if (it == serverConfigs.end())
 		return;
-	ServerConfig &config = it->second;
+	ServerConfig &config = it->second.begin()->second;
 	int fd = NetworkUtils::accept(socket, config.address);
 	epoll_event event;
 
@@ -141,7 +144,7 @@ void	Server::createNewClient(Socket &socket) {
 		Log::Error("Server: Accept failed");
 		return;
 	}
-	sockets[fd].setup(fd, socket.getFd(), config);
+	sockets[fd].setup(fd, socket.getFd(), socket.getPort());
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	event.data.fd = fd;
 	addFdToPoll(fd, event);

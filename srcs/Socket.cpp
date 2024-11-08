@@ -15,6 +15,7 @@ Socket::Socket() {
 }
 
 Socket::Socket(int fd) {
+	_port = -1;
 	_serverFd = fd;
 	_fd = fd;
 	lastActivity = std::time(NULL);
@@ -39,10 +40,10 @@ Socket::~Socket() {
 	Log::Trace(err);
 }
 
-void	Socket::setup(int fd, int serverFd, ServerConfig &config) {
-	request.config = config;
+void	Socket::setup(int fd, int serverFd, int port) {
 	_fd = fd;
 	_serverFd = serverFd;
+	_port = port;
 }
 
 bool	Socket::isServer() {
@@ -53,4 +54,8 @@ bool	Socket::isServer() {
 
 void	Socket::updateActivity() {
 	lastActivity = std::time(NULL);
+}
+
+int	Socket::getPort() const {
+	return _port;
 }

@@ -11,4 +11,5 @@ class ServerConfig {
 		Address	address;
 		size_t	maxBodySize;
 		std::string	serverName;
+		size_t		position;
 };

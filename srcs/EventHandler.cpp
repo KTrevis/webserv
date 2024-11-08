@@ -35,9 +35,25 @@ static void handleReceivedData(Server &server, epoll_event event) {
 		request += buffer[i];
 }
 
+static std::string	getDefaultServerName
+	(std::map<std::string, ServerConfig> &serverConfigs) {
+	std::map<std::string, ServerConfig>::iterator it = serverConfigs.begin();
+
+	for (;it != serverConfigs.end(); it++) {
+		if (it->second.position == 1)
+			return it->second.serverName;
+	}
+	return "";
+}
+
 static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 	Request &request = client.request;
-	ServerConfig &config = server.serverConfigs[client.getServerFd()];
+	const std::string &hostArg = client.request.headerArguments["host"];
+	std::string hostname = StringUtils::split(hostArg, ":")[0];
+	Log::Debug(hostname);
+	if (hostname == "localhost")
+		hostname = getDefaultServerName(server.serverConfigs[client.getPort()]);
+	ServerConfig &config = server.serverConfigs[client.getPort()][hostname];
 	std::map<int, Response>::iterator it = server.responses.find(client.getFd());
 
 	if (it != server.responses.end())
