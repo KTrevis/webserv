@@ -18,8 +18,7 @@ LocationConfig &Response::findLocation() {
 	std::map<std::string, LocationConfig>::iterator it;
 	std::string filepath;
 	std::string	found = "";
-	long int		foundIndex = -1;
-	const std::string &hostname = _client.request.headerArguments["host"];
+	long int	foundIndex = -1;
 
 	_i = 0;
 	for (;_i < _urlSplit.size(); _i++) {
@@ -30,7 +29,7 @@ LocationConfig &Response::findLocation() {
 			found = it->first;
 		}
 	}
-	foundIndex != -1 ? _i = foundIndex + 1 : _i = 0;
+	_i = foundIndex != 1 ? foundIndex + 1 : 0;
 	if (found != "")
 		return _serverConfig.locations[found];
 	it = _serverConfig.locations.find("/");
