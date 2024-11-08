@@ -19,7 +19,7 @@ LocationConfig &Response::findLocation() {
 	std::string filepath;
 	std::string	found = "";
 	long int		foundIndex = -1;
-
+	Log::Debug(_client.request.hostname);
 	_i = 0;
 	for (;_i < _urlSplit.size(); _i++) {
 		filepath += _urlSplit[_i];

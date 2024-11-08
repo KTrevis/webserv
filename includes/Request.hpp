@@ -32,9 +32,10 @@ class Request
 		std::string path;
 		std::string httpVer;
 		std::string request;
-		std::map<std::string, std::string>	headerArguments;
 		std::string	body;
 		std::string	cgiBody;
+		std::string	hostname;
+		std::map<std::string, std::string>	headerArguments;
 		ServerConfig config;
 		void		clear();
 		bool		isReqGenerated;

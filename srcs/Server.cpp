@@ -19,21 +19,31 @@ void	Server::start() {
 		wait();
 }
 
-static bool	portAlreadyUsed(std::vector<ServerConfig> &arr, size_t i) {
-	int port = arr[i].address.getPort();
-	if (i == 0)
-		return false;
-	i--;
+enum PortError {
+	UNUSED,
+	USED,
+	DUPLICATE_SERVER_NAME,
+};
 
+static PortError 	getPortStatus(std::vector<ServerConfig> &arr, size_t i) {
+	int port = arr[i].address.getPort();
+	const std::string &hostname = arr[i].serverName;
+
+	if (i == 0)
+		return UNUSED;
+	i--;
 	while (i > 0) {
-		std::cout << i << std::endl;
+		if (arr[i].serverName == hostname)
+			return DUPLICATE_SERVER_NAME;
 		if (arr[i].address.getPort() == port)
-			return true;
+			return USED;
 		i--;
 	}
+	if (arr[i].address.getPort() == port && arr[i].serverName == hostname)
+		return DUPLICATE_SERVER_NAME;
 	if (arr[i].address.getPort() == port)
-		return true;
-	return false;
+		return USED;
+	return UNUSED;
 }
 
 bool Server::parseConfig(ServerConfig &config) {
@@ -59,7 +69,13 @@ Server::Server(std::vector<ServerConfig> &arr) {
 	initializeTimer(_epollfd);
 
 	for (size_t i = 0; i < arr.size(); i++) {
-		if (portAlreadyUsed(arr, i)) continue;
+		PortError err = getPortStatus(arr, i);
+		switch (err) {
+			case (USED): continue;
+			case (DUPLICATE_SERVER_NAME): 
+			throw std::runtime_error("Server construction: duplicate hostname found");
+			case (UNUSED):;
+		}
 		if (!parseConfig(arr[i]))
 			throw std::runtime_error("Server constructor failed");
 	}
@@ -109,8 +125,7 @@ void	Server::closeConnection(epoll_event &event) {
 		Log::Info("client socket closed " + StringUtils::itoa(event.data.fd));
 		close(event.data.fd);
 	}
-	else
-		sockets.erase(event.data.fd);
+	else sockets.erase(event.data.fd);
 }
 
 void	Server::createNewClient(Socket &socket) {

@@ -105,7 +105,7 @@ bool	ConfigParser::parseLine(const std::vector<std::string> &line) {
 	if (line[0] == "max_body_size")
 		return handleBodySize(line);
 	if (line[0] == "server_name")
-		handleServerName(line);
+		return handleServerName(line);
 
 	_currScope = strToScope(line[0]);
 	switch (_currScope) {
