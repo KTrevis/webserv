@@ -126,23 +126,6 @@ static void	removeTrailingChar(std::string &str, char c) {
 	}
 }
 
-bool	Response::handleRedirections(Request &request) {
-	if (!isFolder(_filepath)) {
-		if (strEndsWith(request.path, '/')) {
-			removeTrailingChar(request.path, '/');
-			Log::Debug(request.path);
-			redirect(request.path);
-		} else return false;
-	}
-	else if (!strEndsWith(request.path, '/'))
-		redirect(request.path + "/");
-	else if (_locationConfig.redirection != "")
-		redirect(_locationConfig.redirection);
-	else return false;
-
-	dprintf(_client.getFd(), "%s", _response.c_str());
-	return true;
-}
 
 static LocationConfig &findAssociatedPath
 	(std::map<std::string, LocationConfig> &locations, const std::string &root) {
@@ -157,9 +140,24 @@ static LocationConfig &findAssociatedPath
 	return it->second;
 }
 
-bool	Response::handleListDirectory() {
-	if (!_locationConfig.autoIndex || !isFolder(_filepath))
-		return false;
+bool	Response::needRedirection(Request &request) {
+	if (!isFolder(_filepath)) {
+		if (strEndsWith(request.path, '/')) {
+			removeTrailingChar(request.path, '/');
+			Log::Debug(request.path);
+			redirect(request.path);
+			return true;
+		} else return false;
+	}
+	else if (!strEndsWith(request.path, '/'))
+		redirect(request.path + "/");
+	else if (_locationConfig.redirection != "")
+		redirect(_locationConfig.redirection);
+	else return false;
+	return true;
+}
+
+void	Response::createDirectoryList() {
 	LocationConfig &associated = findAssociatedPath(_serverConfig.locations, _locationConfig.root);
 	std::string basepath;
 	if (associated.name != "/")
@@ -167,13 +165,11 @@ bool	Response::handleListDirectory() {
 	for (size_t i = 0; i < _urlSplit.size(); i++)
 		basepath += _urlSplit[i] + "/";
 	_response = StringUtils::createDirectoryContent(_locationConfig.root, basepath);
-	dprintf(_client.getFd(), "%s", _response.c_str());
-	return true;
 }
 
-// static bool methodAllowed(int methodMask, e_methods method) {
-// 	return methodMask & method;
-// }
+bool	Response::isDirectoryList() {
+	return _locationConfig.autoIndex && isFolder(_filepath);
+}
 
 void	Response::setup() {
 	_urlSplit.clear();
@@ -190,12 +186,9 @@ void	Response::setup() {
 		dprintf(_client.getFd(), "%s", _response.c_str());
 		return;
 	}
-	if (handleRedirections(request))
-		return;
-	if (handleListDirectory())
-		return;
-	/* if (access(_filepath.c_str(), R_OK)) */
-	/* 	_response = StringUtils::createResponse(404); */
+	if (needRedirection(request)) {}
+	else if (isDirectoryList())
+		createDirectoryList();
 	else if ((method == GET || method == POST) && _cgi.getScriptPath() != "")
 		_cgi.exec();
 	else if (method == GET)

@@ -27,8 +27,9 @@ class Response {
 		void	redirect(const std::string &url);
 		bool	requestIsDir(Request &request);
 		void	handleDelete();
-		bool	handleRedirections(Request &request);
-		bool	handleListDirectory();
+		bool	needRedirection(Request &request);
+		bool	isDirectoryList();
+		void	createDirectoryList();
 		std::string		getFilepath();
 		LocationConfig &findLocation();
 		std::string		setCGI();
