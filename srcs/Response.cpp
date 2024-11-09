@@ -184,10 +184,8 @@ void	Response::setup() {
 	if (request.resCode != 0) {
 		_response = StringUtils::createResponse(request.resCode);
 		_cgi._scriptPath = "";
-		dprintf(_client.getFd(), "%s", _response.c_str());
-		return;
 	}
-	if (needRedirection(request)) {}
+	else if (needRedirection(request)) {}
 	else if (isDirectoryList())
 		createDirectoryList();
 	else if ((method == GET || method == POST) && _cgi.getScriptPath() != "")
