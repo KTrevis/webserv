@@ -160,6 +160,7 @@ bool	Response::needRedirection(Request &request) {
 void	Response::createDirectoryList() {
 	LocationConfig &associated = findAssociatedPath(_serverConfig.locations, _locationConfig.root);
 	std::string basepath;
+
 	if (associated.name != "/")
 		basepath = associated.name;
 	for (size_t i = 0; i < _urlSplit.size(); i++)

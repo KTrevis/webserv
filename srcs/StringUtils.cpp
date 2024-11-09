@@ -3,6 +3,7 @@
 #include <dirent.h>
 #include <exception>
 #include <map>
+#include <algorithm>
 #include <fstream>
 #include <cctype>
 #include <stdexcept>
@@ -324,6 +325,7 @@ static std::vector<std::string> getDirectoryContent(const std::string &dirPath) 
 	for (struct dirent *ent = readdir(dir); ent != NULL; ent = readdir(dir))
 		arr.push_back(ent->d_name);
 	closedir(dir);
+	sort(arr.begin(), arr.end());
 	return arr;
 }
 
