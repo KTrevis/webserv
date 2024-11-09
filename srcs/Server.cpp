@@ -19,31 +19,6 @@ void	Server::start() {
 		wait();
 }
 
-/* enum PortError { */
-/* 	UNUSED, */
-/* 	USED, */
-/* 	DUPLICATE_SERVER_NAME, */
-/* }; */
-/*  */
-/* static PortError 	getPortStatus(std::vector<ServerConfig> &arr, size_t i) { */
-/* 	int port = arr[i].address.getPort(); */
-/* 	const std::string &hostname = arr[i].serverName; */
-/*  */
-/* 	if (i == 0) */
-/* 		return UNUSED; */
-/* 	i--; */
-/* 	while (i >= 0) { */
-/* 		if (arr[i].address.getPort() == port && arr[i].serverName == hostname) */
-/* 			return DUPLICATE_SERVER_NAME; */
-/* 		if (arr[i].address.getPort() == port) */
-/* 			return USED; */
-/* 		if (i == 0) */
-/* 			break; */
-/* 		i--; */
-/* 	} */
-/* 	return UNUSED; */
-/* } */
-
 bool Server::parseConfig(std::map<std::string, ServerConfig> &map) {
 	int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 	if (fd == -1) return false;

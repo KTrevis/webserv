@@ -60,17 +60,10 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 
 	if (it != server.responses.end())
 		return;
-	try {
-		std::pair<int, Response> pair(client.getFd(), Response(client, config));
-		server.responses.insert(pair);
-		it = server.responses.find(client.getFd());
-		it->second.setup();
-	} catch(std::exception &e) {
-		std::string error = "EventHandler sendResponse: " + std::string(e.what());
-		Log::Error(error);
-		dprintf(client.getFd(), "%s", StringUtils::createResponse(404).c_str());
-	}
-
+	std::pair<int, Response> pair(client.getFd(), Response(client, config));
+	server.responses.insert(pair);
+	it = server.responses.find(client.getFd());
+	it->second.setup();
 	request.clear();
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
 	server.modifyPoll(client.getFd(), event);
