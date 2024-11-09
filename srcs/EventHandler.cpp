@@ -5,6 +5,7 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include "StringUtils.hpp"
+#include "Utils.hpp"
 #include <cstdio>
 #include <exception>
 #include <ostream>
@@ -37,25 +38,10 @@ static void handleReceivedData(Server &server, epoll_event event) {
 		client.request.state = PARSE_METHOD;
 }
 
-static std::string	getDefaultServerName
-	(std::map<std::string, ServerConfig> &serverConfigs) {
-	std::map<std::string, ServerConfig>::iterator it = serverConfigs.begin();
-
-	for (;it != serverConfigs.end(); it++) {
-		if (it->second.position == 1)
-			return it->second.serverName;
-	}
-	return "";
-}
 
 static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 	Request &request = client.request;
-	const std::string &hostArg = client.request.headerArguments["host"];
-	std::string hostname = StringUtils::split(hostArg, ":")[0];
-	std::map<std::string, ServerConfig> &serverConfigs = server.serverConfigs[client.getPort()];
-	if (serverConfigs.find(hostname) == serverConfigs.end() || hostname == "localhost")
-		hostname = getDefaultServerName(serverConfigs);
-	ServerConfig &config = serverConfigs[hostname];
+	ServerConfig &config = Utils::getServerConfig(server, client);
 	std::map<int, Response>::iterator it = server.responses.find(client.getFd());
 
 	if (it != server.responses.end())
