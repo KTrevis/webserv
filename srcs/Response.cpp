@@ -6,6 +6,7 @@
 #include "Server.hpp"
 #include "StringUtils.hpp"
 #include <cmath>
+#include <sys/socket.h>
 #include <unistd.h>
 #include <string>
 #include <sys/types.h>
@@ -218,7 +219,7 @@ void	Response::setup() {
 		_response = StringUtils::createResponse(request.resCode);
 	else if (method == DELETE)
 		handleDelete();
-	dprintf(_client.getFd(), "%s", _response.c_str());
+	send(_client.getFd(), _response.c_str(), _response.size(), MSG_DONTWAIT);
 }
 
 Response::Response(Socket &client, ServerConfig &serverConfig):
@@ -249,7 +250,7 @@ void	Response::readPipe() {
 
 void	Response::sendCGI(Server &server, epoll_event &event) {
 	std::string str = StringUtils::createResponse(200, std::vector<std::string>(), getCGI().body);
-	dprintf(_client.getFd(), "%s", str.c_str());
+	send(_client.getFd(), str.c_str(), str.size(), MSG_DONTWAIT);
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	server.responses.erase(_client.getFd());
 }

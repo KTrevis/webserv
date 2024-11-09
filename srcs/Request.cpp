@@ -190,6 +190,6 @@ void	Request::parseRequest(Server &server, Socket &client) {
 			break;
 		case (PARSE_BODY) : parseBody(server, client); break;
 		case (SEND_RESPONSE) : return;
-		case (IDLE) : return;		
+		case (IDLE) : return;
 	}
 }

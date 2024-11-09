@@ -1,4 +1,5 @@
 from time import sleep
 
-for i in range(100):
+for i in range(10):
+    sleep(1)
     print("caca")

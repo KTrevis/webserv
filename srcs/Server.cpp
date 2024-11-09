@@ -149,14 +149,15 @@ void Server::checkClientTimeouts() {
 			epoll_event event;
 			++it;
 			std::map<int, Response>::iterator itt = responses.find(client.getFd());
+			std::string res;
 			if (itt != responses.end())
 			{
 				itt->second.getCGI().killCGI();
-				dprintf(client.getFd(), "%s", StringUtils::createResponse(504).c_str());
+				res = StringUtils::createResponse(504);
 			}
-			else {
-				dprintf(client.getFd(), "%s", StringUtils::createResponse(408).c_str());
-			}
+			else
+				res = StringUtils::createResponse(408);
+			send(client.getFd(), res.c_str(), res.size(), MSG_DONTWAIT);
 			event.data.fd = client.getFd();
 			closeConnection(event);
 		}
