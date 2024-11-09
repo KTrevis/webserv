@@ -85,6 +85,7 @@ void	Response::handleGet() {
 	if (_body.size() != 0)
 		headerFields.push_back(HeaderFields::contentLength(StringUtils::getStrVectorSize(_body)));
 	_response = StringUtils::createResponse(httpCode, headerFields);
+	_body.insert(_body.begin(), _response);
 }
 
 void	Response::sendChunk() {
@@ -172,6 +173,7 @@ void	Response::createDirectoryList() {
 	for (size_t i = 0; i < _urlSplit.size(); i++)
 		basepath += _urlSplit[i] + "/";
 	_response = StringUtils::createDirectoryContent(_locationConfig.root, basepath);
+	_body.push_back(_response);
 }
 
 bool	Response::isDirectoryList() {
@@ -208,7 +210,7 @@ void	Response::setup() {
 	if (request.resCode != 0)
 		setErrorPage(request.resCode);
 	else if (needRedirection(request)) 
-		{} // jumps to the send
+		{}
 	else if (isDirectoryList())
 		createDirectoryList();
 	else if ((method == GET || method == POST) && _cgi.getScriptPath() != "")
@@ -219,7 +221,6 @@ void	Response::setup() {
 		_response = StringUtils::createResponse(request.resCode);
 	else if (method == DELETE)
 		handleDelete();
-	send(_client.getFd(), _response.c_str(), _response.size(), MSG_DONTWAIT);
 }
 
 Response::Response(Socket &client, ServerConfig &serverConfig):
@@ -253,6 +254,8 @@ void	Response::sendCGI(Server &server, epoll_event &event) {
 	send(_client.getFd(), str.c_str(), str.size(), MSG_DONTWAIT);
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 	server.responses.erase(_client.getFd());
+	(void)server;
+	_body.push_back(str);
 }
 
 void	Response::handleCGI(Server &server, epoll_event &event) {
