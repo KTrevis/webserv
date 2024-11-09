@@ -5,6 +5,7 @@
 #include "Request.hpp"
 #include "Server.hpp"
 #include "StringUtils.hpp"
+#include <cmath>
 #include <unistd.h>
 #include <string>
 #include <sys/types.h>
@@ -73,7 +74,11 @@ void	Response::handleGet() {
 		httpCode = 404;
 	}
 	std::vector<std::string> headerFields;
-	headerFields.reserve(2);
+	headerFields.reserve(3);
+	if (httpCode >= 300) {
+		setErrorPage(httpCode);
+		return;
+	}
 	headerFields.push_back(HeaderFields::contentType(_contentType));
 	headerFields.push_back(HeaderFields::contentDisposition("inline", _filepath.substr(_filepath.find_last_of("/") + 1, _filepath.size() - _filepath.find_last_of("/"))));
 	if (_body.size() != 0)
@@ -171,22 +176,21 @@ bool	Response::isDirectoryList() {
 	return _locationConfig.autoIndex && isFolder(_filepath);
 }
 
-void Response::setErrorPage() {
-	Request &request = _client.request;
-	std::string error;
+void Response::setErrorPage(int httpCode) {
 	std::map<int, std::string> &errorPages = _locationConfig.errorPages;
-	std::map<int, std::string>::iterator it = errorPages.find(request.resCode);
+	std::map<int, std::string>::iterator it = errorPages.find(httpCode);
 
 	if (it != errorPages.end()) {
 		try {
 			_response = StringUtils::getFile(it->second);
 		} catch (std::exception &e) {
-			Log::Error("Failed to read error page, using default one");
-			_response = StringUtils::createResponse(request.resCode);
+			std::string itoa = StringUtils::itoa(httpCode);
+			Log::Error("Failed to read " + itoa + " error page, using default one");
+			_response = StringUtils::createResponse(httpCode);
 		}
 	}
 	else
-		_response = StringUtils::createResponse(request.resCode);
+		_response = StringUtils::createResponse(httpCode);
 	_cgi._scriptPath = "";
 }
 
@@ -200,7 +204,7 @@ void	Response::setup() {
 
 	_i = 0;
 	if (request.resCode != 0)
-		setErrorPage();
+		setErrorPage(request.resCode);
 	else if (needRedirection(request)) 
 		{} // jumps to the send
 	else if (isDirectoryList())
