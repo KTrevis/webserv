@@ -50,9 +50,10 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 	Request &request = client.request;
 	const std::string &hostArg = client.request.headerArguments["host"];
 	std::string hostname = StringUtils::split(hostArg, ":")[0];
-	if (hostname == "localhost")
-		hostname = getDefaultServerName(server.serverConfigs[client.getPort()]);
-	ServerConfig &config = server.serverConfigs[client.getPort()][hostname];
+	std::map<std::string, ServerConfig> &serverConfigs = server.serverConfigs[client.getPort()];
+	if (serverConfigs.find(hostname) == serverConfigs.end() || hostname == "localhost")
+		hostname = getDefaultServerName(serverConfigs);
+	ServerConfig &config = serverConfigs[hostname];
 	std::map<int, Response>::iterator it = server.responses.find(client.getFd());
 
 	if (it != server.responses.end())
