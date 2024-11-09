@@ -1,13 +1,13 @@
 #include "Response.hpp"
-#include <unistd.h>
-#include <string>
-#include <sys/types.h>
 #include "HeaderFields.hpp"
 #include "LocationConfig.hpp"
 #include "Log.hpp"
 #include "Request.hpp"
 #include "Server.hpp"
 #include "StringUtils.hpp"
+#include <unistd.h>
+#include <string>
+#include <sys/types.h>
 #include <cstdio>
 #include <stdexcept>
 #include <unistd.h>

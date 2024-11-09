@@ -68,15 +68,23 @@ bool	LocationConfig::setMaxBodySize(const StringVector &arr) {
 	return true;
 }
 
+bool	LocationConfig::setErrorPage(const StringVector &arr) {
+	if (arr.size() != 3) return false;
+	int err = std::atoi(arr[1].c_str());
+	if (err < 400) return false;
+	errorPages[err] = arr[2];
+	return true;
+}
+
 static std::string errorString(const std::string &str) {
 	return "LocationConfig constructor: " + str + " parsing failed.";
 }
 
-// defines the MemberFunctionPtr alias, which is a pointer
-// to a function of the LocationConfig class
-typedef bool (LocationConfig::*MemberFunctionPtr)(const StringVector&);
 
 LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines, const std::string &name) {
+	// defines the MemberFunctionPtr alias, which is a pointer
+	// to a function of the LocationConfig class
+	typedef bool (LocationConfig::*MemberFunctionPtr)(const StringVector&);
 	std::map<std::string, MemberFunctionPtr> map;
 	map["allow_methods"] = &LocationConfig::setMethods;
 	map["root"] = &LocationConfig::setRoot;
@@ -87,7 +95,9 @@ LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines
 	map["alias"] = &LocationConfig::setAlias;
 	map["autoindex"] = &LocationConfig::setAutoIndex;
 	map["max_body_size"] = &LocationConfig::setMaxBodySize;
+	map["error_page"] = &LocationConfig::setErrorPage;
 
+	root = "./www/main";
 	indexFile = "index.html";
 	autoIndex = false;
 	methodMask = GET | POST | DELETE;

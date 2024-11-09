@@ -8,7 +8,7 @@ bool	NetworkUtils::bind(const Socket &socket, Address &address) {
 	const sockaddr *addr = &address.toSockAddr();
 	int err = ::bind(socket.getFd(), addr, sizeof(*addr));
 	if (err != 0)
-		Log::Error("Binding failed");
+		Log::Error("Binding failed, port probably already used");
 	return err == 0;
 }
 
