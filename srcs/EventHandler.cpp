@@ -102,7 +102,7 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 			server.modifyPoll(client.getFd(), event);
 			return;
 		}
-		client.request.parseRequest();
+		client.request.parseRequest(server, client);
 		if (client.request.state == SEND_RESPONSE)
 			sendResponse(server, client, event);
 	}

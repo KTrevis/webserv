@@ -22,10 +22,13 @@ enum e_methods {
 	UNKNOWN = 8,
 };
 
+class Server;
+class Socket;
+
 class Request
 {
 	public:
-		void	parseRequest();
+		void	parseRequest(Server &server, Socket &client);
 		Request();
 		~Request();
 		int			resCode;
@@ -46,7 +49,7 @@ class Request
 		std::string	parseMethode();
 		std::string parsePath();
 		std::string parseVer();
-		void		parseBody();
+		void		parseBody(Server &server, Socket &client);
 		void		createBody();
 		std::string	findFilename();
 		std::string	findPathConfig();

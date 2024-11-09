@@ -2,6 +2,7 @@
 #include "Log.hpp"
 #include <algorithm>
 #include "StringUtils.hpp"
+#include "Utils.hpp"
 #include <fstream>
 
 Request::Request() {
@@ -128,7 +129,8 @@ void	Request::createBody() {
 		createOneFile(boundarieKey);
 }
 
-void	Request::parseBody() {
+void	Request::parseBody(Server &server, Socket &client) {
+	config = Utils::getServerConfig(server, client);
 	std::map<std::string, std::string>::iterator it = headerArguments.find("content-length");
 	if (it == headerArguments.end())
 		return;
@@ -150,7 +152,7 @@ bool	Request::checkMethods(std::string method) {
 	return map.find(method) == map.end();
 }
 
-void	Request::parseRequest() {
+void	Request::parseRequest(Server &server, Socket &client) {
 	switch (state) {
 		case (PARSE_METHOD) : 
 			if (request.find(" ") != std::string::npos) {
@@ -186,7 +188,7 @@ void	Request::parseRequest() {
 				}
 			}
 			break;
-		case (PARSE_BODY) : parseBody(); break;
+		case (PARSE_BODY) : parseBody(server, client); break;
 		case (SEND_RESPONSE) : return;
 		case (IDLE) : return;		
 	}
