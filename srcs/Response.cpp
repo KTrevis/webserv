@@ -184,7 +184,7 @@ void	Response::setup() {
 	e_methods method = it->second;
 
 	_i = 0;
-	if (request.resCode != -1) {
+	if (request.resCode != 0) {
 		_response = StringUtils::createResponse(request.resCode);
 		_cgi._scriptPath = "";
 		dprintf(_client.getFd(), "%s", _response.c_str());
