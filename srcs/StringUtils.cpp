@@ -286,9 +286,10 @@ static void addContentLength(std::string &str, size_t size) {
 std::string StringUtils::createResponse(int httpCode,
 	const std::vector<std::string> &fields, const std::string &body) {
 	std::string str = "HTTP/1.1 " + StringUtils::itoa(httpCode) + "\r\n";
+
 	for (size_t i = 0; i < fields.size(); i++)
 		str += fields[i] + "\r\n";
-	if (httpCode >= 300) {
+	if (httpCode >= 300 && body.size() == 0) {
 		const std::string &page = getResPage(httpCode);
 		str += "content-type: text/html\r\n";
 		addContentLength(str, page.size());

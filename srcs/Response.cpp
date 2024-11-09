@@ -88,6 +88,7 @@ void	Response::handleGet() {
 
 void	Response::sendChunk() {
 	const std::string &toSend = _body[_chunkToSend];
+
 	if (send(_client.getFd(), toSend.c_str(), toSend.size(), 0) != -1)
 		_chunkToSend++;
 }
@@ -182,14 +183,14 @@ void Response::setErrorPage(int httpCode) {
 
 	if (it != errorPages.end()) {
 		try {
-			_response = StringUtils::getFile(it->second);
+			const std::string &body = StringUtils::getFile(it->second);
+			_response = StringUtils::createResponse(httpCode, std::vector<std::string>(), body);
 		} catch (std::exception &e) {
 			std::string itoa = StringUtils::itoa(httpCode);
 			Log::Error("Failed to read " + itoa + " error page, using default one");
 			_response = StringUtils::createResponse(httpCode);
 		}
-	}
-	else
+	} else
 		_response = StringUtils::createResponse(httpCode);
 	_cgi._scriptPath = "";
 }
