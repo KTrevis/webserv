@@ -91,24 +91,27 @@ void	Response::handleGet() {
 void	Response::sendChunk() {
 	const std::string &toSend = _body[_chunkToSend];
 
-	if (send(_client.getFd(), toSend.c_str(), toSend.size(), 0) != -1)
+	if (send(_client.getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT | MSG_NOSIGNAL) != -1)
 		_chunkToSend++;
 }
 
 void Response::handleDelete() {
 	if (_locationConfig.uploadPath == "") {
 		_response = StringUtils::createResponse(403);
+		_body.push_back(_response);
 		Log::Trace("Failed to find location");
 		return;
 	}
 	if (access(_filepath.c_str(), F_OK)) {
 		_response = StringUtils::createResponse(404);
+		_body.push_back(_response);
 		Log::Trace("File does not exist");
 		return;
 	}
 	Log::Trace("Trying to remove " + _filepath);
 	remove(_filepath.c_str());
 	_response = StringUtils::createResponse(204);
+	_body.push_back(_response);
 }
 
 void Response::redirect(const std::string &url) {
@@ -196,6 +199,7 @@ void Response::setErrorPage(int httpCode) {
 	} else
 		_response = StringUtils::createResponse(httpCode);
 	_cgi._scriptPath = "";
+	_body.push_back(_response);
 }
 
 void	Response::setup() {
@@ -218,7 +222,7 @@ void	Response::setup() {
 	else if (method == GET)
 		handleGet();
 	else if (method == POST)
-		_response = StringUtils::createResponse(request.resCode);
+		_body.push_back(StringUtils::createResponse(request.resCode));
 	else if (method == DELETE)
 		handleDelete();
 }
@@ -237,27 +241,19 @@ CGI	&Response::getCGI() {
 	return _cgi;
 }
 
-void	Response::readPipe() {
+void	Response::handleCGI() {
 	int fd = getCGI().getCgiFd()[0];
 	char buffer[1024];
-	int n = read(fd, buffer, 1024);
-	if (n == -1) {
-		_pipeEmpty = true;
-		return;
+	int n = 1;
+	std::string str;
+
+	while (n) {
+		n = read(fd, buffer, 1024);
+		if (n == -1 || n == 0)
+			break;
+		buffer[n] = 0;
+		str += buffer;
 	}
-	buffer[n] = 0;
-	getCGI().body += buffer;
-}
-
-void	Response::sendCGI(Server &server, epoll_event &event) {
-	std::string str = StringUtils::createResponse(200, std::vector<std::string>(), getCGI().body);
-	send(_client.getFd(), str.c_str(), str.size(), MSG_DONTWAIT);
-	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
-	server.responses.erase(_client.getFd());
-	(void)server;
-	_body.push_back(str);
-}
-
-void	Response::handleCGI(Server &server, epoll_event &event) {
-	_pipeEmpty ? sendCGI(server, event) : readPipe();
+	std::string res = StringUtils::createResponse(200, std::vector<std::string>(), str);
+	_body.push_back(res);
 }

@@ -15,14 +15,12 @@ class Response {
 	public:
 		Response(Socket &client, ServerConfig &config);
 		void	setup();
-		void	handleCGI(Server &server, epoll_event &event);
-		void	sendCGI(Server &server, epoll_event &event);
+		void	handleCGI();
 		bool	fullySent();
 		void	sendChunk();
 		CGI		&getCGI();
 		std::string _response;
 	private:
-		void	readPipe();
 		void	handleGet();
 		void	redirect(const std::string &url);
 		bool	requestIsDir(Request &request);

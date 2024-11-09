@@ -13,7 +13,7 @@
 
 void	onSigint(int signal) {
 	static_cast<void>(signal);
-	throw std::runtime_error("");
+	throw std::runtime_error("Shutting down server...");
 }
 
 int	main(int ac, char **av) {
@@ -24,7 +24,6 @@ int	main(int ac, char **av) {
 		Server server(config.getConfigs());
 		server.start();
 	} catch (std::exception &e) {
-		if (strcmp(e.what(), ""))
-			Log::Error(e.what());
+		Log::Trace(e.what());
 	}
 }

@@ -157,7 +157,7 @@ void Server::checkClientTimeouts() {
 			}
 			else
 				res = StringUtils::createResponse(408);
-			send(client.getFd(), res.c_str(), res.size(), MSG_DONTWAIT);
+			send(client.getFd(), res.c_str(), res.size(), MSG_DONTWAIT | MSG_NOSIGNAL);
 			event.data.fd = client.getFd();
 			closeConnection(event);
 		}

@@ -59,8 +59,7 @@ static void handleExistingResponse(Socket &client, Response &response, Server &s
 	if (response.getCGI().getScriptPath() != "") {
 		if (!response.getCGI().isReady())
 			return;
-		response.handleCGI(server, event);
-		return;
+		response.handleCGI();
 	}
 	else if (response.fullySent()) {
 		event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
