@@ -61,6 +61,13 @@ bool	LocationConfig::setAutoIndex(const StringVector &arr) {
 	return true;
 }
 
+bool	LocationConfig::setMaxBodySize(const StringVector &arr) {
+	if (arr.size() != 2) return false;
+	maxBodySize = std::atoi(arr[1].c_str());
+	if (maxBodySize < 0) return false;
+	return true;
+}
+
 static std::string errorString(const std::string &str) {
 	return "LocationConfig constructor: " + str + " parsing failed.";
 }
@@ -79,6 +86,7 @@ LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines
 	map["redirection"] = &LocationConfig::setRedirection;
 	map["alias"] = &LocationConfig::setAlias;
 	map["autoindex"] = &LocationConfig::setAutoIndex;
+	map["max_body_size"] = &LocationConfig::setMaxBodySize;
 
 	indexFile = "index.html";
 	autoIndex = false;

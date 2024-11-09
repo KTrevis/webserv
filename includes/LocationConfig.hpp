@@ -21,6 +21,7 @@ class LocationConfig {
 		std::map<std::string, std::string>	cgi;
 		std::string							name;
 		std::string							redirection;
+		int									maxBodySize;
 		void								displayData();
 	private:
 		bool	setMethods(const StringVector &str);
@@ -31,4 +32,5 @@ class LocationConfig {
 		bool	setRedirection(const StringVector &arr);
 		bool	setAlias(const StringVector &arr);
 		bool	setAutoIndex(const StringVector &arr);
+		bool	setMaxBodySize(const StringVector &arr);
 };

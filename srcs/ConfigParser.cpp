@@ -102,8 +102,6 @@ bool	ConfigParser::handleServerName(const std::vector<std::string> &line) {
 bool	ConfigParser::parseLine(const std::vector<std::string> &line) {
 	if (line[0] == "listen")
 		return handleListen(line);
-	if (line[0] == "max_body_size")
-		return handleBodySize(line);
 	if (line[0] == "server_name")
 		return handleServerName(line);
 
