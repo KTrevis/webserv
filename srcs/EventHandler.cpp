@@ -25,7 +25,7 @@ static void handleReceivedData(Server &server, epoll_event event) {
 	char buffer[1024];
 	Socket &client = server.sockets[event.data.fd];
 	std::string &request = getStrToModify(event.data.fd, client, server);
-	int n = recv(event.data.fd, buffer, sizeof(buffer), MSG_NOSIGNAL);
+	int n = recv(event.data.fd, buffer, sizeof(buffer), MSG_NOSIGNAL | MSG_DONTWAIT);
 
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
 	server.modifyPoll(event.data.fd, event);
