@@ -1,3 +1,5 @@
+# add this line to bashrc to have multithreaded makefile
+# export GNUMAKEFLAGS=-j
 CPP = c++
 FLAGS = -Wall -Wextra -Werror -std=c++98 -g3
 

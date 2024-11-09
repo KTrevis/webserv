@@ -7,7 +7,7 @@
 
 namespace StringUtils {
 	std::vector<std::string> getVectorFile(const std::string &filename);
-	std::string	getFileLines(const std::string &filename);
+	std::string	getFile(const std::string &filename);
 	std::vector<std::string> getFileChunks(const std::string &filename);
 
 	bool	isPositiveNumber(const std::string &str);

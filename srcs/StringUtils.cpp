@@ -106,7 +106,7 @@ std::vector<std::string> StringUtils::getVectorFile(const std::string &filename)
 	return file;
 }
 
-std::string	StringUtils::getFileLines(const std::string &filename) {
+std::string	StringUtils::getFile(const std::string &filename) {
 	std::ifstream			stream(filename.c_str());
 	std::string				buffer;
 	std::string				str;

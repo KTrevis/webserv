@@ -30,6 +30,7 @@ class Response {
 		bool	needRedirection(Request &request);
 		bool	isDirectoryList();
 		void	createDirectoryList();
+		void	setErrorPage();
 		std::string		getFilepath();
 		LocationConfig &findLocation();
 		std::string		setCGI();

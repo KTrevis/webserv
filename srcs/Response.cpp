@@ -153,8 +153,7 @@ bool	Response::needRedirection(Request &request) {
 		redirect(request.path + "/");
 	else if (_locationConfig.redirection != "")
 		redirect(_locationConfig.redirection);
-	else return false;
-	return true;
+	return false;
 }
 
 void	Response::createDirectoryList() {
@@ -172,6 +171,25 @@ bool	Response::isDirectoryList() {
 	return _locationConfig.autoIndex && isFolder(_filepath);
 }
 
+void Response::setErrorPage() {
+	Request &request = _client.request;
+	std::string error;
+	std::map<int, std::string> &errorPages = _locationConfig.errorPages;
+	std::map<int, std::string>::iterator it = errorPages.find(request.resCode);
+
+	if (it != errorPages.end()) {
+		try {
+			_response = StringUtils::getFile(it->second);
+		} catch (std::exception &e) {
+			Log::Error("Failed to read error page, using default one");
+			_response = StringUtils::createResponse(request.resCode);
+		}
+	}
+	else
+		_response = StringUtils::createResponse(request.resCode);
+	_cgi._scriptPath = "";
+}
+
 void	Response::setup() {
 	_urlSplit.clear();
 	_urlSplit = StringUtils::split(_client.request.path, "/", true);
@@ -181,11 +199,10 @@ void	Response::setup() {
 	e_methods method = it->second;
 
 	_i = 0;
-	if (request.resCode != 0) {
-		_response = StringUtils::createResponse(request.resCode);
-		_cgi._scriptPath = "";
-	}
-	else if (needRedirection(request)) {}
+	if (request.resCode != 0)
+		setErrorPage();
+	else if (needRedirection(request)) 
+		{} // jumps to the send
 	else if (isDirectoryList())
 		createDirectoryList();
 	else if ((method == GET || method == POST) && _cgi.getScriptPath() != "")
