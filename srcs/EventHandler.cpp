@@ -50,7 +50,6 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 	Request &request = client.request;
 	const std::string &hostArg = client.request.headerArguments["host"];
 	std::string hostname = StringUtils::split(hostArg, ":")[0];
-	Log::Debug(hostname);
 	if (hostname == "localhost")
 		hostname = getDefaultServerName(server.serverConfigs[client.getPort()]);
 	ServerConfig &config = server.serverConfigs[client.getPort()][hostname];
