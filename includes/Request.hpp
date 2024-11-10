@@ -40,7 +40,7 @@ class Request
 		std::string	cgiBody;
 		std::map<std::string, std::string>	headerArguments;
 		ServerConfig config;
-		void		clear();
+		void		clear(bool clearState = true);
 		bool		isReqGenerated;
 		bool		isHeaderParse;
 		State		state;

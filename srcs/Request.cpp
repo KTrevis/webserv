@@ -67,14 +67,15 @@ void	Request::displayArgs() {
 	}
 }
 
-void	Request::clear() {
+void	Request::clear(bool clearState) {
 	method.clear();
 	path.clear();
 	httpVer.clear();
 	request.clear();
 	headerArguments.clear();
 	body.clear();
-	state = IDLE;
+	if (clearState)
+		state = IDLE;
 }
 
 std::string	Request::findPathConfig() {
@@ -182,7 +183,6 @@ void	Request::parseRequest(Server &server, Socket &client) {
 				if (method == "POST") {
 					state = PARSE_BODY;
 				} else {
-
 					state = SEND_RESPONSE;
 					return request.clear();
 				}

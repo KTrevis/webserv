@@ -50,7 +50,7 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 	server.responses.insert(pair);
 	it = server.responses.find(client.getFd());
 	it->second.setup();
-	request.clear();
+	request.clear(false);
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
 	server.modifyPoll(client.getFd(), event);
 }
@@ -65,6 +65,7 @@ static void handleExistingResponse(Socket &client, Response &response, Server &s
 		event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
 		Log::Trace("Chunk fully sent");
 		server.responses.erase(client.getFd());
+		client.request.clear();
 		return;
 	}
 	response.sendChunk();
