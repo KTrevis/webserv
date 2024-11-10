@@ -36,7 +36,8 @@ static void handleReceivedData(Server &server, epoll_event event) {
 	client.request.cgiBody.reserve(n);
 	for (int i = 0; i < n; i++)
 		request += buffer[i];
-	client.request.cgiBody += request;
+	for (int i = 0; i < n; i++)
+		client.request.cgiBody += buffer[i];
 	if (client.request.state == IDLE)
 		client.request.state = PARSE_METHOD;
 }
