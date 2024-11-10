@@ -15,7 +15,7 @@ class CGI {
 		void setCGI();
 		void				setArgs(const std::vector<std::string> &arr, size_t &i);
 		void				exec();
-		void				child(Socket &client);
+		void				child();
 		void				createPipe();
 		const std::string	&getScriptPath() const;
 		const std::string	&getArgs() const;

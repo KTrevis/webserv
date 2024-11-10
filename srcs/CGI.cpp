@@ -89,7 +89,7 @@ void	CGI::exec() {
 	createPipe();
 	_pid = fork();
 
-	if (_pid == 0) child(_client);
+	if (_pid == 0) child();
 }
 
 void	CGI::setArgs(const std::vector<std::string> &arr, size_t &i) {
