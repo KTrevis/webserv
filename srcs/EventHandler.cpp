@@ -31,6 +31,7 @@ static void handleReceivedData(Server &server, epoll_event event) {
 	server.modifyPoll(event.data.fd, event);
 	if (n == -1)
 		return Log::Error("recv failed");
+	client.updateActivity();
 	request.reserve(n);
 	for (int i = 0; i < n; i++)
 		request += buffer[i];
@@ -74,6 +75,7 @@ static void handleExistingResponse(Socket &client, Response &response, Server &s
 		return;
 	}
 	response.sendChunk();
+	client.updateActivity();
 }
 
 static bool isCGI(int fd, Server &server) {

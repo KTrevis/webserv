@@ -188,7 +188,7 @@ void	Request::parseRequest(Server &server, Socket &client) {
 				}
 			}
 			break;
-		case (PARSE_BODY) : parseBody(server, client); break;
+		case (PARSE_BODY) : parseBody(server, client); state = SEND_RESPONSE; break;
 		case (SEND_RESPONSE) : return;
 		case (IDLE) : return;
 	}
