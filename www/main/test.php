@@ -40,3 +40,4 @@ if (!empty($_POST) || !empty($_FILES)) {
 
 // Send the JSON response
 echo json_encode($response);
+var_dump(getenv());

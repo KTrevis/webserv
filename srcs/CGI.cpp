@@ -1,4 +1,5 @@
 #include "CGI.hpp"
+#include <cstdio>
 #include <sys/wait.h>
 #include <cstdlib>
 #include <cstring>
@@ -37,12 +38,10 @@ void	CGI::child(Socket &client) {
     std::stringstream ss;
     ss << std::hex << std::setfill('0') << std::setw(8) << rand();
 	std::string filename = "/tmp/webserv" + ss.str();
-	int fd = open(filename.c_str(), O_CREAT | O_TRUNC);
-	const std::string &cgiBody = _client.request.cgiBody;
-	const int WRITE_SIZE = 1024;
-	
-	for (size_t i = 0; i < cgiBody.size();)
-		i += write(fd, cgiBody.c_str() + i, WRITE_SIZE);
+	int fd = open(filename.c_str(), O_CREAT | O_TRUNC | O_RDWR);
+	std::string &cgiBody = _client.request.cgiBody;
+
+	write(fd, cgiBody.c_str(), cgiBody.size());
 	close(_cgiFd[0]);
 	dup2(_cgiFd[1], 1);
 	close(_cgiFd[1]);
@@ -51,13 +50,16 @@ void	CGI::child(Socket &client) {
 
 	char **argv = new char*[3];
 	argv[0] = strdup(_binPath.c_str());
-	argv[1] = strdup(_scriptPath.c_str());
 	argv[2] = NULL;
-	std::string str = "PATH_INFO=" + _args;
 
 	char **env = new (char *[2]);
-	env[0] = strdup(str.c_str());
-	env[1] = NULL;
+	env[0] = strdup(std::string("PATH_INFO=" + _args).c_str());
+	env[1] = strdup(std::string("REQUEST_METHOD=" + client.request.method).c_str());
+	env[2] = strdup(std::string("CONTENT_LENGTH=" + StringUtils::itoa(cgiBody.size())).c_str());
+	env[3] = strdup(std::string("SCRIPT_NAME=" + _scriptPath).c_str());
+	env[4] = strdup(std::string("SCRIPT_FILENAME=" + _scriptPath).c_str());
+	env[5] = strdup("REDIRECT_STATUS=200");
+	env[6] = NULL;
 
 	execve(_binPath.c_str(), argv, env);
 	free(argv[0]);

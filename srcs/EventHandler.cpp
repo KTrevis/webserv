@@ -75,6 +75,7 @@ static void handleExistingResponse(Socket &client, Response &response, Server &s
 		Log::Trace("Chunk fully sent");
 		server.responses.erase(client.getFd());
 		client.request.clear();
+		client.request.cgiBody.clear();
 		return;
 	}
 	response.sendChunk();
