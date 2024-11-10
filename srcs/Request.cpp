@@ -137,7 +137,6 @@ void	Request::parseBody(Server &server, Socket &client) {
 		return;
 	if (static_cast<size_t> (std::atoi(it->second.c_str())) != request.size())
 		return;
-	cgiBody = body;
 	createBody();
 	resCode = 202;
 }

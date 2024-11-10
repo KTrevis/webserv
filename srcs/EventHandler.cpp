@@ -33,8 +33,10 @@ static void handleReceivedData(Server &server, epoll_event event) {
 		return Log::Error("recv failed");
 	client.updateActivity();
 	request.reserve(n);
+	client.request.cgiBody.reserve(n);
 	for (int i = 0; i < n; i++)
 		request += buffer[i];
+	client.request.cgiBody += request;
 	if (client.request.state == IDLE)
 		client.request.state = PARSE_METHOD;
 }
