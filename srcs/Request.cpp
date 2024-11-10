@@ -90,9 +90,8 @@ std::string	Request::findPathConfig() {
 
 void	Request::createPostOutput(std::string &name, std::string content) {
 	std::string uploadPath = findPathConfig();
-	uploadPath += '/' + name;
-	std::cout << uploadPath << std::endl;
 	std::ofstream file(uploadPath.c_str());
+	uploadPath += '/' + name;
 	if (file.bad())
 		return;
 	file << content;
@@ -102,6 +101,7 @@ void	Request::createPostOutput(std::string &name, std::string content) {
 std::string	Request::findFilename() {
 	std::string name("noname");
 	std::string tmp(request, 0, request.find("\r\n"));
+
 	if (tmp.find("filename") != std::string::npos) {
 		int firstQuote = tmp.find('"', tmp.find("filename")) + 1;
 		name = tmp.substr(firstQuote, tmp.find('"', firstQuote) - firstQuote);

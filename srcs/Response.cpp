@@ -120,6 +120,7 @@ void Response::redirect(const std::string &url) {
 	headerFields.push_back(HeaderFields::location(url));
 
 	_response = StringUtils::createResponse(301, headerFields);
+	_body.push_back(_response);
 }
 
 static bool strEndsWith(const std::string &str, char c) {
@@ -155,7 +156,6 @@ bool	Response::needRedirection(Request &request) {
 	if (!isFolder(_filepath)) {
 		if (strEndsWith(request.path, '/')) {
 			removeTrailingChar(request.path, '/');
-			Log::Debug(request.path);
 			redirect(request.path);
 			return true;
 		} else return false;
