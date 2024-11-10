@@ -107,6 +107,7 @@ void CGI::setCGI() {
 }
 
 bool	CGI::isReady() {
+	if (_pid == -1) return false;
 	if (waitpid(_pid, NULL, WNOHANG) == _pid)
 		_ready = true;
 	return _ready;
