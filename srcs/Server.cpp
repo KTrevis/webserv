@@ -153,13 +153,15 @@ void Server::checkClientTimeouts() {
 			if (itt != responses.end())
 			{
 				itt->second.getCGI().killCGI();
-				res = StringUtils::createResponse(504);
+				client.request.resCode = 504;
 			}
 			else
-				res = StringUtils::createResponse(408);
-			send(client.getFd(), res.c_str(), res.size(), MSG_DONTWAIT | MSG_NOSIGNAL);
+				client.request.resCode = 408;
 			event.data.fd = client.getFd();
-			closeConnection(event);
+			event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
+			modifyPoll(event.data.fd, event);
+			client.request.state = IDLE;
+			/* closeConnection(event); */
 		}
 		else {
 			++it;

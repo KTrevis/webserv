@@ -19,6 +19,7 @@ class Response {
 		bool	fullySent();
 		void	sendChunk();
 		CGI		&getCGI();
+		void	setErrorPage(int httpCode);
 		std::string _response;
 	private:
 		void	handleGet();
@@ -28,7 +29,6 @@ class Response {
 		bool	needRedirection(Request &request);
 		bool	isDirectoryList();
 		void	createDirectoryList();
-		void	setErrorPage(int httpCode);
 		std::string		getFilepath();
 		LocationConfig &findLocation();
 		std::string		setCGI();

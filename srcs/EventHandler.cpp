@@ -56,10 +56,15 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 }
 
 static void handleExistingResponse(Socket &client, Response &response, Server &server, epoll_event &event) {
-	if (response.getCGI().getScriptPath() != "") {
+	if (client.request.resCode != 0) {
+		response.setErrorPage(client.request.resCode);
+		client.request.clear();
+	}
+	else if (response.getCGI().getScriptPath() != "") {
 		if (!response.getCGI().isReady())
 			return;
 		response.handleCGI();
+		client.request.clear();
 	}
 	else if (response.fullySent()) {
 		event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;

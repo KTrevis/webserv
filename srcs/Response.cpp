@@ -199,6 +199,7 @@ void Response::setErrorPage(int httpCode) {
 	} else
 		_response = StringUtils::createResponse(httpCode);
 	_cgi._scriptPath = "";
+	_body.clear();
 	_body.push_back(_response);
 }
 
