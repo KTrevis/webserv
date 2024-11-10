@@ -153,17 +153,19 @@ static LocationConfig &findAssociatedPath
 }
 
 bool	Response::needRedirection(Request &request) {
-	if (!isFolder(_filepath)) {
-		if (strEndsWith(request.path, '/')) {
-			removeTrailingChar(request.path, '/');
-			redirect(request.path);
-			return true;
-		} else return false;
+	if (!isFolder(_filepath) && strEndsWith(request.path, '/')) {
+		removeTrailingChar(request.path, '/');
+		redirect(request.path);
+		return true;
 	}
-	else if (!strEndsWith(request.path, '/'))
+	else if (isFolder(_filepath) && !strEndsWith(request.path, '/')) {
 		redirect(request.path + "/");
-	else if (_locationConfig.redirection != "")
+		return true;
+	}
+	else if (_locationConfig.redirection != "") {
 		redirect(_locationConfig.redirection);
+		return true;
+	}
 	return false;
 }
 

@@ -27,6 +27,7 @@ CGI::CGI(const std::string &str, LocationConfig &locationConfig, Socket &client)
 	_cgiFd[1] = -1;
 	_ready = false;
 	_scriptPath = str;
+	_pid = -1;
 	setCGI();
 }
 
