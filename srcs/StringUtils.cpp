@@ -330,18 +330,19 @@ static std::vector<std::string> getDirectoryContent(const std::string &dirPath) 
 	return arr;
 }
 
-std::string StringUtils::createDirectoryContent(const std::string &dirPath, const std::string &basePath) {
+std::string StringUtils::createDirectoryContent
+	(const std::string &dirPath, const std::string &basePath) {
 	std::vector<std::string> dirContent;
 	std::string str;
 
 	try {
-		dirContent = getDirectoryContent(dirPath + "/" + basePath);
+		dirContent = getDirectoryContent(dirPath);
 	} catch (std::exception &e) {
 		return StringUtils::createResponse(404);
 	}
 
 	for (size_t i = 0; i < dirContent.size(); i++) {
-		StringPair pair("href", basePath + dirContent[i]);
+		StringPair pair("href", basePath + "/" + dirContent[i]);
 		std::vector<StringPair> arr;
 		arr.push_back(pair);
 		str += createHtmlTag("a", dirContent[i], arr);

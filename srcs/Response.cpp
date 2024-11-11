@@ -70,7 +70,6 @@ bool	Response::fullySent() {
 void	Response::handleGet() {
 	int httpCode;
 
-
 	if (isFolder(_filepath))
 		_filepath += "/" + _locationConfig.indexFile;
 	if (!isFile(_filepath))
@@ -149,18 +148,18 @@ static void	removeTrailingChar(std::string &str, char c) {
 	}
 }
 
-static LocationConfig &findAssociatedPath
-	(std::map<std::string, LocationConfig> &locations, const std::string &root) {
-	std::map<std::string, LocationConfig>::iterator it = locations.begin();
-
-	while (it != locations.end()) {
-		if (it->second.root == root)
-			return it->second;
-		it++;
-	}
-	throw std::runtime_error("Failed to find associated path");
-	return it->second;
-}
+/* static LocationConfig &findAssociatedPath */
+/* 	(std::map<std::string, LocationConfig> &locations, const std::string &root) { */
+/* 	std::map<std::string, LocationConfig>::iterator it = locations.begin(); */
+/*  */
+/* 	while (it != locations.end()) { */
+/* 		if (it->second.root == root) */
+/* 			return it->second; */
+/* 		it++; */
+/* 	} */
+/* 	throw std::runtime_error("Failed to find associated path"); */
+/* 	return it->second; */
+/* } */
 
 bool	Response::needRedirection(Request &request) {
 	if (!isFolder(_filepath) && strEndsWith(request.path, '/')) {
@@ -180,14 +179,14 @@ bool	Response::needRedirection(Request &request) {
 }
 
 void	Response::createDirectoryList() {
-	LocationConfig &associated = findAssociatedPath(_serverConfig.locations, _locationConfig.root);
 	std::string basepath;
 
-	if (associated.name != "/")
-		basepath = associated.name;
 	for (size_t i = 0; i < _urlSplit.size(); i++)
-		basepath += _urlSplit[i] + "/";
-	_response = StringUtils::createDirectoryContent(_locationConfig.root, basepath);
+		basepath += _urlSplit[i];
+	size_t pos = basepath.find(_locationConfig.name);
+	if (pos == 0)
+		basepath.erase(0, pos);
+	_response = StringUtils::createDirectoryContent(_filepath, basepath);
 	_body.push_back(_response);
 }
 
