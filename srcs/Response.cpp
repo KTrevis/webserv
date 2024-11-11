@@ -6,6 +6,7 @@
 #include "Server.hpp"
 #include "StringUtils.hpp"
 #include "Utils.hpp"
+#include <algorithm>
 #include <cmath>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -264,6 +265,23 @@ CGI	&Response::getCGI() {
 	return _cgi;
 }
 
+static std::vector<std::string> extractHeader(std::string &str, int &code) {
+	size_t pos = str.find("\r\n\r\n");
+	std::map<std::string, std::string> fields;
+
+	if (pos == std::string::npos) return std::vector<std::string>();
+	std::string header = str.substr(0, pos);
+	std::vector<std::string> split = StringUtils::split(header, "\r\n");
+	for (size_t i = 0; i < split.size(); i++) {
+		std::vector<std::string> line = StringUtils::split(split[i], ":");
+		StringUtils::lowerStr(line[0]);
+		if (line[0] == "status")
+			code = std::atoi(line[1].c_str());
+	}
+	str.erase(0, pos + 4);
+	return split;
+}
+
 void	Response::handleCGI() {
 	int fd = getCGI().getCgiFd()[0];
 	char buffer[1024];
@@ -277,7 +295,8 @@ void	Response::handleCGI() {
 		buffer[n] = 0;
 		str += buffer;
 	}
-	std::string res = StringUtils::createResponse(200, std::vector<std::string>(), str);
+	int code = 200;
+	std::string res = StringUtils::createResponse(code, extractHeader(str, code), str);
 	_cgi._scriptPath = "";
 	_body.push_back(res);
 }
