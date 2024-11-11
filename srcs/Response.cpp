@@ -295,6 +295,7 @@ void	Response::handleCGI() {
 		buffer[n] = 0;
 		str += buffer;
 	}
+	std::cout << str << std::endl;
 	int code = 200;
 	std::string res = StringUtils::createResponse(code, extractHeader(str, code), str);
 	_cgi._scriptPath = "";

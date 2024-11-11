@@ -61,9 +61,10 @@ void	CGI::child(Socket &client) {
 	dup2(fd, 0);
 	close(fd);
 
-	const char *argv[2];
+	const char *argv[3];
 	argv[0] = _binPath.c_str();
-	argv[1] = NULL;
+	argv[1] = _scriptPath.c_str();
+	argv[2] = NULL;
 	std::vector<std::string> envVec;
     envVec.push_back("PATH_INFO=" + _args);
     envVec.push_back("REQUEST_METHOD=" + client.request.method);
