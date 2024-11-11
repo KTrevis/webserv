@@ -1,5 +1,6 @@
 #include "CGI.hpp"
 #include <cstdio>
+#include <string>
 #include <sys/wait.h>
 #include <cstdlib>
 #include <cstring>
@@ -42,6 +43,7 @@ void	CGI::child(Socket &client) {
 	std::string &cgiBody = _client.request.cgiBody;
 
 	write(fd, cgiBody.c_str(), cgiBody.size());
+	lseek(fd, 0, SEEK_SET);
 	close(_cgiFd[0]);
 	dup2(_cgiFd[1], 1);
 	close(_cgiFd[1]);
