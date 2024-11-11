@@ -8,7 +8,8 @@ class Server;
 
 class CGI {
 	public:
-		CGI(const std::string &str, LocationConfig &locationConfig, Socket &client);
+		CGI(const std::string &str, LocationConfig &locationConfig, Socket &client,
+			const std::map<std::string, std::string> &urlParams);
 		CGI();
 		~CGI();
 		void setCGI();
@@ -21,12 +22,14 @@ class CGI {
 		const std::string	&getBinPath() const;
 		bool				isReady();
 		void				killCGI();
+		std::string			createQueryString();
 		const int	(&getCgiFd() const)[2];
 		std::string			body;
 	private:
 		bool	_ready;
 		LocationConfig &_locationConfig;
 		Socket		&_client;
+		const std::map<std::string, std::string>	&_urlParams;
 		std::string	_binPath;
 		std::string _scriptPath;
 		std::string	_args;

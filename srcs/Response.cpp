@@ -139,7 +139,6 @@ static void	removeTrailingChar(std::string &str, char c) {
 	}
 }
 
-
 static LocationConfig &findAssociatedPath
 	(std::map<std::string, LocationConfig> &locations, const std::string &root) {
 	std::map<std::string, LocationConfig>::iterator it = locations.begin();
@@ -255,7 +254,7 @@ Response::Response(Socket &client, ServerConfig &serverConfig):
 	_urlSplit(extractParamsFromUrl()),
 	_locationConfig(findLocation()),
 	_filepath(getFilepath()),
-	_cgi(_filepath, _locationConfig, client),
+	_cgi(_filepath, _locationConfig, client, _urlParams),
 	_pipeEmpty(false),
 	_chunkToSend(0) {}
 

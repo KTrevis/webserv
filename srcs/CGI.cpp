@@ -1,11 +1,21 @@
-#include "CGI.hpp"
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   CGI.cpp                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ketrevis <ketrevis@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/11 13:28:32 by ketrevis          #+#    #+#             */
+/*   Updated: 2024/11/11 14:14:57 by ketrevis         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <cstdio>
 #include <string>
 #include <sys/wait.h>
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
-#include <fstream>
 #include <sstream>
 #include <ctime>
 #include <ios>
@@ -13,9 +23,9 @@
 #include <signal.h>
 #include <iomanip>
 #include <vector>
+#include "CGI.hpp"
 #include "Log.hpp"
 #include "StringUtils.hpp"
-#include "Server.hpp"
 
 CGI::~CGI() {
 	if (_cgiFd[0] == -1) return;
@@ -23,14 +33,27 @@ CGI::~CGI() {
 	close(_cgiFd[1]);
 }
 
-CGI::CGI(const std::string &str, LocationConfig &locationConfig, Socket &client):
-	_locationConfig(locationConfig), _client(client) {
+CGI::CGI(const std::string &str, LocationConfig &locationConfig, Socket &client,
+	const std::map<std::string, std::string> &urlParams):
+	_locationConfig(locationConfig), _client(client), _urlParams(urlParams) {
 	_cgiFd[0] = -1;
 	_cgiFd[1] = -1;
 	_ready = false;
 	_scriptPath = str;
 	_pid = -1;
 	setCGI();
+}
+
+std::string CGI::createQueryString() {
+	std::string str;
+
+	for (std::map<std::string, std::string>::const_iterator it = _urlParams.begin();
+		it != _urlParams.end(); it++) {
+		std::string key = it->first;
+		std::string value = it->second;
+		str += it->first + "=" + it->second + "&";
+	}
+	return str;
 }
 
 void	CGI::child(Socket &client) {
@@ -50,26 +73,25 @@ void	CGI::child(Socket &client) {
 	dup2(fd, 0);
 	close(fd);
 
-	char **argv = new char*[2];
-	argv[0] = strdup(_binPath.c_str());
+	const char *argv[2];
+	argv[0] = _binPath.c_str();
 	argv[1] = NULL;
+	std::vector<std::string> envVec;
+    envVec.push_back("PATH_INFO=" + _args);
+    envVec.push_back("REQUEST_METHOD=" + client.request.method);
+    envVec.push_back("CONTENT_LENGTH=" + StringUtils::itoa(cgiBody.size()));
+    envVec.push_back("SCRIPT_NAME=" + _scriptPath);
+    envVec.push_back("SCRIPT_FILENAME=" + _scriptPath);
+    envVec.push_back("REDIRECT_STATUS=200");
+    envVec.push_back("CONTENT_TYPE=" + client.request.headerArguments["content-type"]);
 
-	char **env = new (char *[8]);
-	env[0] = strdup(std::string("PATH_INFO=" + _args).c_str());
-	env[1] = strdup(std::string("REQUEST_METHOD=" + client.request.method).c_str());
-	env[2] = strdup(std::string("CONTENT_LENGTH=" + StringUtils::itoa(cgiBody.size())).c_str());
-	env[3] = strdup(std::string("SCRIPT_NAME=" + _scriptPath).c_str());
-	env[4] = strdup(std::string("SCRIPT_FILENAME=" + _scriptPath).c_str());
-	env[5] = strdup("REDIRECT_STATUS=200");
-	env[6] = strdup(std::string("CONTENT_TYPE=" + client.request.headerArguments["content-type"]).c_str());
-	env[7] = NULL;
+    // Allocate and assign to the env array
+    const char *env[envVec.size() + 1];
+	for (size_t i = 0; i < envVec.size(); i++)
+		env[i] = envVec[i].c_str();
+    env[envVec.size()] = NULL;  // Null-terminate the array
 
-	execve(_binPath.c_str(), argv, env);
-	free(argv[0]);
-	free(argv[1]);
-	free(env[0]);
-	delete[] env;
-	delete[] argv;
+	execve(_binPath.c_str(), const_cast<char**>(argv), const_cast<char**>(env));
 	return;
 }
 
