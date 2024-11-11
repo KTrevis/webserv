@@ -258,5 +258,6 @@ void	Response::handleCGI() {
 		str += buffer;
 	}
 	std::string res = StringUtils::createResponse(200, std::vector<std::string>(), str);
+	_cgi._scriptPath = "";
 	_body.push_back(res);
 }
