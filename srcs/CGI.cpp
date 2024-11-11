@@ -29,6 +29,7 @@ CGI::CGI(const std::string &str, LocationConfig &locationConfig, Socket &client,
 	_ready = false;
 	_scriptPath = str;
 	_pid = -1;
+	_exitCode = -1;
 	setCGI();
 }
 
@@ -123,8 +124,15 @@ void CGI::setCGI() {
 
 bool	CGI::isReady() {
 	if (_pid == -1) return false;
-	if (waitpid(_pid, NULL, WNOHANG) == _pid)
+	int status = -1;
+
+	if (waitpid(_pid, &status, WNOHANG) == _pid) {
 		_ready = true;
+		if (WIFEXITED(status))
+			_exitCode = WEXITSTATUS(status);
+		else if (WIFSIGNALED(status))
+			_exitCode = -WTERMSIG(status);
+	}
 	return _ready;
 }
 
@@ -149,9 +157,5 @@ const int	(&CGI::getCgiFd() const)[2] {
 }
 
 void	CGI::createPipe() {
-	pipe(_cgiFd);
-	int flags = fcntl(_cgiFd[0], F_GETFL);
-	fcntl(_cgiFd[0], F_SETFL, flags | O_NONBLOCK);
-	flags = fcntl(_cgiFd[1], F_GETFL);
-	fcntl(_cgiFd[1], F_SETFL, flags | O_NONBLOCK);
+	pipe2(_cgiFd, O_NONBLOCK);
 }
