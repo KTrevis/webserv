@@ -33,13 +33,28 @@ std::string Request::parseVer() {
 	return (tmp);
 }
 
+static size_t findValueEnd(const std::string &str) {
+	for (int i = str.size() - 1; i >= 0; i--) {
+		if (i == 0)
+			return i;
+		if (str[i] != ' ')
+			return i;
+	}
+	return 0;
+}
+
 std::pair<std::string, std::string> Request::parseHeaderline() {
 	std::pair<std::string, std::string> pair;
 	std::string tmp(request, 0, request.find("\r\n"));
+	size_t pos = tmp.find(':');
 	
-	pair.first = tmp.substr(0, tmp.find(":"));
+	pair.first = tmp.substr(0, pos);
 	StringUtils::lowerStr(pair.first);
-	pair.second = tmp.substr(tmp.find(":") + 2, tmp.size());
+	pos++;
+	while (tmp[pos] == ' ')
+		pos++;
+	size_t end = findValueEnd(tmp) - pos + 1;
+	pair.second = tmp.substr(pos, end);
 	request.erase(0, request.find("\r\n") + 2);
 	return (pair);
 }
@@ -53,7 +68,7 @@ void Request::parseHeader() {
 			break;
 		}
 		tmp = parseHeaderline();
-		headerArguments.insert(tmp);
+		headerArguments[tmp.first] = tmp.second;
 	}
 	request.erase(0, 2);
 }

@@ -26,10 +26,13 @@ sleep(0.5)
 
 def testGet(exceptedCode: int, url: str, hostname: str = ""):
     headers = {
-            "host": hostname
+            "host": hostname,
             }
-    response = requests.get(url)
-    print(f"{BLUE}Testing at url {url}{RESET}")
+    response = requests.get(url, headers=headers)
+    print(f"{BLUE}Testing at url {url}{RESET}", end="")
+    if hostname != "":
+        print(f"{BLUE} with hostname {hostname}{RESET}", end = "")
+    print()
     if response.status_code == exceptedCode:
         print(f"{GREEN}OK{RESET}")
     else:
@@ -47,9 +50,28 @@ tests = {
         "http://localhost:3434/oui": 403,
         "http://localhost:3434/oui/": 403,
         }
+
 for key in tests:
     testGet(tests[key], key)
 for key in tests:
     testGet(tests[key], key, "test.com")
+for key in tests:
+    testGet(tests[key], key, "aled")
+
+tests = {
+        "http://localhost:3434": 200,
+        "http://localhost:3434/": 200,
+        "http://localhost:3434/list": 404,
+        "http://localhost:3434/broken.php": 404,
+        "http://localhost:3434/test.php": 404,
+        "http://localhost:3434/test.php/": 404,
+        "http://localhost:3434/upload": 404,
+        "http://localhost:3434/upload/": 404,
+        "http://localhost:3434/oui": 403,
+        "http://localhost:3434/oui/": 403,
+        }
+
+for key in tests:
+    testGet(tests[key], key, "oui.com")
 
 webserv.terminate()

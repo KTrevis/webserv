@@ -27,7 +27,7 @@ ServerConfig &Utils::getServerConfig(Server &server, Socket &client) {
 	else
 		hostname = StringUtils::split(hostArg, ":")[0];
 	std::map<std::string, ServerConfig> &serverConfigs = server.serverConfigs[client.getPort()];
-	if (serverConfigs.find(hostname) == serverConfigs.end() || hostname == "localhost")
+	if (serverConfigs.find(hostname) == serverConfigs.end())
 		hostname = getDefaultServerName(serverConfigs);
 	return serverConfigs[hostname];
 }
