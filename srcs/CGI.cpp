@@ -50,9 +50,9 @@ void	CGI::child(Socket &client) {
 	dup2(fd, 0);
 	close(fd);
 
-	char **argv = new char*[3];
+	char **argv = new char*[2];
 	argv[0] = strdup(_binPath.c_str());
-	argv[2] = NULL;
+	argv[1] = NULL;
 
 	char **env = new (char *[8]);
 	env[0] = strdup(std::string("PATH_INFO=" + _args).c_str());
