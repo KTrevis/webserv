@@ -4,6 +4,7 @@
 #include "StringUtils.hpp"
 #include "Utils.hpp"
 #include <fstream>
+#include "Socket.hpp"
 
 Request::Request() {
 	resCode = 0;
@@ -139,7 +140,6 @@ void	Request::parseBody(Server &server, Socket &client) {
 		return;
 	cgiBody = request;
 	createBody();
-	/* resCode = 202; */
 	state = SEND_RESPONSE; 
 }
 
