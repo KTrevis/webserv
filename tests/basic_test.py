@@ -12,7 +12,7 @@ RED = '\033[31m'
 GREEN = '\033[32m'
 RESET = '\033[0m'
 
-webserv = subprocess.Popen(["./webserv", "./config/test.conf"],
+webserv = subprocess.Popen(["./webserv", "./tests/test.conf"],
     stdout=subprocess.DEVNULL, stderr=open("/dev/null"))
 
 def shutdown(signal, frame):
@@ -51,8 +51,12 @@ tests = {
         "http://localhost:3434/oui/": 403,
         }
 
+print("\n[BASIC TESTS]\n")
 for key in tests:
     testGet(tests[key], key)
+
+
+print("\n[HOSTNAME TEST]\n")
 for key in tests:
     testGet(tests[key], key, "test.com")
 for key in tests:
