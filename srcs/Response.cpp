@@ -63,7 +63,6 @@ std::string Response::getFilepath() {
 		filepath.erase(pos, _locationConfig.root.size());
 	if (filepath[filepath.size() - 1] == '/')
 		filepath.erase(filepath.size() - 1);
-	std::cout << filepath << std::endl;
 	return filepath;
 }
 
