@@ -213,7 +213,9 @@ void	Response::setup() {
 	e_methods method = it->second;
 
 	_i = 0;
-	if (request.resCode != 0)
+	if (!(_locationConfig.methodMask & method))
+		setErrorPage(403);
+	else if (request.resCode != 0)
 		setErrorPage(request.resCode);
 	else if (needRedirection(request)) 
 		{}

@@ -1,19 +1,55 @@
+import json
+import os
+import signal
 import socket
+from time import sleep
+import requests
+import subprocess
 import sys
 
-def main():
-    server_ip = "localhost"
-    port = 8888
-    try:
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((server_ip, port))
-        print("Connected to the server")
-    except ConnectionRefusedError:
-        print("Connection refused by the server. Make sure the server is running and reachable.")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-    finally:
-        # Close the socket connection
-        client_socket.close()
+BLUE = '\033[34m'
+RED = '\033[31m'
+GREEN = '\033[32m'
+RESET = '\033[0m'
 
-main()
+webserv = subprocess.Popen(["./webserv", "./config/test.conf"],
+    stdout=subprocess.DEVNULL, stderr=open("/dev/null"))
+
+def shutdown(signal, frame):
+    print(f"${RED}Shutting down webserv...${RESET}")
+    webserv.terminate()
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, shutdown)
+
+sleep(0.5)
+
+def testGet(exceptedCode: int, url: str, hostname: str = ""):
+    headers = {
+            "host": hostname
+            }
+    response = requests.get(url)
+    print(f"{BLUE}Testing at url {url}{RESET}")
+    if response.status_code == exceptedCode:
+        print(f"{GREEN}OK{RESET}")
+    else:
+        print(f"{RED}KO: {response.status_code} instead of {exceptedCode}{RESET}")
+    return response.text
+
+tests = {
+        "http://localhost:3434": 404,
+        "http://localhost:3434/list": 200,
+        "http://localhost:3434/broken.php": 500,
+        "http://localhost:3434/test.php": 200,
+        "http://localhost:3434/test.php/": 200,
+        "http://localhost:3434/upload": 200,
+        "http://localhost:3434/upload/": 200,
+        "http://localhost:3434/oui": 403,
+        "http://localhost:3434/oui/": 403,
+        }
+for key in tests:
+    testGet(tests[key], key)
+for key in tests:
+    testGet(tests[key], key, "test.com")
+
+webserv.terminate()
