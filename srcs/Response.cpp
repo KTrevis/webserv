@@ -5,6 +5,7 @@
 #include "Request.hpp"
 #include "Server.hpp"
 #include "StringUtils.hpp"
+#include "Utils.hpp"
 #include <cmath>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -230,10 +231,28 @@ void	Response::setup() {
 		handleDelete();
 }
 
+std::vector<std::string>	Response::extractParamsFromUrl() {
+	std::vector<std::string> urlSplit = StringUtils::split(_client.request.path, "/", true);
+	if (_urlSplit.size() == 0) return urlSplit;
+	std::string &url = urlSplit[_urlSplit.size() - 1];
+
+	size_t questionMark = url.find("?");
+	if (questionMark == std::string::npos) return urlSplit;
+	std::vector<std::string> params = StringUtils::split(url.substr(questionMark + 1), "&");
+	for (size_t i = 0; i < params.size(); i++) {
+		size_t pos = params[i].find("=");
+		std::string key = params[i].substr(0, pos);
+		std::string value = params[i].substr(pos + 1);
+		_urlParams[key] = value;
+	}
+	url.erase(questionMark);
+	return urlSplit;
+}
+
 Response::Response(Socket &client, ServerConfig &serverConfig):
 	_client(client),
 	_serverConfig(serverConfig),
-	_urlSplit(StringUtils::split(client.request.path, "/", true)),
+	_urlSplit(extractParamsFromUrl()),
 	_locationConfig(findLocation()),
 	_filepath(getFilepath()),
 	_cgi(_filepath, _locationConfig, client),

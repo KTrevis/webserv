@@ -29,9 +29,11 @@ class Response {
 		bool	needRedirection(Request &request);
 		bool	isDirectoryList();
 		void	createDirectoryList();
+		std::vector<std::string>	extractParamsFromUrl();
 		std::string		getFilepath();
 		LocationConfig &findLocation();
 		std::string		setCGI();
+		std::map<std::string, std::string>	_urlParams;
 		Socket						&_client;
 		ServerConfig				&_serverConfig;
 		std::vector<std::string>	_urlSplit;
