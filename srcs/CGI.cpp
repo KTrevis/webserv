@@ -52,14 +52,15 @@ void	CGI::child(Socket &client) {
 	argv[0] = strdup(_binPath.c_str());
 	argv[2] = NULL;
 
-	char **env = new (char *[2]);
+	char **env = new (char *[8]);
 	env[0] = strdup(std::string("PATH_INFO=" + _args).c_str());
 	env[1] = strdup(std::string("REQUEST_METHOD=" + client.request.method).c_str());
 	env[2] = strdup(std::string("CONTENT_LENGTH=" + StringUtils::itoa(cgiBody.size())).c_str());
 	env[3] = strdup(std::string("SCRIPT_NAME=" + _scriptPath).c_str());
 	env[4] = strdup(std::string("SCRIPT_FILENAME=" + _scriptPath).c_str());
 	env[5] = strdup("REDIRECT_STATUS=200");
-	env[6] = NULL;
+	env[6] = strdup(std::string("CONTENT_TYPE=" + client.request.headerArguments["content-type"]).c_str());
+	env[7] = NULL;
 
 	execve(_binPath.c_str(), argv, env);
 	free(argv[0]);

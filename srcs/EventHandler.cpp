@@ -33,11 +33,11 @@ static void handleReceivedData(Server &server, epoll_event event) {
 		return Log::Error("recv failed");
 	client.updateActivity();
 	request.reserve(n);
-	client.request.cgiBody.reserve(n);
+	/* client.request.cgiBody.reserve(n); */
 	for (int i = 0; i < n; i++)
 		request += buffer[i];
-	for (int i = 0; i < n; i++)
-		client.request.cgiBody += buffer[i];
+	/* for (int i = 0; i < n; i++) */
+	/* 	client.request.cgiBody += buffer[i]; */
 	if (client.request.state == IDLE)
 		client.request.state = PARSE_METHOD;
 }
@@ -54,7 +54,7 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 	server.responses.insert(pair);
 	it = server.responses.find(client.getFd());
 	it->second.setup();
-	request.clear(false);
+	request.clear();
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
 	server.modifyPoll(client.getFd(), event);
 }

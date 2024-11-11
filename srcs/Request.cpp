@@ -137,9 +137,10 @@ void	Request::parseBody(Server &server, Socket &client) {
 		return;
 	if (static_cast<size_t> (std::atoi(it->second.c_str())) != request.size())
 		return;
-	/* cgiBody = body; */
+	cgiBody = request;
 	createBody();
-	resCode = 202;
+	/* resCode = 202; */
+	state = SEND_RESPONSE; 
 }
 
 bool	Request::checkMethods(std::string method) {
@@ -188,7 +189,7 @@ void	Request::parseRequest(Server &server, Socket &client) {
 				}
 			}
 			break;
-		case (PARSE_BODY) : parseBody(server, client); state = SEND_RESPONSE; break;
+		case (PARSE_BODY) : parseBody(server, client); break;
 		case (SEND_RESPONSE) : return;
 		case (IDLE) : return;
 	}
