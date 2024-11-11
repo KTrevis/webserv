@@ -58,8 +58,12 @@ std::string Response::getFilepath() {
 
 	for(;_i < _urlSplit.size(); _i++)
 		filepath += _urlSplit[_i];
-	if (filepath.find_last_of("/") == filepath.size() - 1)
+	size_t pos = filepath.find(_locationConfig.name);
+	if (pos == _locationConfig.root.size())
+		filepath.erase(pos, _locationConfig.root.size());
+	if (filepath[filepath.size() - 1] == '/')
 		filepath.erase(filepath.size() - 1);
+	std::cout << filepath << std::endl;
 	return filepath;
 }
 
@@ -147,19 +151,6 @@ static void	removeTrailingChar(std::string &str, char c) {
 		i--;
 	}
 }
-
-/* static LocationConfig &findAssociatedPath */
-/* 	(std::map<std::string, LocationConfig> &locations, const std::string &root) { */
-/* 	std::map<std::string, LocationConfig>::iterator it = locations.begin(); */
-/*  */
-/* 	while (it != locations.end()) { */
-/* 		if (it->second.root == root) */
-/* 			return it->second; */
-/* 		it++; */
-/* 	} */
-/* 	throw std::runtime_error("Failed to find associated path"); */
-/* 	return it->second; */
-/* } */
 
 bool	Response::needRedirection(Request &request) {
 	if (!isFolder(_filepath) && strEndsWith(request.path, '/')) {

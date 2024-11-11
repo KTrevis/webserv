@@ -117,7 +117,10 @@ bool	ConfigParser::parseLine(const std::vector<std::string> &line) {
 bool	ConfigParser::addLocationConfig(size_t &i, const std::string &locationName) {
 	ServerConfig	&serverConfig = _configs[_configs.size() - 1];
 	try {
-		serverConfig.locations.insert(std::make_pair(locationName, LocationConfig(i, _lines, locationName)));
+		std::string name = locationName;
+		if (name != "/" && name[name.size() - 1] == '/')
+			name.erase(name.size() - 1);
+		serverConfig.locations.insert(std::make_pair(name, LocationConfig(i, _lines, locationName)));
 		/* locationConfig.displayData(); */
 	} catch (std::exception &e) {
 		Log::Error(e.what());
