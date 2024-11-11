@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   CGI.cpp                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ketrevis <ketrevis@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/11/11 13:28:32 by ketrevis          #+#    #+#             */
-/*   Updated: 2024/11/11 14:14:57 by ketrevis         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <cstdio>
 #include <string>
 #include <sys/wait.h>
@@ -84,13 +72,12 @@ void	CGI::child(Socket &client) {
     envVec.push_back("SCRIPT_FILENAME=" + _scriptPath);
     envVec.push_back("REDIRECT_STATUS=200");
     envVec.push_back("CONTENT_TYPE=" + client.request.headerArguments["content-type"]);
+    envVec.push_back("QUERY_STRING=" + createQueryString());
 
-    // Allocate and assign to the env array
-    const char *env[envVec.size() + 1];
+	const char *env[envVec.size() + 1];
 	for (size_t i = 0; i < envVec.size(); i++)
 		env[i] = envVec[i].c_str();
-    env[envVec.size()] = NULL;  // Null-terminate the array
-
+    env[envVec.size()] = NULL;
 	execve(_binPath.c_str(), const_cast<char**>(argv), const_cast<char**>(env));
 	return;
 }

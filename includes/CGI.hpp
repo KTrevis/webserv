@@ -29,7 +29,7 @@ class CGI {
 		bool	_ready;
 		LocationConfig &_locationConfig;
 		Socket		&_client;
-		const std::map<std::string, std::string>	&_urlParams;
+		const std::map<std::string, std::string>	_urlParams;
 		std::string	_binPath;
 		std::string _scriptPath;
 		std::string	_args;

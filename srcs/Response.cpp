@@ -241,7 +241,9 @@ std::vector<std::string>	Response::extractParamsFromUrl() {
 	for (size_t i = 0; i < params.size(); i++) {
 		size_t pos = params[i].find("=");
 		std::string key = params[i].substr(0, pos);
-		std::string value = params[i].substr(pos + 1);
+		std::string value;
+		if (pos != std::string::npos)
+			value = params[i].substr(pos + 1);
 		_urlParams[key] = value;
 	}
 	url.erase(questionMark);
