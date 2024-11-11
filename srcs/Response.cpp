@@ -48,6 +48,11 @@ static bool	isFolder(const std::string &name) {
 	return (stat(name.c_str(), &s_stat) == 0 && S_ISDIR(s_stat.st_mode));
 }
 
+static bool isFile(const std::string& path) {
+    struct stat buffer;
+    return (stat(path.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
+}
+
 std::string Response::getFilepath() {
 	std::string filepath = _locationConfig.root;
 
@@ -65,8 +70,11 @@ bool	Response::fullySent() {
 void	Response::handleGet() {
 	int httpCode;
 
+
 	if (isFolder(_filepath))
 		_filepath += "/" + _locationConfig.indexFile;
+	if (!isFile(_filepath))
+		setErrorPage(404);
 	_contentType = StringUtils::fileExtensionToType(_filepath);
 	Log::Trace("Fetching file at: " + _filepath);
 	try {
@@ -121,6 +129,7 @@ void Response::redirect(const std::string &url) {
 	headerFields.reserve(1);
 	headerFields.push_back(HeaderFields::location(url));
 
+	_cgi._scriptPath = "";
 	_response = StringUtils::createResponse(301, headerFields);
 	_body.push_back(_response);
 }
@@ -221,8 +230,11 @@ void	Response::setup() {
 		{}
 	else if (isDirectoryList())
 		createDirectoryList();
-	else if ((method == GET || method == POST) && _cgi.getScriptPath() != "")
+	else if ((method == GET || method == POST) && _cgi.getScriptPath() != "") {
+		if (!isFile(_cgi.getScriptPath()))
+			return setErrorPage(404);
 		_cgi.exec();
+	}
 	else if (method == GET)
 		handleGet();
 	else if (method == POST)
