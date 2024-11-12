@@ -4,6 +4,7 @@
 #include "StringUtils.hpp"
 #include "Utils.hpp"
 #include <fstream>
+#include <string>
 #include "Socket.hpp"
 
 Request::Request() {
@@ -142,8 +143,11 @@ void Request::createOneFile(std::string &boundarieKey) {
 
 void	Request::createBody() {
 	std::string boundarieKey(request, 0, request.find("\r\n"));
-	while ((request.find_last_of("--") != (request.find(boundarieKey) + boundarieKey.size() + 1)))
+	size_t pos = request.find_last_of("--");
+	while ((pos != (request.find(boundarieKey) + boundarieKey.size() + 1)) && pos != std::string::npos) {
 		createOneFile(boundarieKey);
+		pos = request.find_last_of("--");
+	}
 }
 
 void	Request::parseBody(Server &server, Socket &client) {
