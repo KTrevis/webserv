@@ -42,7 +42,14 @@ void	ConfigParser::displayFile() {
 }
 
 bool	ConfigParser::serverParsing(const std::vector<std::string> &line) {
-	if (line.size() != 2 || line[1] != "{" || _scope & SERVER) return false;
+	if (line.size() != 2 || line[1] != "{") {
+		Log::Error("server: a crly brace should be present after server");
+		return false;
+	}
+	if (_scope & SERVER) {
+		Log::Error("server: server block found in another server block");
+		return false;
+	}
 
 	_configs.push_back(ServerConfig());
 	_scope += SERVER;
@@ -56,7 +63,10 @@ bool	ConfigParser::locationParsing(const std::vector<std::string> &line) {
 	if (isToken(locationName[0])) return false;
 
 	const std::string &curlyBrace = line[2];
-	if (curlyBrace != "{") return false;
+	if (curlyBrace != "{") {
+		Log::Error("location: missing curly brace after location name");
+		return false;
+	}
 	_scope += LOCATION;
 	return true;
 }
@@ -72,29 +82,30 @@ static unsigned int getAddress(const std::string &address) {
 bool	ConfigParser::handleListen(const std::vector<std::string> &line) {
 	if (!(_scope & SERVER) || line.size() != 2) return false;
 	std::vector<std::string> split = StringUtils::split(line[1], ":", false);
-	if (split.size() > 2) return false;
-
+	if (split.size() > 2) {
+		Log::Error("listen: no value");
+		return false;
+	}
 	const std::string &port = split[split.size() - 1];
 	unsigned int addr = split.size() == 2 ? getAddress(split[0]) : INADDR_ANY;
-	if (!StringUtils::isPositiveNumber(port)) return false;
-
+	if (!StringUtils::isPositiveNumber(port)) {
+		Log::Error("listen: value should be a positive number");
+		return false;
+	} 
 	(_configs.end() - 1)->address = Address(addr, std::atoi(port.c_str()));
 	return true;
 
 }
 
-bool	ConfigParser::handleBodySize(const std::vector<std::string> &line) {
-	if (!(_scope & SERVER) || line.size() != 2)
-		return false;
-	if (!StringUtils::isPositiveNumber(line[1]))
-		return false;
-	(_configs.end() - 1)->maxBodySize = std::atoi(line[1].c_str());
-	return true;
-}
-
 bool	ConfigParser::handleServerName(const std::vector<std::string> &line) {
-	if (!(_scope & SERVER) || line.size() != 2)
+	if (!(_scope & SERVER)) {
+		Log::Error("server_name: found outside of a server block");
 		return false;
+	}
+	if (line.size() != 2) {
+		Log::Error("server_name: no value");
+		return false;
+	}
 	(_configs.end() - 1)->serverName = line[1];
 	return true;
 }
@@ -142,6 +153,8 @@ ConfigParser::ConfigParser(const std::string &filename) {
 		while (i < _lines.size() && _lines[i][0] == "}") {
 			if (_lines[i].size() != 1)
 				throw std::runtime_error("ConfigParser constructor: unexpected token");
+			if (_scope == 0)
+				throw std::runtime_error("ConfigParser constructor: curly brace not closed/opened");
 			_scope -= _currScope;
 			if (_scope < 0)
 				throw std::runtime_error("ConfigParser constructor: duplicate location/server");

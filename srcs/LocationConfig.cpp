@@ -1,10 +1,12 @@
 #include "LocationConfig.hpp"
+#include "Log.hpp"
 #include "StringUtils.hpp"
 #include <algorithm>
 #include <cstdlib>
 #include <map>
 #include <stdexcept>
 #include "Request.hpp"
+#include "Utils.hpp"
 
 bool	LocationConfig::setMethods(const StringVector &arr) {
 	std::map<std::string, e_methods> map = StringUtils::getStrToMaskMethod();
@@ -20,7 +22,10 @@ bool	LocationConfig::setMethods(const StringVector &arr) {
 }
 
 bool	LocationConfig::setRoot(const StringVector &arr) {
-	if (arr.size() != 2) return false;
+	if (arr.size() != 2) {
+		Log::Error("root: missing arg");
+		return false;
+	}	
 	root = arr[1];
 	return true;
 }
@@ -109,7 +114,7 @@ LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines
 		std::map<std::string, MemberFunctionPtr>::iterator it = map.find(key);
 
 		if (it == map.end())
-			throw std::runtime_error("invalid key: " + key);
+			throw std::runtime_error("LocationConfig: empty");
 		if (!(this->*(it->second))(line)) // calls the function associated to the string
 			throw std::runtime_error(errorString(key));
 		if (lines[i + 1][0] == "}") // if end of the location scope
