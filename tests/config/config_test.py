@@ -9,17 +9,23 @@ RED = '\033[31m'
 GREEN = '\033[32m'
 RESET = '\033[0m'
 
+def confTest(confPath: str, expectedCode: int):
+    webserv = subprocess.Popen(["./webserv", confPath],
+                               stdout=subprocess.DEVNULL, stderr=open("/dev/null"))
+    exitCode: int = 0
+    try:
+        exitCode = webserv.wait(0.5)
+    except:
+        webserv.terminate()
+    if exitCode == expectedCode:
+        print(f"{GREEN}OK{RESET}")
+    else:
+        print(f"{RED}KO{RESET}")
 
-def shutdown(signal, frame):
-    print(f"${RED}Shutting down webserv...${RESET}")
-    webserv.terminate()
-    sys.exit(0)
+tests = {
+        "./tests/conf/empty.conf": 1,
+        "./config/nginx.conf": 0,
+        }
 
-signal.signal(signal.SIGINT, shutdown)
-
-webserv = subprocess.Popen(["./webserv", "./tests/conf/error_code.conf"],
-                           stdout=subprocess.DEVNULL, stderr=open("/dev/null"))
-sleep(0.1)
-
-exitCode = webserv.wait()
-print(exitCode)
+for key in tests:
+    confTest(key, tests[key])

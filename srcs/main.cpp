@@ -25,5 +25,6 @@ int	main(int ac, char **av) {
 		server.start();
 	} catch (std::exception &e) {
 		Log::Trace(e.what());
+		return std::string(e.what()) != "Shutting down server...";
 	}
 }
