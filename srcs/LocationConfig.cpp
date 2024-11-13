@@ -123,7 +123,13 @@ LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines
 	displayData();
 }
 
-LocationConfig::LocationConfig() {}
+LocationConfig::LocationConfig() {
+	root = "./www/main";
+	indexFile = "index.html";
+	autoIndex = false;
+	methodMask = GET | POST | DELETE;
+	name = "/";
+}
 
 static std::string	methodToStr(int method) {
 	std::map<int, std::string>	map;

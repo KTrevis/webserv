@@ -214,7 +214,7 @@ void	Response::setup() {
 
 	_i = 0;
 	if (!(_locationConfig.methodMask & method))
-		setErrorPage(403);
+		setErrorPage(405);
 	else if (request.resCode != 0)
 		setErrorPage(request.resCode);
 	else if (needRedirection(request)) 
