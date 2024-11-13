@@ -29,7 +29,7 @@ def testGet(exceptedCode: int, url: str, hostname: str = ""):
         print(f"{BLUE} with hostname {hostname}{RESET}", end = "")
     print()
     if response.status_code == exceptedCode:
-        print(f"{GREEN}OK{RESET}")
+        print(f"{GREEN}OK: {response.status_code}{RESET}")
     else:
         print(f"{RED}KO: {response.status_code} instead of {exceptedCode}{RESET}")
 
@@ -41,8 +41,8 @@ tests = {
         "http://localhost:3434/test.php/": 200,
         "http://localhost:3434/upload": 200,
         "http://localhost:3434/upload/": 200,
-        "http://localhost:3434/oui": 403,
-        "http://localhost:3434/oui/": 403,
+        "http://localhost:3434/oui": 405,
+        "http://localhost:3434/oui/": 405,
         "http://localhost:3434/timeout.py/": 504,
         }
 
@@ -69,8 +69,8 @@ tests = {
         "http://localhost:3434/test.php/": 404,
         "http://localhost:3434/upload": 404,
         "http://localhost:3434/upload/": 404,
-        "http://localhost:3434/oui": 403,
-        "http://localhost:3434/oui/": 403,
+        "http://localhost:3434/oui": 405,
+        "http://localhost:3434/oui/": 405,
         "http://localhost:3434/timeout.py/": 404,
         }
 

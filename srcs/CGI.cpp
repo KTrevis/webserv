@@ -45,8 +45,7 @@ std::string CGI::createQueryString() {
 	return str;
 }
 
-void	CGI::child(Socket &client) {
-	(void)client;
+void	CGI::child() {
 	srand(time(0));
     std::stringstream ss;
     ss << std::hex << std::setfill('0') << std::setw(8) << rand();
@@ -68,12 +67,12 @@ void	CGI::child(Socket &client) {
 	argv[2] = NULL;
 	std::vector<std::string> envVec;
     envVec.push_back("PATH_INFO=" + _args);
-    envVec.push_back("REQUEST_METHOD=" + client.request.method);
+    envVec.push_back("REQUEST_METHOD=" + _client.request.method);
     envVec.push_back("CONTENT_LENGTH=" + StringUtils::itoa(cgiBody.size()));
     envVec.push_back("SCRIPT_NAME=" + _scriptPath);
     envVec.push_back("SCRIPT_FILENAME=" + _scriptPath);
     envVec.push_back("REDIRECT_STATUS=200");
-    envVec.push_back("CONTENT_TYPE=" + client.request.headerArguments["content-type"]);
+    envVec.push_back("CONTENT_TYPE=" + _client.request.headerArguments["content-type"]);
     envVec.push_back("QUERY_STRING=" + createQueryString());
 
 	const char *env[envVec.size() + 1];
