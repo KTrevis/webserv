@@ -94,7 +94,6 @@ bool	ConfigParser::handleListen(const std::vector<std::string> &line) {
 	} 
 	(_configs.end() - 1)->address = Address(addr, std::atoi(port.c_str()));
 	return true;
-
 }
 
 bool	ConfigParser::handleServerName(const std::vector<std::string> &line) {
@@ -120,7 +119,10 @@ bool	ConfigParser::parseLine(const std::vector<std::string> &line) {
 	switch (_currScope) {
 		case (SERVER): return serverParsing(line);
 		case (LOCATION): return locationParsing(line);
-		case (NONE): return (line[0] == "location");
+		case (NONE): 
+		if (line[0] == "location")
+			return true;
+		Log::Error("expected location, got: " + line[0]);
 	}
 	return false;
 }

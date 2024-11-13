@@ -24,6 +24,10 @@ bool Server::parseConfig(std::map<std::string, ServerConfig> &map) {
 	if (fd == -1) return false;
 	int n = 1;
 	int port = map.begin()->second.address.getPort();
+	if (port == 0) {
+		Log::Error("Invalid port");
+		return false;
+	}
 	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &n, sizeof(n));
 
 	Log::Trace(StringUtils::itoa(fd) + " server socket created");

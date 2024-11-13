@@ -4,7 +4,7 @@
 
 void	Log::Error(const std::string &str) {
 	if (LOG_LEVEL >= ERROR)
-		std::cout << RED<< "[ERROR]: " << str << RESET << std::endl;
+		std::cerr << RED<< "[ERROR]: " << str << RESET << std::endl;
 }
 
 void	Log::Info(const std::string &str) {
