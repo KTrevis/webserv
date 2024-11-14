@@ -16,6 +16,7 @@ class Server {
 		Server(std::vector<ServerConfig> &arr);
 		~Server();
 		void	start();
+		bool	stop;
 		std::map<int, std::map<std::string, ServerConfig> >	serverConfigs;
 		std::map<int, Socket>		sockets;
 		void	closeConnection(epoll_event &event);

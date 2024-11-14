@@ -15,8 +15,11 @@
 #include <stdio.h>
 
 void	Server::start() {
-	while (1)
+	while (1) {
+		if (stop)
+			return;
 		wait();
+	}
 }
 
 bool Server::parseConfig(std::map<std::string, ServerConfig> &map) {
@@ -55,6 +58,7 @@ void	Server::initServerConfigs(std::vector<ServerConfig> &arr) {
 }
 
 Server::Server(std::vector<ServerConfig> &arr) {
+	stop = false;
 	explicit_bzero(_events, sizeof(_events));
 	_epollfd = epoll_create1(0);
 	initializeTimer(_epollfd);
