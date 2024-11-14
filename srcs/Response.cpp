@@ -294,14 +294,14 @@ void	Response::handleCGI() {
 	int n = 1;
 	std::string str;
 
-	while (n) {
+	int code = _cgi._exitCode == 0 ? 200 : 500;
+	while (code == 200 && n) {
 		n = read(fd, buffer, 1024);
 		if (n == -1 || n == 0)
 			break;
 		buffer[n] = 0;
 		str += buffer;
 	}
-	int code = _cgi._exitCode == 0 ? 200 : 500;
 	std::string res = StringUtils::createResponse(code, extractHeader(str), str);
 	_cgi._scriptPath = "";
 	_body.push_back(res);

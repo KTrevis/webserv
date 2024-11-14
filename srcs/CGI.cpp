@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <stdexcept>
 #include <string>
 #include <sys/wait.h>
 #include <cstdlib>
@@ -81,6 +82,7 @@ void	CGI::child() {
 		env[i] = envVec[i].c_str();
     env[envVec.size()] = NULL;
 	execve(_binPath.c_str(), const_cast<char**>(argv), const_cast<char**>(env));
+	throw std::runtime_error("CGI failed: " + _binPath);
 	return;
 }
 
@@ -137,7 +139,8 @@ bool	CGI::isReady() {
 }
 
 void	CGI::killCGI() {
-	kill(_pid, SIGTERM);
+	if (_pid != -1 && _pid != 0)
+		kill(_pid, SIGTERM);
 }
 
 const std::string &CGI::getScriptPath() const {
