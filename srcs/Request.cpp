@@ -150,6 +150,7 @@ void Request::createOneFile(std::string &boundarieKey) {
 void	Request::createBody() {
 	std::string boundarieKey(request, 0, request.find("\r\n"));
 	size_t pos = request.find_last_of("--");
+
 	while ((pos != (request.find(boundarieKey) + boundarieKey.size() + 1)) && pos != std::string::npos) {
 		createOneFile(boundarieKey);
 		pos = request.find_last_of("--");
@@ -201,11 +202,6 @@ bool	Request::checkHeaderArguments() {
 	it = headerArguments.find("content-type");
 	if (it == headerArguments.end()) {
 		resCode = 400;
-		state = SEND_RESPONSE;
-		return true;
-	}
-	else if (it->second.find("multipart/form-data;") == std::string::npos) {
-		resCode = 501;
 		state = SEND_RESPONSE;
 		return true;
 	}
