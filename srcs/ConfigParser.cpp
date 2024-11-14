@@ -132,11 +132,7 @@ bool	ConfigParser::addLocationConfig(size_t &i, const std::string &locationName)
 		std::string name = locationName;
 		if (name != "/" && name[name.size() - 1] == '/')
 			name.erase(name.size() - 1);
-		if (serverConfig.locations.find(name) != serverConfig.locations.end()) {
-			Log::Error("location config: duplicate found");
-			return false;
-		}
-		serverConfig.locations.insert(std::make_pair(name, LocationConfig(i, _lines, locationName)));
+		serverConfig.locations[name] = LocationConfig(i, _lines, locationName);
 		/* locationConfig.displayData(); */
 	} catch (std::exception &e) {
 		Log::Error(e.what());
