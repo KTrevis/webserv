@@ -78,4 +78,22 @@ print("\nTests with hostname oui.com:")
 for key in tests:
     testGet(tests[key], key, "oui.com")
 
+tests = {
+        "http://localhost:3434": 500,
+        "http://localhost:3434/": 500,
+        "http://localhost:3434/list": 404,
+        "http://localhost:3434/broken.php": 500,
+        "http://localhost:3434/test.php": 500,
+        "http://localhost:3434/test.php/": 500,
+        "http://localhost:3434/upload": 404,
+        "http://localhost:3434/upload/": 404,
+        "http://localhost:3434/oui": 405,
+        "http://localhost:3434/oui/": 405,
+        "http://localhost:3434/timeout.py/": 500,
+        }
+
+print("\nTests with hostname invalidCGI.com:")
+for key in tests:
+    testGet(tests[key], key, "invalidCGI.com")
+
 webserv.terminate()

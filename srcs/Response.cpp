@@ -245,7 +245,7 @@ void	Response::setup() {
 
 std::vector<std::string>	Response::extractParamsFromUrl() {
 	std::vector<std::string> urlSplit = StringUtils::split(_client.request.path, "/", true);
-	if (_urlSplit.size() == 0) return urlSplit;
+	if (urlSplit.size() == 0) return urlSplit;
 	std::string &url = urlSplit[_urlSplit.size() - 1];
 
 	size_t questionMark = url.find("?");
@@ -269,7 +269,7 @@ Response::Response(Socket &client, ServerConfig &serverConfig, Server &server):
 	_urlSplit(extractParamsFromUrl()),
 	_locationConfig(findLocation()),
 	_filepath(getFilepath()),
-	_cgi(_filepath, _locationConfig, client, _urlParams),
+	_cgi(_filepath + "/" + _locationConfig.indexFile, _locationConfig, client, _urlParams),
 	_pipeEmpty(false),
 	_chunkToSend(0),
 	_server(server) {}
