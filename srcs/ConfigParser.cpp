@@ -118,10 +118,10 @@ bool	ConfigParser::parseLine(const std::vector<std::string> &line) {
 	switch (_currScope) {
 		case (SERVER): return serverParsing(line);
 		case (LOCATION): return locationParsing(line);
-		case (NONE): 
-		if (line[0] == "location")
-			return true;
-		Log::Error("expected location, got: " + line[0]);
+		case (NONE):
+			if (line[0] == "location") return true;
+			Log::Error("invalid key: " + line[0]);
+			return false;
 	}
 	return false;
 }
@@ -132,7 +132,11 @@ bool	ConfigParser::addLocationConfig(size_t &i, const std::string &locationName)
 		std::string name = locationName;
 		if (name != "/" && name[name.size() - 1] == '/')
 			name.erase(name.size() - 1);
-		serverConfig.locations[name] = LocationConfig(i, _lines, locationName);
+		if (serverConfig.locations.find(name) != serverConfig.locations.end()) {
+			Log::Error("location config: duplicate found");
+			return false;
+		}
+		serverConfig.locations.insert(std::make_pair(name, LocationConfig(i, _lines, locationName)));
 		/* locationConfig.displayData(); */
 	} catch (std::exception &e) {
 		Log::Error(e.what());

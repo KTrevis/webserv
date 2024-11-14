@@ -21,6 +21,7 @@ void	Server::start() {
 
 bool Server::parseConfig(std::map<std::string, ServerConfig> &map) {
 	int fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+
 	if (fd == -1) return false;
 	int n = 1;
 	int port = map.begin()->second.address.getPort();
@@ -45,6 +46,8 @@ void	Server::initServerConfigs(std::vector<ServerConfig> &arr) {
 		int port = arr[i].address.getPort();
 		std::map<std::string, ServerConfig> &map = serverConfigs[port];
 		const std::string &hostname = arr[i].serverName;
+		if (map.find(hostname) != map.end())
+			throw std::runtime_error("duplicate hostname found: " + hostname);
 		ServerConfig &config = map[hostname];
 		config = arr[i];
 		config.position = map.size();

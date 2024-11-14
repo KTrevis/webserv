@@ -114,7 +114,7 @@ LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines
 		std::map<std::string, MemberFunctionPtr>::iterator it = map.find(key);
 
 		if (it == map.end())
-			throw std::runtime_error("LocationConfig: empty");
+			throw std::runtime_error("LocationConfig: key not found: " + key);
 		if (!(this->*(it->second))(line)) // calls the function associated to the string
 			throw std::runtime_error(errorString(key));
 		if (lines[i + 1][0] == "}") // if end of the location scope
