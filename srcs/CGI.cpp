@@ -19,6 +19,7 @@ CGI::~CGI() {
 	if (_cgiFd[0] == -1) return;
 	close(_cgiFd[0]);
 	close(_cgiFd[1]);
+	killCGI();
 }
 
 CGI::CGI(const std::string &str, LocationConfig &locationConfig, Socket &client,

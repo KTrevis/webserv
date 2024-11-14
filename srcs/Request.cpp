@@ -160,6 +160,8 @@ void	Request::createBody() {
 bool	Request::hasMalformedHeaders() {
 	std::map<std::string, std::string>::iterator it;
 	for (it = headerArguments.begin(); it != headerArguments.end(); ++it) {
+		Log::Error(it->first);
+		Log::Error(it->second);
 		if (it->first.empty() || it->second.empty()) {
 			return true;
 		}
@@ -253,8 +255,6 @@ void	Request::parseRequest(Server &server, Socket &client) {
 			if (checkMethods())
 				resCode = 405;
 			else if (httpVer != "HTTP/1.1")
-				resCode = 400;
-			else if (hasMalformedHeaders())
 				resCode = 400;
 			if (method == "POST") {
 				state = PARSE_BODY;
