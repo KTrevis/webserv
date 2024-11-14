@@ -69,6 +69,12 @@ void Request::parseHeader() {
 			break;
 		}
 		tmp = parseHeaderline();
+		if (headerArguments.find(tmp.first) != headerArguments.end())
+		{
+			resCode = 400;
+			state = SEND_RESPONSE;
+			return;
+		}
 		headerArguments[tmp.first] = tmp.second;
 	}
 	request.erase(0, 2);
@@ -150,19 +156,18 @@ void	Request::createBody() {
 	}
 }
 
-void	Request::parseBody(Server &server, Socket &client) {
-	config = Utils::getServerConfig(server, client);
-	std::map<std::string, std::string>::iterator it = headerArguments.find("content-length");
-	if (it == headerArguments.end())
-		return;
-	if (static_cast<size_t> (std::atoi(it->second.c_str())) != request.size())
-		return;
-	cgiBody = request;
-	createBody();
-	state = SEND_RESPONSE; 
+
+bool	Request::hasMalformedHeaders() {
+	std::map<std::string, std::string>::iterator it;
+	for (it = headerArguments.begin(); it != headerArguments.end(); ++it) {
+		if (it->first.empty() || it->second.empty()) {
+			return true;
+		}
+	}
+	return false;
 }
 
-bool	Request::checkMethods(std::string method) {
+bool	Request::checkMethods() {
 	std::map<std::string, LocationConfig>::iterator it = config.locations.begin();
 	while (it != config.locations.end()) {
 		if (it->first == "allow_methods")
@@ -173,16 +178,56 @@ bool	Request::checkMethods(std::string method) {
 	return map.find(method) == map.end();
 }
 
+bool	Request::checkHeaderArguments() {
+	std::map<std::string, std::string>::iterator it = headerArguments.find("content-length");
+	if (it == headerArguments.end()) {
+		resCode = 411;
+		state = SEND_RESPONSE;
+		return true;
+	}
+	if (!StringUtils::isNumeric(it->second)) {
+		resCode = 400;
+		state = SEND_RESPONSE;
+		return true;
+	}
+	std::cout << config.maxBodySize << std::endl;
+	if (static_cast<size_t> (std::atol(it->second.c_str())) > config.maxBodySize) {
+		resCode = 413;
+		state = SEND_RESPONSE;
+		return true;
+	}
+	it = headerArguments.find("content-type");
+	if (it == headerArguments.end()) {
+		resCode = 400;
+		state = SEND_RESPONSE;
+		return true;
+	}
+	else if (it->second.find("multipart/form-data;") == std::string::npos) {
+		resCode = 501;
+		state = SEND_RESPONSE;
+		return true;
+	}
+	//boudarykey not allowed maybe ? or inexistante
+	return false;
+}
+
+void	Request::parseBody() {
+	std::map<std::string, std::string>::iterator it = headerArguments.find("content-length");
+	if (checkHeaderArguments())
+		return;
+	if (static_cast<size_t> (std::atoi(it->second.c_str())) != request.size())
+		return;
+	cgiBody = request;
+	createBody();
+	state = SEND_RESPONSE; 
+}
+
 void	Request::parseRequest(Server &server, Socket &client) {
 	switch (state) {
 		case (PARSE_METHOD) : 
 			if (request.find(" ") != std::string::npos) {
 				method = parseMethode(); 
 				state = PARSE_PATH;
-			}
-			if (checkMethods(method)) {
-				resCode = 405;
-				state = SEND_RESPONSE;
 			}
 			break;
 		case (PARSE_PATH) :
@@ -200,15 +245,24 @@ void	Request::parseRequest(Server &server, Socket &client) {
 		case (PARSE_HEADERS) : 
 			if (request.find("\r\n\r\n") != std::string::npos) {
 				parseHeader();
-				if (method == "POST") {
-					state = PARSE_BODY;
-				} else {
-					state = SEND_RESPONSE;
-					return request.clear();
-				}
+				state = CHECK_ERROR;
 			}
 			break;
-		case (PARSE_BODY) : parseBody(server, client); break;
+		case (CHECK_ERROR) :
+			config = Utils::getServerConfig(server, client);
+			if (checkMethods())
+				resCode = 405;
+			else if (httpVer != "HTTP/1.1")
+				resCode = 400;
+			else if (hasMalformedHeaders())
+				resCode = 400;
+			if (method == "POST") {
+				state = PARSE_BODY;
+				break;
+			}
+			state = SEND_RESPONSE;
+			return request.clear();
+		case (PARSE_BODY) : parseBody(); break;
 		case (SEND_RESPONSE) : return;
 		case (IDLE) : return;
 	}

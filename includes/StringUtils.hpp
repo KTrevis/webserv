@@ -10,7 +10,7 @@ namespace StringUtils {
 	std::string	getFile(const std::string &filename);
 	std::vector<std::string> getFileChunks(const std::string &filename);
 
-	bool	isPositiveNumber(const std::string &str);
+	bool		isPositiveNumber(const std::string &str);
 	std::string fileExtensionToType(std::string str);
 	size_t		getStrVectorSize(const std::vector<std::string> &arr);
 	std::string	itoa(int n);
@@ -23,4 +23,6 @@ namespace StringUtils {
 	std::string createDirectoryContent(const std::string &dirPath, const std::string &basePath);
 
 	std::map<std::string, e_methods> getStrToMaskMethod();
+
+	bool		isNumeric(const std::string &str);
 };

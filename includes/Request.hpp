@@ -12,6 +12,7 @@ enum State {
     PARSE_VERSION,
     PARSE_HEADERS,
     PARSE_BODY,
+	CHECK_ERROR,
     SEND_RESPONSE
 };
 
@@ -45,11 +46,13 @@ class Request
 		bool		isHeaderParse;
 		State		state;
 	private:
-		bool		checkMethods(std::string method);
+		bool		hasMalformedHeaders();
+		bool		checkMethods();
+		bool		checkHeaderArguments();
 		std::string	parseMethode();
 		std::string parsePath();
 		std::string parseVer();
-		void		parseBody(Server &server, Socket &client);
+		void		parseBody();
 		void		createBody();
 		std::string	findFilename();
 		std::string	findPathConfig();

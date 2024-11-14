@@ -359,3 +359,7 @@ std::map<std::string, e_methods> StringUtils::getStrToMaskMethod() {
 	map["DELETE"] = DELETE;
 	return map;
 }
+
+bool StringUtils::isNumeric(const std::string &str) {
+	return !str.empty() && str.find_first_not_of("0123456789") == std::string::npos;
+}
