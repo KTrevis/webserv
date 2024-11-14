@@ -8,6 +8,7 @@
 #include "Utils.hpp"
 #include <algorithm>
 #include <cmath>
+#include <strings.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <string>
@@ -103,8 +104,15 @@ void	Response::handleGet() {
 void	Response::sendChunk() {
 	if (_chunkToSend >= _body.size()) return;
 	const std::string &toSend = _body[_chunkToSend];
+	ssize_t n = send(_client.getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT | MSG_NOSIGNAL);
+	epoll_event event;
+	bzero(&event, sizeof(epoll_event));
 
-	if (send(_client.getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT | MSG_NOSIGNAL) != -1)
+	if (n == 0) {
+		_server.closeConnection(event);
+		return;
+	}
+	if (n != -1)
 		_chunkToSend++;
 }
 
@@ -255,7 +263,7 @@ std::vector<std::string>	Response::extractParamsFromUrl() {
 	return urlSplit;
 }
 
-Response::Response(Socket &client, ServerConfig &serverConfig):
+Response::Response(Socket &client, ServerConfig &serverConfig, Server &server):
 	_client(client),
 	_serverConfig(serverConfig),
 	_urlSplit(extractParamsFromUrl()),
@@ -263,7 +271,8 @@ Response::Response(Socket &client, ServerConfig &serverConfig):
 	_filepath(getFilepath()),
 	_cgi(_filepath, _locationConfig, client, _urlParams),
 	_pipeEmpty(false),
-	_chunkToSend(0) {}
+	_chunkToSend(0),
+	_server(server) {}
 
 CGI	&Response::getCGI() {
 	return _cgi;

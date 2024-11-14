@@ -13,7 +13,7 @@ class Server;
 
 class Response {
 	public:
-		Response(Socket &client, ServerConfig &config);
+		Response(Socket &client, ServerConfig &config, Server &server);
 		void	setup();
 		void	handleCGI();
 		bool	fullySent();
@@ -45,4 +45,5 @@ class Response {
 		size_t						_i;
 		bool 						_pipeEmpty;
 		size_t						_chunkToSend;
+		Server						&_server;
 };

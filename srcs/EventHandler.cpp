@@ -27,6 +27,10 @@ static void handleReceivedData(Server &server, epoll_event event) {
 	std::string &request = getStrToModify(event.data.fd, client, server);
 	int n = recv(event.data.fd, buffer, sizeof(buffer), MSG_NOSIGNAL | MSG_DONTWAIT);
 
+	if (n == 0) {
+		server.closeConnection(event);
+		return;
+	}
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
 	server.modifyPoll(event.data.fd, event);
 	if (n == -1)
@@ -47,7 +51,7 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 
 	if (it != server.responses.end())
 		return;
-	std::pair<int, Response> pair(client.getFd(), Response(client, config));
+	std::pair<int, Response> pair(client.getFd(), Response(client, config, server));
 	server.responses.insert(pair);
 	it = server.responses.find(client.getFd());
 	it->second.setup();

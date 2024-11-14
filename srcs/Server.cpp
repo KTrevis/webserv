@@ -81,18 +81,15 @@ Server::Server(std::vector<ServerConfig> &arr) {
 }
 
 void	Server::addFdToPoll(int fd, epoll_event &event) {
-	if (epoll_ctl(_epollfd, EPOLL_CTL_ADD, fd, &event))
-		Log::Error("Adding socket to poll failed");
+	epoll_ctl(_epollfd, EPOLL_CTL_ADD, fd, &event);
 }
 
 void	Server::modifyPoll(int fd, epoll_event &event) {
-	if (epoll_ctl(_epollfd, EPOLL_CTL_MOD, fd, &event))
-		Log::Error("Adding socket to poll failed");
+	epoll_ctl(_epollfd, EPOLL_CTL_MOD, fd, &event);
 }
 
 void	Server::removeFdFromPoll(int fd, epoll_event &event) {
-	if (epoll_ctl(_epollfd, EPOLL_CTL_DEL, fd, &event))
-		Log::Error("Deleting fd from poll failed " + StringUtils::itoa(fd));
+	epoll_ctl(_epollfd, EPOLL_CTL_DEL, fd, &event);
 }
 
 bool Server::isNewClient(const epoll_event &event) {
