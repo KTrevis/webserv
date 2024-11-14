@@ -209,4 +209,5 @@ void Server::initializeTimer(int epollFd) {
 
 Server::~Server() {
 	close(_epollfd);
+	close(_timerFd);
 }

@@ -101,6 +101,7 @@ void	Response::handleGet() {
 }
 
 void	Response::sendChunk() {
+	if (_chunkToSend >= _body.size()) return;
 	const std::string &toSend = _body[_chunkToSend];
 
 	if (send(_client.getFd(), toSend.c_str(), toSend.size(), MSG_DONTWAIT | MSG_NOSIGNAL) != -1)

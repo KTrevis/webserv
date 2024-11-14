@@ -15,7 +15,6 @@ Server *server;
 
 void	onSigint(int signal) {
 	static_cast<void>(signal);
-	/* throw std::runtime_error("Shutting down server..."); */
 	if (server)
 		server->stop = true;
 }
