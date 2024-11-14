@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sample File Upload Page</title>
+  <style>
+    /* Basic CSS Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Body Styling */
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+      height: 100vh;
+    }
+
+    /* Container Styling */
+    .container {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      max-width: 400px;
+      text-align: center;
+    }
+
+    /* Image Styling */
+    .container img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+
+    /* Form Styling */
+    .upload-form {
+      margin-top: 15px;
+    }
+
+    .upload-form input[type="file"] {
+      margin: 10px 0;
+    }
+
+    .upload-form button {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .upload-form button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Upload Your File</h1>
+    <img src="https://picsum.photos/400/200" alt="Random Image">
+    
+    <form class="upload-form" action="/upload/upload.php" method="post" enctype="multipart/form-data">
+      <label for="file-upload">Choose a file to upload:</label>
+      <input type="file" id="file-upload" name="file-upload" required>
+      <button type="submit">Upload</button>
+    </form>
+  </div>
+</body>
+</html>
