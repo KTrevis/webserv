@@ -108,11 +108,26 @@ bool	ConfigParser::handleServerName(const std::vector<std::string> &line) {
 	return true;
 }
 
+bool	ConfigParser::handleMaxBodySize(const std::vector<std::string> &line) {
+	if (!(_scope & SERVER)) {
+		Log::Error("server_name: found outside of a server block");
+		return false;
+	}
+	if (line.size() != 2) {
+		Log::Error("server_name: no value");
+		return false;
+	}
+	(_configs.end() - 1)->maxBodySize = std::atoi(line[1].c_str());
+	return true;
+}
+
 bool	ConfigParser::parseLine(const std::vector<std::string> &line) {
 	if (line[0] == "listen")
 		return handleListen(line);
 	if (line[0] == "server_name")
 		return handleServerName(line);
+	if (line[0] == "max_body_size")
+		return handleMaxBodySize(line);
 
 	_currScope = strToScope(line[0]);
 	switch (_currScope) {

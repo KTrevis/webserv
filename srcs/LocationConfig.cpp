@@ -66,13 +66,6 @@ bool	LocationConfig::setAutoIndex(const StringVector &arr) {
 	return true;
 }
 
-bool	LocationConfig::setMaxBodySize(const StringVector &arr) {
-	if (arr.size() != 2) return false;
-	maxBodySize = std::atoi(arr[1].c_str());
-	if (maxBodySize < 0) return false;
-	return true;
-}
-
 bool	LocationConfig::setErrorPage(const StringVector &arr) {
 	if (arr.size() != 3) return false;
 	int err = std::atoi(arr[1].c_str());
@@ -99,7 +92,6 @@ LocationConfig::LocationConfig(size_t &i, const std::vector<StringVector> &lines
 	map["redirection"] = &LocationConfig::setRedirection;
 	map["alias"] = &LocationConfig::setAlias;
 	map["autoindex"] = &LocationConfig::setAutoIndex;
-	map["max_body_size"] = &LocationConfig::setMaxBodySize;
 	map["error_page"] = &LocationConfig::setErrorPage;
 
 	root = "./www/main";
@@ -129,6 +121,7 @@ LocationConfig::LocationConfig() {
 	autoIndex = false;
 	methodMask = GET | POST | DELETE;
 	name = "/";
+	maxBodySize = -1;
 }
 
 static std::string	methodToStr(int method) {

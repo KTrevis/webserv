@@ -190,8 +190,8 @@ bool	Request::checkHeaderArguments() {
 		state = SEND_RESPONSE;
 		return true;
 	}
-	std::cout << config.maxBodySize << std::endl;
-	if (static_cast<size_t> (std::atol(it->second.c_str())) > config.maxBodySize) {
+	Log::Error(StringUtils::itoa(config.maxBodySize));
+	if (config.maxBodySize != -1 && std::atoi(it->second.c_str()) > config.maxBodySize) {
 		resCode = 413;
 		state = SEND_RESPONSE;
 		return true;

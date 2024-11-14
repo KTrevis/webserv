@@ -10,7 +10,7 @@ GREEN = '\033[32m'
 RESET = '\033[0m'
 
 webserv = subprocess.Popen(["./webserv", "./tests/error_code/error_code.conf"],
-    stdout=subprocess.DEVNULL, stderr=open("/dev/null"))
+    stdout=subprocess.DEVNULL)
 
 def shutdown(signal, frame):
     print(f"${RED}Shutting down webserv...${RESET}")

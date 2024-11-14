@@ -34,5 +34,4 @@ class LocationConfig {
 	bool	setRedirection(const StringVector &arr);
 	bool	setAlias(const StringVector &arr);
 	bool	setAutoIndex(const StringVector &arr);
-	bool	setMaxBodySize(const StringVector &arr);
 };

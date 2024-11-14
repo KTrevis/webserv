@@ -32,7 +32,7 @@ class ConfigParser {
 		std::vector<StringVector>	_lines;
 		std::vector<ServerConfig>	_configs;
 		bool	isServerConfig();
-		bool	handleBodySize(const std::vector<std::string> &line);
 		bool	handleListen(const std::vector<std::string> &line);
 		bool	handleServerName(const std::vector<std::string> &line);
+		bool	handleMaxBodySize(const std::vector<std::string> &line);
 };

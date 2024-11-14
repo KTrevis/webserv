@@ -10,7 +10,7 @@ class ServerConfig {
 		ServerConfig();
 		std::map<std::string, LocationConfig>	locations;
 		Address	address;
-		size_t	maxBodySize;
+		int	maxBodySize;
 		std::string	serverName;
 		size_t		position;
 };
