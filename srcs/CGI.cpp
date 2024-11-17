@@ -24,9 +24,10 @@ CGI::~CGI() {
 	killCGI();
 }
 
-static bool isFile(const std::string& path) {
-    struct stat buffer;
-    return (stat(path.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
+static bool	isFolder(const std::string &name) {
+	struct stat	s_stat;
+
+	return (stat(name.c_str(), &s_stat) == 0 && S_ISDIR(s_stat.st_mode));
 }
 
 CGI::CGI(const std::string &str, LocationConfig &locationConfig, Socket &client,
@@ -38,11 +39,10 @@ CGI::CGI(const std::string &str, LocationConfig &locationConfig, Socket &client,
 	_scriptPath = str;
 	_pid = -1;
 	_exitCode = -1;
+	if (isFolder(_scriptPath))
+		_scriptPath += "/" + _locationConfig.indexFile;
+	std::cout << _locationConfig.name << std::endl;
 	setCGI();
-	if (!isFile(_scriptPath)) {
-		_scriptPath = "";
-		_binPath = "";
-	}
 }
 
 std::string CGI::createQueryString() {

@@ -222,7 +222,6 @@ void	Response::setup() {
 	e_methods method = it->second;
 
 	_i = 0;
-	std::cout << _cgi.getScriptPath() << std::endl;
 	if (!(_locationConfig.methodMask & method))
 		setErrorPage(405);
 	else if (request.resCode != 0)
@@ -267,7 +266,7 @@ Response::Response(Socket &client, ServerConfig &serverConfig, Server &server):
 	_urlSplit(extractParamsFromUrl()),
 	_locationConfig(findLocation()),
 	_filepath(getFilepath()),
-	_cgi(_filepath + "/" + _locationConfig.indexFile, _locationConfig, client, _urlParams),
+	_cgi(_filepath, _locationConfig, client, _urlParams),
 	_pipeEmpty(false),
 	_chunkToSend(0),
 	_server(server) {}
