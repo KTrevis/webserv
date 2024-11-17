@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <iomanip>
 #include <vector>
+#include <sys/stat.h>
 #include "CGI.hpp"
 #include "Log.hpp"
 #include "StringUtils.hpp"
@@ -21,6 +22,11 @@ CGI::~CGI() {
 	close(_cgiFd[0]);
 	close(_cgiFd[1]);
 	killCGI();
+}
+
+static bool isFile(const std::string& path) {
+    struct stat buffer;
+    return (stat(path.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
 }
 
 CGI::CGI(const std::string &str, LocationConfig &locationConfig, Socket &client,
@@ -33,6 +39,10 @@ CGI::CGI(const std::string &str, LocationConfig &locationConfig, Socket &client,
 	_pid = -1;
 	_exitCode = -1;
 	setCGI();
+	if (!isFile(_scriptPath)) {
+		_scriptPath = "";
+		_binPath = "";
+	}
 }
 
 std::string CGI::createQueryString() {

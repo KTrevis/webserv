@@ -11,7 +11,7 @@ RESET = '\033[0m'
 
 webserv = subprocess.Popen(["./webserv", "./tests/error_code/error_code.conf"],
     stdout=subprocess.DEVNULL)
-
+sleep(0.5)
 def shutdown(signal, frame):
     print(f"${RED}Shutting down webserv...${RESET}")
     webserv.terminate()
@@ -81,6 +81,7 @@ for key in tests:
 tests = {
         "http://localhost:3434": 500,
         "http://localhost:3434/": 500,
+        "http://localhost:3434/POST.html": 200,
         "http://localhost:3434/list": 404,
         "http://localhost:3434/broken.php": 500,
         "http://localhost:3434/test.php": 500,

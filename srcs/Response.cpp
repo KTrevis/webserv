@@ -222,6 +222,7 @@ void	Response::setup() {
 	e_methods method = it->second;
 
 	_i = 0;
+	std::cout << _cgi.getScriptPath() << std::endl;
 	if (!(_locationConfig.methodMask & method))
 		setErrorPage(405);
 	else if (request.resCode != 0)
@@ -230,11 +231,8 @@ void	Response::setup() {
 		{}
 	else if (isDirectoryList())
 		createDirectoryList();
-	else if ((method == GET || method == POST) && _cgi.getScriptPath() != "") {
-		if (!isFile(_cgi.getScriptPath()))
-			return setErrorPage(404);
+	else if ((method == GET || method == POST) && _cgi.getScriptPath() != "")
 		_cgi.exec();
-	}
 	else if (method == GET)
 		handleGet();
 	else if (method == POST)
@@ -247,8 +245,8 @@ std::vector<std::string>	Response::extractParamsFromUrl() {
 	std::vector<std::string> urlSplit = StringUtils::split(_client.request.path, "/", true);
 	if (urlSplit.size() == 0) return urlSplit;
 	std::string &url = urlSplit[_urlSplit.size() - 1];
-
 	size_t questionMark = url.find("?");
+
 	if (questionMark == std::string::npos) return urlSplit;
 	std::vector<std::string> params = StringUtils::split(url.substr(questionMark + 1), "&");
 	for (size_t i = 0; i < params.size(); i++) {
