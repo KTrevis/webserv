@@ -14,4 +14,6 @@ namespace Utils {
 			std::cout << arr[i] << std::endl;
 	}
 	ServerConfig &getServerConfig(Server &server, Socket &client);
+	bool	isFolder(const std::string &name);
+	bool	isFile(const std::string& path);
 };

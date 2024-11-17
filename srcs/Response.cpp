@@ -43,17 +43,6 @@ LocationConfig &Response::findLocation() {
 	return it->second;
 }
 
-static bool	isFolder(const std::string &name) {
-	struct stat	s_stat;
-
-	return (stat(name.c_str(), &s_stat) == 0 && S_ISDIR(s_stat.st_mode));
-}
-
-static bool isFile(const std::string& path) {
-    struct stat buffer;
-    return (stat(path.c_str(), &buffer) == 0 && S_ISREG(buffer.st_mode));
-}
-
 std::string Response::getFilepath() {
 	std::string filepath = _locationConfig.root;
 
@@ -74,9 +63,9 @@ bool	Response::fullySent() {
 void	Response::handleGet() {
 	int httpCode;
 
-	if (isFolder(_filepath))
+	if (Utils::isFolder(_filepath))
 		_filepath += "/" + _locationConfig.indexFile;
-	if (!isFile(_filepath))
+	if (!Utils::isFile(_filepath))
 		setErrorPage(404);
 	_contentType = StringUtils::fileExtensionToType(_filepath);
 	Log::Trace("Fetching file at: " + _filepath);
@@ -161,12 +150,12 @@ static void	removeTrailingChar(std::string &str, char c) {
 }
 
 bool	Response::needRedirection(Request &request) {
-	if (!isFolder(_filepath) && strEndsWith(request.path, '/')) {
+	if (!Utils::isFolder(_filepath) && strEndsWith(request.path, '/')) {
 		removeTrailingChar(request.path, '/');
 		redirect(request.path);
 		return true;
 	}
-	else if (isFolder(_filepath) && !strEndsWith(request.path, '/')) {
+	else if (Utils::isFolder(_filepath) && !strEndsWith(request.path, '/')) {
 		redirect(request.path + "/");
 		return true;
 	}
@@ -190,7 +179,7 @@ void	Response::createDirectoryList() {
 }
 
 bool	Response::isDirectoryList() {
-	return _locationConfig.autoIndex && isFolder(_filepath);
+	return _locationConfig.autoIndex && Utils::isFolder(_filepath);
 }
 
 void Response::setErrorPage(int httpCode) {

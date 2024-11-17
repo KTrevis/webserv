@@ -14,6 +14,7 @@
 #include <vector>
 #include <sys/stat.h>
 #include "CGI.hpp"
+#include "Utils.hpp"
 #include "Log.hpp"
 #include "StringUtils.hpp"
 
@@ -22,12 +23,6 @@ CGI::~CGI() {
 	close(_cgiFd[0]);
 	close(_cgiFd[1]);
 	killCGI();
-}
-
-static bool	isFolder(const std::string &name) {
-	struct stat	s_stat;
-
-	return (stat(name.c_str(), &s_stat) == 0 && S_ISDIR(s_stat.st_mode));
 }
 
 CGI::CGI(const std::string &str, LocationConfig &locationConfig, Socket &client,
@@ -39,9 +34,12 @@ CGI::CGI(const std::string &str, LocationConfig &locationConfig, Socket &client,
 	_scriptPath = str;
 	_pid = -1;
 	_exitCode = -1;
-	if (isFolder(_scriptPath))
+	if (Utils::isFolder(_scriptPath))
 		_scriptPath += "/" + _locationConfig.indexFile;
-	std::cout << _locationConfig.name << std::endl;
+	if (!Utils::isFile(_scriptPath)) {
+		_scriptPath = "";
+		return;
+	}
 	setCGI();
 }
 
