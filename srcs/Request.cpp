@@ -113,8 +113,9 @@ std::string	Request::findPathConfig() {
 
 void	Request::createPostOutput(std::string &name, std::string content) {
 	std::string uploadPath = findPathConfig();
-	std::ofstream file(uploadPath.c_str());
 	uploadPath += '/' + name;
+	std::ofstream file(uploadPath.c_str());
+	std::cout << uploadPath << std::endl;
 	if (file.bad())
 		return;
 	file << content;
@@ -140,7 +141,7 @@ std::string	Request::findFilename() {
 void Request::createOneFile(std::string &boundarieKey) {
 	request.erase(0, request.find("\r\n") + 2);
 	std::string name = findFilename();
-	if (request.find("Content-Type") == 0)
+	if (request.find("Content-Type") == std::string::npos)
 		request.erase(0, request.find("\r\n") + 2);
 	request.erase(0, request.find("\r\n") + 2);
 	createPostOutput(name, request.substr(0, request.find(boundarieKey)));
@@ -150,10 +151,31 @@ void Request::createOneFile(std::string &boundarieKey) {
 void	Request::createBody() {
 	std::string boundarieKey(request, 0, request.find("\r\n"));
 	size_t pos = request.find_last_of("--");
-
+	std::map<std::string, std::string>::iterator it = headerArguments.find("content-type");
+	if (it == headerArguments.end())
+	{
+		resCode = 200;
+		return;
+	}
+	if (it->second.find("boundary=") == std::string::npos)
+	{
+		resCode = 200;
+		return;
+	}
+	if ("---" + it->second.substr(it->second.find("boundary=") + 10, it->second.size() - it->second.find("boundary=") - 10) != boundarieKey)
+	{
+		resCode = 200;
+		return;
+	}
 	while ((pos != (request.find(boundarieKey) + boundarieKey.size() + 1)) && pos != std::string::npos) {
 		createOneFile(boundarieKey);
 		pos = request.find_last_of("--");
+	}
+	resCode = 201;
+	if (pos == std::string::npos && request.size())
+	{
+		resCode = 200;
+		Log::Error("CACA");
 	}
 }
 
@@ -193,7 +215,6 @@ bool	Request::checkHeaderArguments() {
 		state = SEND_RESPONSE;
 		return true;
 	}
-	Log::Error(StringUtils::itoa(config.maxBodySize));
 	if (config.maxBodySize != -1 && std::atoi(it->second.c_str()) > config.maxBodySize) {
 		resCode = 413;
 		state = SEND_RESPONSE;
@@ -205,7 +226,6 @@ bool	Request::checkHeaderArguments() {
 		state = SEND_RESPONSE;
 		return true;
 	}
-	//boudarykey not allowed maybe ? or inexistante
 	return false;
 }
 
@@ -216,7 +236,8 @@ void	Request::parseBody() {
 	if (static_cast<size_t> (std::atoi(it->second.c_str())) != request.size())
 		return;
 	cgiBody = request;
-	createBody();
+	if ((headerArguments.find("content-type")->second.find("multipart/form-data;") != std::string::npos)) //check cgi
+		createBody();
 	state = SEND_RESPONSE; 
 }
 
