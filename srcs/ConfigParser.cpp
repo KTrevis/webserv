@@ -43,7 +43,7 @@ void	ConfigParser::displayFile() {
 
 bool	ConfigParser::serverParsing(const std::vector<std::string> &line) {
 	if (line.size() != 2 || line[1] != "{") {
-		Log::Error("server: a crly brace should be present after server");
+		Log::Error("server: a curly brace should be present after server");
 		return false;
 	}
 	if (_scope & SERVER) {
@@ -147,6 +147,10 @@ bool	ConfigParser::addLocationConfig(size_t &i, const std::string &locationName)
 		std::string name = locationName;
 		if (name != "/" && name[name.size() - 1] == '/')
 			name.erase(name.size() - 1);
+		if (serverConfig.locations.find(name) != serverConfig.locations.end()) {
+			Log::Error("ConfigParser: duplicate location found");
+			return false;
+		}
 		serverConfig.locations[name] = LocationConfig(i, _lines, locationName);
 		/* locationConfig.displayData(); */
 	} catch (std::exception &e) {

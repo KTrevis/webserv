@@ -54,6 +54,8 @@ void	Server::initServerConfigs(std::vector<ServerConfig> &arr) {
 		ServerConfig &config = map[hostname];
 		config = arr[i];
 		config.position = map.size();
+		if (config.locations.find("/") == config.locations.end())
+			config.locations["/"] = LocationConfig();
 	}
 }
 
@@ -128,7 +130,7 @@ void	Server::createNewClient(Socket &socket) {
 		return;
 	}
 	sockets[fd].setup(fd, socket.getFd(), socket.getPort());
-	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
+	event.events = EPOLLIN | EPOLLHUP | EPOLLRDHUP | EPOLLERR;
 	event.data.fd = fd;
 	addFdToPoll(fd, event);
 	Log::Info("New client created with socket " + StringUtils::itoa(fd));

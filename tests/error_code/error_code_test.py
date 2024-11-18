@@ -9,8 +9,7 @@ RED = '\033[31m'
 GREEN = '\033[32m'
 RESET = '\033[0m'
 
-webserv = subprocess.Popen(["./webserv", "./tests/error_code/error_code.conf"],
-    stdout=subprocess.DEVNULL)
+webserv = subprocess.Popen(["./webserv", "./tests/error_code/error_code.conf"], stdout=subprocess.DEVNULL)
 sleep(0.5)
 def shutdown(signal, frame):
     print(f"${RED}Shutting down webserv...${RESET}")

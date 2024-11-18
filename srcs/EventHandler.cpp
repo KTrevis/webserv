@@ -31,7 +31,7 @@ static void handleReceivedData(Server &server, epoll_event event) {
 		server.closeConnection(event);
 		return;
 	}
-	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
+	event.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP | EPOLLERR | EPOLLOUT;
 	server.modifyPoll(event.data.fd, event);
 	if (n == -1)
 		return Log::Error("recv failed");
@@ -56,7 +56,7 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 	it = server.responses.find(client.getFd());
 	it->second.setup();
 	request.clear();
-	event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR | EPOLLOUT;
+	event.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP | EPOLLERR | EPOLLOUT;
 	server.modifyPoll(client.getFd(), event);
 }
 
@@ -72,7 +72,7 @@ static void handleExistingResponse(Socket &client, Response &response, Server &s
 		client.request.clear();
 	}
 	else if (response.fullySent()) {
-		event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
+		event.events = EPOLLIN | EPOLLHUP | EPOLLRDHUP | EPOLLERR;
 		Log::Trace("Chunk fully sent");
 		server.responses.erase(client.getFd());
 		client.request.clear();
@@ -88,6 +88,7 @@ static bool isCGI(int fd, Server &server) {
 }
 
 void	EventHandler::handleEvent(Server &server, epoll_event &event) {
+	Log::Event(event.events);
 	if (event.data.fd == server._timerFd) {
 		uint64_t expirations;
 		read(server._timerFd, &expirations, sizeof(expirations));
