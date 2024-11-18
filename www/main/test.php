@@ -1,7 +1,6 @@
 <?php
 // Set the header to specify JSON response format
 header("Content-Type: application/json");
-
 $res = [
 	"env" => getenv(),
 	"get" => $_GET,

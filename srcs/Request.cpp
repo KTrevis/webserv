@@ -236,8 +236,6 @@ void	Request::parseBody() {
 	if (static_cast<size_t> (std::atoi(it->second.c_str())) != request.size())
 		return;
 	cgiBody = request;
-	if ((headerArguments.find("content-type")->second.find("multipart/form-data;") != std::string::npos)) //check cgi
-		createBody();
 	state = SEND_RESPONSE; 
 }
 

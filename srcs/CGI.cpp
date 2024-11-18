@@ -84,6 +84,8 @@ void	CGI::child() {
     envVec.push_back("REDIRECT_STATUS=200");
     envVec.push_back("CONTENT_TYPE=" + _client.request.headerArguments["content-type"]);
     envVec.push_back("QUERY_STRING=" + createQueryString());
+    envVec.push_back("UPLOAD_PATH=" + _locationConfig.uploadPath);
+    envVec.push_back("SERVER_PATH=" + std::string(realpath(".", NULL)));
 
 	const char *env[envVec.size() + 1];
 	for (size_t i = 0; i < envVec.size(); i++)
