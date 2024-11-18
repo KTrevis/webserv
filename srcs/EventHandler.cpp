@@ -45,7 +45,6 @@ static void handleReceivedData(Server &server, epoll_event event) {
 
 
 static void	sendResponse(Server &server, Socket &client, epoll_event event) {
-	Request &request = client.request;
 	ServerConfig &config = Utils::getServerConfig(server, client);
 	std::map<int, Response>::iterator it = server.responses.find(client.getFd());
 
@@ -55,7 +54,6 @@ static void	sendResponse(Server &server, Socket &client, epoll_event event) {
 	server.responses.insert(pair);
 	it = server.responses.find(client.getFd());
 	it->second.setup();
-	request.clear();
 	event.events = EPOLLIN | EPOLLRDHUP | EPOLLHUP | EPOLLERR | EPOLLOUT;
 	server.modifyPoll(client.getFd(), event);
 }
@@ -65,7 +63,7 @@ static void handleExistingResponse(Socket &client, Response &response, Server &s
 		response.setErrorPage(client.request.resCode);
 		client.request.clear();
 	}
-	else if (response.getCGI().getScriptPath() != "") {
+	else if (client.request.method != "DELETE" && response.getCGI().getScriptPath() != "") {
 		if (!response.getCGI().isReady())
 			return;
 		response.handleCGI();
@@ -88,7 +86,6 @@ static bool isCGI(int fd, Server &server) {
 }
 
 void	EventHandler::handleEvent(Server &server, epoll_event &event) {
-	Log::Event(event.events);
 	if (event.data.fd == server._timerFd) {
 		uint64_t expirations;
 		read(server._timerFd, &expirations, sizeof(expirations));

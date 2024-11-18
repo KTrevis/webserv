@@ -281,8 +281,8 @@ void	Response::handleCGI() {
 	char buffer[1024];
 	int n = 1;
 	std::string str;
-
 	int code = _cgi._exitCode == 0 ? 200 : 500;
+
 	while (code == 200 && n) {
 		n = read(fd, buffer, 1024);
 		if (n == -1 || n == 0)
