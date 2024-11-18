@@ -150,6 +150,8 @@ static void	removeTrailingChar(std::string &str, char c) {
 }
 
 bool	Response::needRedirection(Request &request) {
+	if (request.path == "/")
+		return false;
 	if (!Utils::isFolder(_filepath) && strEndsWith(request.path, '/')) {
 		removeTrailingChar(request.path, '/');
 		redirect(request.path);
