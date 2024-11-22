@@ -100,7 +100,10 @@ void	CGI::child() {
     env[envVec.size()] = NULL;
 	execve(_binPath.c_str(), const_cast<char**>(argv), const_cast<char**>(env));
 	throw std::runtime_error("CGI failed: " + _binPath);
-	return;
+}
+
+void	CGI::clearScriptPath() {
+	_scriptPath = "";
 }
 
 void	CGI::exec() {
@@ -113,9 +116,8 @@ void	CGI::exec() {
 
 void	CGI::setArgs(const std::vector<std::string> &arr, size_t &i) {
 	i++;
-	for (;i < arr.size(); i++) {
+	for (;i < arr.size(); i++)
 		_args += arr[i];
-	}
 }
 
 void CGI::setCGI() {

@@ -95,7 +95,8 @@ void	Request::clear(bool clearState) {
 	path.clear();
 	httpVer.clear();
 	request.clear();
-	headerArguments.clear();
+	if (headerArguments.empty())
+		headerArguments.clear();
 	body.clear();
 	if (clearState)
 		state = IDLE;

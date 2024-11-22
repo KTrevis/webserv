@@ -50,7 +50,6 @@ print("\nTests without hostname:")
 for key in tests:
     testGet(tests[key], key)
 
-
 print("\nTests with hostname test.com:")
 for key in tests:
     testGet(tests[key], key, "test.com")

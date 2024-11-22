@@ -62,6 +62,7 @@ static void handleExistingResponse(Socket &client, Response &response, Server &s
 	if (client.request.resCode != 0) {
 		response.setErrorPage(client.request.resCode);
 		client.request.clear();
+		client.request.resCode = 0;
 	}
 	else if (client.request.method != "DELETE" && response.getCGI().getScriptPath() != "") {
 		if (!response.getCGI().isReady())
@@ -72,9 +73,10 @@ static void handleExistingResponse(Socket &client, Response &response, Server &s
 	else if (response.fullySent()) {
 		event.events = EPOLLIN | EPOLLHUP | EPOLLRDHUP | EPOLLERR;
 		Log::Trace("Chunk fully sent");
-		server.responses.erase(client.getFd());
 		client.request.clear();
 		client.request.cgiBody.clear();
+		server.responses.erase(client.getFd());
+		server.closeConnection(event);
 		return;
 	}
 	response.sendChunk();
@@ -108,8 +110,9 @@ void	EventHandler::handleEvent(Server &server, epoll_event &event) {
 		Response &response = it->second;
 
 		if (it != server.responses.end()) {
+			int fd = client.getFd();
 			handleExistingResponse(client, response, server, event);
-			server.modifyPoll(client.getFd(), event);
+			server.modifyPoll(fd, event);
 			return;
 		}
 		client.request.parseRequest(server, client);

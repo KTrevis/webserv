@@ -22,6 +22,7 @@ class CGI {
 		const std::string	&getBinPath() const;
 		bool				isReady();
 		void				killCGI();
+		void				clearScriptPath();
 		std::string			createQueryString();
 		const int	(&getCgiFd() const)[2];
 		std::string			body;
