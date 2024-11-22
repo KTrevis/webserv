@@ -102,10 +102,6 @@ void	CGI::child() {
 	throw std::runtime_error("CGI failed: " + _binPath);
 }
 
-void	CGI::clearScriptPath() {
-	_scriptPath = "";
-}
-
 void	CGI::exec() {
 	Log::Trace("CGI called: " + _binPath + " " + _scriptPath);
 	createPipe();
